@@ -25,6 +25,7 @@
 | :-- | :--- | :--- | :--- |
 | 01 | [AgentScope Java 2.0 vs Spring AI 2.0 选型分析](./decisions/01-agentscope-vs-springai.md) | 框架级选型：结论选 AgentScope Java 2.0（版本策略：2.0.2 实测、遇回归回退 2.0.0） | ✅ 已定，待 Phase 1 实测回执 |
 | 02 | [MelonPaw 参考评估（AS 2.0 工程范式实证）](./decisions/02-melonpaw-reference.md) | 外部工程参考：HarnessAgent 装配 / workspace 文件即配置 / 工具·中间件·权限范式；含「记忆边界待 Phase 1 重验」 | ✅ 已评估（参考，非选型） |
+| 03 | [Skylark 参考评估（Java 语音链路组件地图）](./decisions/03-skylark-voice-reference.md) | 语音链路参考（VAD/ASR/TTS/RTC 纯 Java 实现 + 全双工状态机）；agent 部分为 1.x 不参考 | ✅ 已评估（供 §15 语音选型实证） |
 
 ## 建议阅读顺序
 

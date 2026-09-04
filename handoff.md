@@ -9,18 +9,25 @@
 | 项目 | 值 |
 | :--- | :--- |
 | **Written** | 2026-09-03（v1 · 会话交接机制建立） |
-| **Updated** | 2026-09-04（v8 · Git 协作规范：AI 本地 commit、push 留用户；状态行刷新至 `884c642`） |
-| **Status** | `assessment-done` —— 文档阶段 + AgentScope 框架评估**已完成**（结论：选 AgentScope，见 `docs/decisions/01-agentscope-vs-springai.md`）；**Phase 1 实测未启动** |
+| **Updated** | 2026-09-04（v9 · 方向抉择：Java + AgentScope 定稿、第一步目标用旧 Jarvis 校准；调研收尾一次性提交 02/03/handoff，push 留用户） |
+| **Status** | `direction-locked` —— 框架方向已定：**Java + AgentScope 2.0**（decisions/01，用户 2026-09-04 明确）；第一步目标已用旧 Jarvis 校准（`agents/` 层最小闭环）；**尚无代码目录，Step A 探针待用户批准** |
 | **Branch** | `main` |
-| **Last commit** | `884c642` feat: 系统架构优化（v5–v7 文档整理一并提交，用户手动推送）；工作区干净 |
+| **Last commit** | 已推送至 `884c642`（用户手动）；本地另领先 3 commits（`36b0d83` / `122bfb5` / 本次调研收尾），**待用户手动 push** |
 | **Remote** | `git@github.com:CHEN4042/OpenLexington.git`（当前 **private**；未来可能转 public → 一律按 public 标准维护） |
-| **Previous handoff** | v1（`d68e5e3`）；v2–v8 为连续会话，本文件滚动刷新 |
+| **Previous handoff** | v1（`d68e5e3`）；v2–v9 为连续会话，本文件滚动刷新 |
 
 ---
 
 ## 1. 本次任务 · Task
 
-任务分阶段推进；最新一轮为 **v8（Git 协作规范）**，见下；v5–v7 文档整理已提交（`884c642`，用户手动推送）：
+任务分阶段推进；最新一轮为 **v9（方向抉择 + 第一步目标定义）**，见下：
+
+**v9（2026-09-04）· 方向抉择 + 第一步目标定义（本次提交，push 留用户）**
+- 方向确认：用户明确**保持 Java + AgentScope 2.0 自研**（不转向 TS 生态、不动摇 decisions/01）；OpenHanako / HomeRail 仅作设计 / 效果参考，不抄代码（OpenHanako：桌面陪伴 agent，recency-decay 记忆 + 人格文件体系 → 对应 SOUL/PROFILE/AGENTS；HomeRail：语音进、生成式 UI 出 → Phase 2+ 效果目标）。
+- 对标锚点：**旧 Jarvis**（Spring AI 自研工程，本机归档、不入库）= 432 个 Java 文件 / ~45k 行；其中手写 harness（`agents/` ≈ 9.4k 行：工具 / 技能 / 记忆 / 子 agent / 提示词装配 / SSE 事件）≈ AgentScope 2.0 内置件 → 用 AS 后角色从「实现 harness」转为「**装配 harness + 业务工具 + 人格资产**」。
+- **第一步完成定义（要到达 Jarvis 的什么程度）**：不做 Jarvis 产品完整度，做其 `agents/` 层**最小可运行闭环**（能力面约 20%；业务完成度 0、底座完成度 100%）：① 对话 → 列克星敦人格回复（persona 文件生效）；② 类型化事件流式（顺带完成 2.0.2 流式回归实测，回写 01）；③ 1 安全工具直接用 + 1 敏感工具触发 ASK；④ 记忆冒烟：重启后可检索上会话关键事实（回答 02 §4 记忆边界重验）；⑤ **workspace 首启自动生成**（AGENTS/SOUL/PROFILE/MEMORY/BOOTSTRAP.md + 目录 + 元数据）=「第一次初始化把底座搭好，之后只填充」。
+- 底座范式（参照 02 MelonPaw）：代码侧 = Agent 工厂单例装配 `HarnessAgent.builder()`（toolkit / workspace / middleware / memory / compaction / stateStore / model / permission）；workspace 侧 = 模板 md 随首启灌入 → 之后日常只填 persona / 技能 / @Tool，框架层不再动。
+- 落地两跳：**跳 1** = 仓库外探针（/tmp：Quickstart + streamEvents + @Tool + ASK + workspace 自生成 → 验证 2.0.2，产出装配片段回写 01/02）；**跳 2** = 用户批准后按需求书 §7.2 建 Maven 四模块骨架。**跳 1 已提议，等待用户批准。**
 
 **v8（2026-09-04）· Git 协作规范（已提交）**
 - 用户指示（调研 Lumina AGENTS.md 的 git 部分后）：**大改动后由 Codex 本地 commit**（Conventional Commits + 中文，大改动带 body）；**push 一律由用户手动执行**；
@@ -51,10 +58,10 @@
 
 ## 2. 当前状态 · Current State
 
-- `main` 分支：v4 命名收敛（`8625a89`）与 v5–v7 文档整理 / 系统架构优化（`884c642`）均已提交并推送（用户手动执行）；**当前工作区干净**。
-- 文件（整理后）：根目录 `README.md` / `AGENTS.md` / `handoff.md` / `.gitignore`；`docs/`：`index.md`（总索引）、`项目需求说明书 v1.2.md`、`系统架构图 v2.0.md`、`CONTEXT.md`、`decisions/01-agentscope-vs-springai.md`。
-- **尚无任何代码目录**（Maven 模块 / `web/` / `persona/` 均未创建）——用户分步确认制，等指令。
-- ✅ **隐私策略（v3 起，无论 private / public 一律适用）**：默认按 **public 标准**维护——不出现组织名称与标识、内部项目/仓库/部署细节，及个人邮箱、本机绝对路径、SSH 细节；入库前工具扫描验证；转 public 前须先重写 git 历史（历史含旧敏感内容，见 §7）。
+- `main` 分支：已推送至 `884c642`（v4–v7，用户手动）。**本地领先 3 commits 待用户 push**：`36b0d83`（Git 协作规范）→ `122bfb5`（MelonPaw 02）→ 本次（调研收尾：03 Skylark + index/02 修订 + handoff v9）。
+- 方向状态：框架方向**已锁定 Java + AgentScope 2.0**（decisions/01，用户 2026-09-04 明确）；第一步目标已定义（见 §1 v9）；**尚无任何代码目录**（Maven 模块 / `web/` / `persona/` 均未创建），探针与骨架均待用户批准。
+- 文件（当前）：根目录 `README.md` / `AGENTS.md` / `handoff.md` / `.gitignore`；`docs/`：`index.md`（总索引）、`项目需求说明书 v1.2.md`、`系统架构图 v2.0.md`、`CONTEXT.md`、`decisions/01-agentscope-vs-springai.md`、`decisions/02-melonpaw-reference.md`、`decisions/03-skylark-voice-reference.md`。
+- ✅ **隐私策略（v3 起，无论 private / public 一律适用）**：默认按 **public 标准**维护——不出现组织名称与标识、内部项目 / 仓库 / 部署细节，及个人邮箱、本机绝对路径、SSH 细节；入库前工具扫描验证；转 public 前须先重写 git 历史（历史含旧敏感内容，见 §7）。
 
 ---
 
@@ -74,8 +81,12 @@
 - **实证（v3 起不入库）**：既往 Spring AI 自研 agent 的实测表明其**缺 agent 运行时**，选它需自研 Harness（万行级）；支撑实证的 `docs/02` 因含工程细节已于 v3 移出仓库（本地归档）。建议：既有存量工程**不推翻重写**，把 AS 当下一代底座新场景试点。
 - **docs/ 档案建立**：commit `a1402b3`（README 索引 + 01 + 02）；v3 将 02 移出仓库，01 解除依赖并脱敏。
 
-### 3.3 Git 历史（本机，全部已推送）
+### 3.3 Git 历史（本机；`884c642` 及以前已推送，其后待用户 push）
 ```
+本次    docs: 调研收尾（02/03 参考评估 + handoff v9 方向定稿）                ← 待用户 push
+122bfb5  docs: 新增 02 MelonPaw 参考评估（AS 2.0 工程范式实证）              ← 待用户 push
+36b0d83  docs: 新增 Git 协作规范（AI 本地 commit，push 留用户）              ← 待用户 push
+884c642  feat: 系统架构优化（v5–v7 文档整理一并提交，用户已推送）
 8625a89  docs: 命名收敛 v1.2.1（工程代号 openlexington，双层命名，移除 L.E.X.I./Lexi）
 f08ace5  docs: 公开化脱敏 v3（移除组织/个人敏感信息，docs/02 移出仓库）
 40693cb  docs: 刷新 handoff v2（AgentScope 评估收尾；仓库转 private，恢复详细记录）
@@ -105,15 +116,18 @@ b45e6cb  Initial commit
 | 记忆三级自研 **M1 Redis / M2 PG / M3 pgvector**，AS Memory 仅桥接 | "记忆是灵魂，不外包" | ⚠️ 原则已定，实现待 Phase（不受选型影响） |
 | 首版范围：单用户、半双工语音 + 文本兜底、Web UI | 范围控制（§2.2 P0/P1/P2/暂缓） | ✅ 已定稿 |
 | 目录结构：正文文档统一归档 `docs/`（index 索引 + 项目需求说明书 v1.2 / 系统架构图 v2.0 / CONTEXT / decisions），`handoff.md` 留在仓库根目录；Maven 模块 / `web/` / `persona/` 暂不创建 | 用户分步确认制 + v5–v7 文档整理指示 | ✅ 文档整理 v5–v7 已提交（`884c642`，用户推送）；代码目录挂起 |
+| 方向：**保持 Java + AgentScope 自研**，不转向 TS 生态；OpenHanako / HomeRail 仅设计与效果参考 | 用户 2026-09-04 明确；与需求书 / 01 决策 /「记忆是灵魂 + 算法 Java 锻炼」初衷一致 | ✅ 已定稿（v9） |
+| 第一步里程碑：对标旧 Jarvis `agents/` 层**最小可运行闭环**（对话 + 流式 + 工具 + ASK + 记忆冒烟 + workspace 首启自生成），不做产品完整度 | 旧 Jarvis 手写 harness ≈ 9.4k 行 ≈ AS 2.0 内置件；底座一次成型后只填充 | ✅ 目标已定义（v9），待执行 |
 | groupId `io.github.CHEN4042.openlexington`（工程代号词根，预选） | GitHub 用户名已确认 CHEN4042 | ✅ 待建工程时用 |
 
 ---
 
 ## 5. 未决问题 · Open Issues
 
-- 🟡 **AS 评估完成但未实测**：2.0.2 的事件流/权限/沙箱/Memory 桥接是否符合文档描述，待 Phase 1 验证（尤其流式首 token 延迟）。
+- 🟡 **AS 评估完成但未实测 → 已转 Step A 探针计划**：2.0.2 的事件流 / 权限 / 沙箱 / Memory 桥接是否符合文档描述，由**仓库外探针（跳 1）**先行验证（尤其流式首 token 延迟与 02 §4 记忆边界）；**探针待用户批准开跑**。
 - 🟡 需求说明书 §15 待定事项未调研：LLM 正式选型、ASR/TTS、云服务商、人格语料、VAD 终端归属。
-- 🟡 工程命名（Maven 模块 / 包名 / Redis / 环境变量前缀 = `openlexington` 词根）为**预选**：用户对实现仍犹豫，代码落地前可能再调（需求书 §0.3 已标注）。
+- 🟡 工程命名（Maven 模块 / 包名 / Redis / 环境变量前缀 = `openlexington` 词根）为**预选**：代码落地前可能再调（需求书 §0.3 已标注）。
+- 🟡 **跳 1 / 跳 2 均待用户批准**：跳 1 = /tmp 探针验证 2.0.2（仓库外，不开代码目录）；跳 2 = 按需求书 §7.2 建 Maven 四模块骨架（届时才创建代码目录，且需用户明确指示）。
 - 🟢 系统架构图 v2.0（PlantUML）尚未实际渲染验证（低风险）。
 - 🟢 记忆 M1–M3 实现细节（Redis/PG/pgvector 选型与 schema）未设计。
 - 🟡 **git 历史含未脱敏内容**（个人邮箱 + docs/02 旧版本等）：转 public 前需重写历史（filter-repo 或重建干净分支），待用户排期指示。
@@ -124,14 +138,12 @@ b45e6cb  Initial commit
 
 按顺序执行，每步可独立验证：
 
-1. v5–v7 文档整理已完成并推送（`884c642`）；目录与命名定稿：中文描述名 + 保留版本号（见 §1）。新改动按 §7「Git 协作规范」：**Codex 本地 commit，push 一律等用户手动执行**。
-2. 随后**通读 `docs/项目需求说明书 v1.2.md` 全文**（《项目需求说明书》v1.2.1）：§0 命名体系（双层，动手前必读）、§2.2 P0 范围、§7.2 Maven 模块结构（预选）、§8 记忆 M1–M3、§12 里程碑、§16 风险。
-3. **框架评估已完成** → 直接引用 `docs/decisions/01-agentscope-vs-springai.md` 结论与版本策略，不必重复调研。
-4. **与用户确认后**：装 Maven → 按 AS 官方 Quickstart（`java.agentscope.io/v2/zh`）建 Maven 多模块骨架（`openlexington-{domain,application,infrastructure,server}` + `web/` + `persona/`），groupId `io.github.CHEN4042.openlexington`。
-5. 骨架落成后跑通最小 `HarnessAgent` 对话 + `streamEvents()` 流式 → 按 §12 Phase 1 验收（WS 首 token p95 < 2s、权限/沙箱）。
-6. 模型 key 未定：以 `dashscope:qwen-plus` 为默认示例（读 `DASHSCOPE_API_KEY`）。
-7. **（转 public 前，须用户明确指示）重写 git 历史**：清除个人邮箱与旧敏感内容（filter-repo 或 squash 为干净历史），重写后所有本地 clone 需重新同步。
-8. **会话结束前更新本文件**（根目录 `handoff.md`）：刷新 Updated / Last commit / 各章节，附本次 commit hash 供 `git log` 对账。
+1. **（等用户批准）跳 1 · 仓库外探针**：在 /tmp 起 AS 2.0 Quickstart 最小工程，依次验证：① 文本对话（裸 `main` + `HarnessAgent.builder()`）→ ② `streamEvents()` 类型化事件流式 → ③ 1 个 `@Tool` → ④ 1 条 ASK 权限规则 → ⑤ workspace 首启自动生成（模板 md 灌入）。产出：2.0.2 流式回归结论 + 装配代码片段 → **回写 decisions/01（版本结论）与 02（§4 记忆边界重验）**。探针在仓库外进行、不进 repo；API 以 2.0.2 实测为准（MelonPaw 停在 RC3，勿照抄旧 API）。
+2. **（用户批准后）跳 2 · 进 repo 建骨架**：按需求书 §7.2 建父 POM + `openlexington-{domain,application,infrastructure,server}` 四模块，groupId `io.github.CHEN4042.openlexington`；装配范式参照 02 MelonPaw（application = Agent 工厂、infrastructure = 工具 / 记忆 / 文件系统实现、server = Spring Boot 壳 + SSE/WS 网关 + InitCommand）；`web/`、`persona/` 另行指示再建。
+3. 骨架落成后跑通最小 `HarnessAgent` 对话 + 流式 → 进 Phase 1 验收（WS 首 token p95 < 2s、权限 / 沙箱满足需求书 3.2）。
+4. 模型 key 未定：默认 `dashscope:qwen-plus`（读 `DASHSCOPE_API_KEY`）作示例；正式选型仍待定（§15）。
+5. **（转 public 前，须用户明确指示）重写 git 历史**：清除个人邮箱与旧敏感内容（filter-repo 或 squash 为干净历史），重写后所有本地 clone 需重新同步。
+6. **会话结束前更新本文件**（根目录 `handoff.md`）：刷新 Updated / Last commit / 各章节，附本次 commit hash 供 `git log` 对账。
 
 ---
 
@@ -176,7 +188,7 @@ ssh -T git@github.com
 # 远端确认（应为 git@github.com:CHEN4042/OpenLexington.git）
 git remote -v
 
-# 文件清单（整理后：根目录 README/AGENTS/handoff/.gitignore；docs/ 五项 + decisions/01）
+# 文件清单（根目录 README/AGENTS/handoff/.gitignore；docs/ = index + 需求书 + 架构图 + CONTEXT + decisions/01–03）
 ls -1 && ls docs/ && ls docs/decisions/
 ```
 
@@ -194,9 +206,11 @@ ls -1 && ls docs/ && ls docs/decisions/
 | `AGENTS.md` | Codex 入口指引（须留在仓库根目录） |
 | `docs/index.md` | 文档总索引（含每份文档概括、`decisions/` 决策清单与编号约定） |
 | `docs/decisions/01-agentscope-vs-springai.md` | **选型分析（✅ 定稿）**：AgentScope 2.0 胜出 + 版本策略 |
+| `docs/decisions/02-melonpaw-reference.md` | MelonPaw 参考评估：AS 2.0 工程范式（工厂装配 / workspace 文件即配置 / 工具·权限）；§4 记忆边界待 Phase 1 重验 |
+| `docs/decisions/03-skylark-voice-reference.md` | Skylark 参考评估：语音链路组件地图（VAD / ASR / TTS / RTC），供 §15 语音选型实证 |
 | `.gitignore` | 忽略规则（含 `.DS_Store`） |
 
-> 注：docs/02（既往 Spring AI 自研实证）已于 2026-09-04 移出仓库并本地归档，不入库。
+> 注：早期 `docs/02`（既往 Spring AI 自研实证，含旧 Jarvis 工程细节）已于 2026-09-04 移出仓库并本地归档，不入库；现 `docs/decisions/02` 为新参考评估（MelonPaw），两者不同。
 
 ---
 
@@ -213,6 +227,12 @@ ls -1 && ls docs/ && ls docs/decisions/
 - GitHub（News 能力清单）：https://github.com/agentscope-ai/agentscope-java
 - Harness 详解（2026-08 博客）：https://java.agentscope.io/v2/zh/blogs/agentscope-v2-explained.html
 - Maven Central 版本核查：https://repo1.maven.org/maven2/io/agentscope/agentscope-harness/maven-metadata.xml
+
+**参考工程（decisions/02、03 评估对象与设计灵感）**
+- [melon1010/MelonPaw](https://github.com/melon1010/MelonPaw) —— AS 2.0 工程范式实证（工厂装配 / workspace 文件即配置 / 工具·权限），见 decisions/02
+- [Jashinck/Skylark](https://github.com/Jashinck/Skylark) —— 语音链路组件地图（VAD / ASR / TTS / RTC；agent 部分为 1.x 不参考），见 decisions/03
+- [monkky/openhanako](https://github.com/monkky/openhanako) —— 桌面陪伴 agent（recency-decay 记忆 / 人格文件体系），设计参考
+- [xiaotianfotos/homerail](https://github.com/xiaotianfotos/homerail) —— 语音进、生成式 UI 出（A2UI / Catalog），Phase 2+ 效果目标
 
 **Spring AI 阵营（对照组）**
 - 2.0.0 GA：https://spring.io/blog/2026/06/12/spring-ai-2-0-0-GA-available-now ；2.0.1：https://spring.io/blog/2026/08/21/spring-ai-2-0-1-available-now

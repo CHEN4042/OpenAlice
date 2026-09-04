@@ -5,7 +5,7 @@
 | 日期 | 2026-09-04 |
 | 性质 | **参考评估（非选型决策）** —— 外部开源工程实证，供 Phase 1 骨架与架构设计参考 |
 | 状态 | ✅ 已评估；其中 §4「记忆边界」对 01 结论挂 **待 Phase 1 重验** 标记 |
-| 关联 | [01 · AgentScope Java 2.0 vs Spring AI 2.0 选型分析](./01-agentscope-vs-springai.md)（框架选型）；Skylark 为语音链路参考（另评，未入库） |
+| 关联 | [01 · AgentScope Java 2.0 vs Spring AI 2.0 选型分析](./01-agentscope-vs-springai.md)（框架选型）；Skylark（语音链路）另立 [03](./03-skylark-voice-reference.md) |
 | 参考对象 | [melon1010/MelonPaw](https://github.com/melon1010/MelonPaw)（Apache-2.0）—— QwenPaw 的 Java 后端复刻，个人 AI Agent 平台 |
 
 ---
