@@ -1,30 +1,39 @@
 # Handoff · OpenLexington（L.E.X.I.N.G.T.O.N. 列克星敦）
 
-> 本文件是**给下一位接手本项目的 AI / 工程师的会话交接文档**（session handoff）。
-> 接手顺序：**先读本文件** → 再读《项目需求说明书 v1.2》（现为 v1.2.1 修订内容）→ 需要架构细节时读《系统架构图 v2.0》与 `docs/`。
+> 本文件是**给下一位接手本项目的 AI / 工程师的会话交接文档**（session handoff），位于仓库根目录 `handoff.md`（固定在根目录，不进 `docs/`）。
+> 接手顺序：**先读本文件** → `docs/index.md`（文档总索引，看概括）→ 按需选读《项目需求说明书》（`docs/项目需求说明书 v1.2.md`）等，不全量通读。
 > 维护约定：每次会话结束（换人 / 换会话 / 上下文耗尽前）更新本文件；宁可整体重写，也不叠床架屋。
 
 ## 元信息 · Metadata
 
 | 项目 | 值 |
 | :--- | :--- |
-| **Written** | 2026-09-03（v2 · AgentScope 评估完成 + docs 档案建立） |
-| **Updated** | 2026-09-04（v4 · 命名收敛：双层命名 + 工程代号 openlexington，移除 L.E.X.I. / Lexi） |
-| **Status** | `assessment-done` —— 文档阶段 + AgentScope 框架评估**已完成**（结论：选 AgentScope，见 docs/01）；**Phase 1 实测未启动** |
+| **Written** | 2026-09-03（v1 · 会话交接机制建立） |
+| **Updated** | 2026-09-04（v7 · 需求 / 架构文档名定稿：中文描述名 + 保留版本号） |
+| **Status** | `assessment-done` —— 文档阶段 + AgentScope 框架评估**已完成**（结论：选 AgentScope，见 `docs/decisions/01-agentscope-vs-springai.md`）；**Phase 1 实测未启动** |
 | **Branch** | `main` |
-| **Last commit** | `f08ace5` docs: 公开化脱敏 v3（移除组织/个人敏感信息，docs/02 移出仓库）；**工作区含 v4 命名收敛未提交改动**（含 AGENTS.md / CONTEXT.md 新增） |
+| **Last commit** | `8625a89` docs: 命名收敛 v1.2.1（已推送）；**工作区含 v5–v7 文档整理改动未提交**（已暂存，待 review） |
 | **Remote** | `git@github.com:CHEN4042/OpenLexington.git`（当前 **private**；未来可能转 public → 一律按 public 标准维护） |
-| **Previous handoff** | v1（`d68e5e3`） |
+| **Previous handoff** | v1（`d68e5e3`）；v2–v7 为连续会话，本文件滚动刷新 |
 
 ---
 
 ## 1. 本次任务 · Task
 
-任务分阶段推进；最近一轮（v4）改动已完成、**待用户 review 后提交**：
+任务分阶段推进；最近一轮（v5–v7）为**仓库文档整理**，改动已完成、**待用户 review 后提交**：
 
-**v4（2026-09-04）· 命名收敛（本次，未提交）**
-5. 命名体系四层 → **两层**：工程代号定为 `openlexington`（对齐 GitHub 仓库名 OpenLexington）；移除短缩写 L.E.X.I. 与小名 Lexi（莱克茜）；
-6. AI 自称统一为**列克星敦 / L.E.X.I.N.G.T.O.N.**（中英均可），不再引导用户叫 Lexi；工程命名规范标注"**预选，随架构落地调整**"（用户对实现路径仍犹豫）。
+**v5–v7（2026-09-04）· 仓库文档整理（本轮，未提交）**
+1. 参考 GitHub 通用文档组织惯例重构仓库结构：根目录保留 `README.md` / `AGENTS.md` / `handoff.md` / `.gitignore`；正文文档统一归档 `docs/`；
+2. 文档重命名（去掉 `L.E.X.I.N.G.T.O.N.` 前缀）：需求书 → `docs/项目需求说明书 v1.2.md`、架构图 → `docs/系统架构图 v2.0.md`、CONTEXT → `docs/CONTEXT.md`、决策 → `docs/decisions/01-agentscope-vs-springai.md`（需求 / 架构文件名**保留版本号**；版本以正文头部为准）；
+3. `docs/README.md` 更名 `docs/index.md` 并升级为**文档总索引**：每份文档附「概括 + 何时读」，确立约定 **先读 index、按需选读，不全量通读**；
+4. `handoff.md` 保持在仓库根目录（用户指示"挪出来放外面"），不进 `docs/`；
+5. `README.md` 增加「项目简介 / 当前状态 / 文档导航」；AGENTS.md / CONTEXT.md 内部引用路径同步更新；
+6. 说明：`AGENTS.md` **必须留在仓库根目录**（Codex 自动读取机制要求，不能挪入子目录），故未新建 agents 文件夹。
+7. 命名过程记录：v5–v6 曾定稿为纯中文无版本号名（`docs/项目需求说明书.md` / `docs/系统架构图.md`）；v7 按用户指示「版本号保留」改为 `项目需求说明书 v1.2.md` / `系统架构图 v2.0.md`（用户看不懂 `requirements.md` / `architecture.md` 英文短名，要求中文描述名）。
+
+**v4（2026-09-04）· 命名收敛（已提交 `8625a89`，已推送）**
+- 命名体系四层 → **两层**：工程代号定为 `openlexington`（对齐 GitHub 仓库名 OpenLexington）；移除短缩写 L.E.X.I. 与小名 Lexi（莱克茜）；
+- AI 自称统一为**列克星敦 / L.E.X.I.N.G.T.O.N.**（中英均可），不再引导用户叫 Lexi；工程命名规范标注"**预选，随架构落地调整**"（用户对实现路径仍犹豫）。
 
 **v2（2026-09-03）· AgentScope 框架评估**
 1. 完成 **AgentScope Java 2.0 vs Spring AI 实证差距分析**（公开资料 + 既往 Java Agent 工程实测）；
@@ -38,8 +47,8 @@
 
 ## 2. 当前状态 · Current State
 
-- `main` 分支；v3 脱敏 + **v4 命名收敛**改动均在工作区**未提交**（AGENTS.md / CONTEXT.md 为 untracked 新增），待用户确认后提交推送。
-- 文件：README / 需求说明书 v1.2（标题 v1.2.1，文件名未改）/ 系统架构图 v2.0 / handoff / AGENTS.md / CONTEXT.md / .gitignore / `docs/`（README + 01）。
+- `main` 分支：v4 命名收敛已提交并推送（`8625a89`）；**v5–v6 文档整理改动在工作区（已暂存）未提交**，待用户确认后 commit / push。
+- 文件（整理后）：根目录 `README.md` / `AGENTS.md` / `handoff.md` / `.gitignore`；`docs/`：`index.md`（总索引）、`项目需求说明书 v1.2.md`、`系统架构图 v2.0.md`、`CONTEXT.md`、`decisions/01-agentscope-vs-springai.md`。
 - **尚无任何代码目录**（Maven 模块 / `web/` / `persona/` 均未创建）——用户分步确认制，等指令。
 - ✅ **隐私策略（v3 起，无论 private / public 一律适用）**：默认按 **public 标准**维护——不出现组织名称与标识、内部项目/仓库/部署细节，及个人邮箱、本机绝对路径、SSH 细节；入库前工具扫描验证；转 public 前须先重写 git 历史（历史含旧敏感内容，见 §7）。
 
@@ -50,10 +59,10 @@
 ### 3.1 上一会话（v1，commit `d68e5e3` 记录）
 - 该机 SSH 认证修复；需求说明书勘误（未来日期 → 2026-09-03、记忆编号 L1-L3 → **M1–M3**、VAD 断句口径 700ms、.gitignore 加 .DS_Store）；撰写 handoff v1。细节见 `git show d68e5e3` / `be86733`。
 
-### 3.2 会话 v2（评估）与 v3（脱敏）
+### 3.2 会话 v2（评估）、v3（脱敏）与 v4（命名收敛）
 - **SSH**：曾无私钥 → 新生成密钥并注册到 GitHub CHEN4042；`ssh -T git@github.com` 验证通过。密钥不入库、换机需重配（细节不写入文档）。
 - **实证素材（本机，不入库）**：评估参考了既往 Java Agent 工程（Spring AI 自研）的实测结论——agent 运行时自研成本约万行级；工程归属与路径不写入文档。
-- **框架评估（docs/01，结论：选 AgentScope Java 2.0）**：
+- **框架评估（`docs/decisions/01-agentscope-vs-springai.md`，结论：选 AgentScope Java 2.0）**：
   - 版本事实（实测 Maven Central）：AS **2.0.2**（2026-08-09）；Spring AI **2.0.1**（2026-08-21，基于 Boot 4.1 / Spring Fw7 / Jackson 3，Boot 3 用不了；官方内核模型清单无 DashScope/Qwen）。
   - 血缘澄清：AS Java **无 Spring 依赖**（Quickstart = 裸 `main` + `HarnessAgent.builder()`）；SAA 只对齐 Spring AI 1.1.x，且 SAA 官方 FAQ 称**未来底层将采用 AS-Java** → 需求书"经 SAA 接入 AgentScope"表述**已过时**。
   - 能力对照：AS 白送 workspace/人格文件、31 种类型化事件、AgentStateStore（内存/Json/MySQL/Redis/PG）、记忆压缩策略族、权限三态 HITL、沙箱（本地/Docker/K8s/云）、子 agent、Channel（钉钉/飞书/企微）、async+scheduled wakeup、多租户隔离；Spring AI 仅在 RAG/向量生态与社区规模占优，且**工具循环/MCP 之外无 agent 运行时**。
@@ -63,6 +72,8 @@
 
 ### 3.3 Git 历史（本机，全部已推送）
 ```
+8625a89  docs: 命名收敛 v1.2.1（工程代号 openlexington，双层命名，移除 L.E.X.I./Lexi）
+f08ace5  docs: 公开化脱敏 v3（移除组织/个人敏感信息，docs/02 移出仓库）
 40693cb  docs: 刷新 handoff v2（AgentScope 评估收尾；仓库转 private，恢复详细记录）
 a1402b3  docs: 建立 docs 档案（AgentScope 选型 01 + Jarvis 实证 02，已按 public 仓库脱敏）
 d68e5e3  docs: 新增 handoff.md 会话交接文档（v1）
@@ -75,8 +86,8 @@ b45e6cb  Initial commit
 
 ### 3.4 走过的弯路 · Dead Ends（下一位勿重蹈）
 - 未确认就 commit：用户要求**完成任务先停下汇报、等明确指示再提交**（见 §7 红线第一条）。
-- 误以为“脱敏=写作时避开”即可：写作之外还要**工具扫描验证**（grep 邮箱/路径/账号/单位关键词），并覆盖 **git 历史与提交文案**；脱敏范围常漏：个人邮箱、本机绝对路径、密钥相关细节、内部仓库地址。docs/02 先按“只去标识”处理，v3 用户明确要求**不出现任何单位/组织相关字眼与信息** → 整份移出仓库。
-- 沙箱可写目录指向已删除旧路径：所有命令显式 `workdir` 到 OpenLexington + `login:false` + `shell=/bin/sh` 可恢复偶发 `CreateProcess` 报错。
+- 误以为"脱敏=写作时避开"即可：写作之外还要**工具扫描验证**（grep 邮箱/路径/账号/单位关键词），并覆盖 **git 历史与提交文案**；脱敏范围常漏：个人邮箱、本机绝对路径、密钥相关细节、内部仓库地址。docs/02 先按"只去标识"处理，v3 用户明确要求**不出现任何单位/组织相关字眼与信息** → 整份移出仓库。
+- 沙箱可写目录指向已删除旧路径：所有命令显式 `workdir` 到仓库 + `login:false` + `shell=/bin/sh` 可恢复偶发 `CreateProcess` 报错。
 
 ---
 
@@ -84,12 +95,12 @@ b45e6cb  Initial commit
 
 | 决策 | 理由 | 状态 |
 | :--- | :--- | :--- |
-| 项目名 J.A.R.V.I.S. → **L.E.X.I.N.G.T.O.N.**（列克星敦）；工程代号 **openlexington**（对齐仓库 OpenLexington）；AI 自称**列克星敦 / L.E.X.I.N.G.T.O.N.**（中英均可），不设小名 | 用户指示（2026-09-04 命名收敛：四层 → 两层，需求书 v1.2.1） | ✅ 已定稿（文档，待提交） |
-| 后端 Agent 框架选 **AgentScope Java 2.0**；版本策略 **2.0.2 实测、不过回退 2.0.0** | docs/01 完整评估：AS 白送 harness 层；2.0.1 曾有流式回归 issue | ✅ **已评估定稿**（待 Phase 1 实测回执） |
-| ~~Java 21 + Spring Boot 3 + Spring AI Alibaba~~ → **不引 Spring AI / SAA；Spring Boot 仅作 Web 壳（可选）** | AS 无 Spring 依赖、纯 POJO；SAA 仅对齐 Spring AI 1.1.x；官方模型清单无 Qwen | ✅ **已推翻并更新**（docs/01 §3） |
+| 项目名 J.A.R.V.I.S. → **L.E.X.I.N.G.T.O.N.**（列克星敦）；工程代号 **openlexington**（对齐仓库 OpenLexington）；AI 自称**列克星敦 / L.E.X.I.N.G.T.O.N.**（中英均可），不设小名 | 用户指示（2026-09-04 命名收敛：四层 → 两层，需求书 v1.2.1） | ✅ 已定稿（v4，commit `8625a89`） |
+| 后端 Agent 框架选 **AgentScope Java 2.0**；版本策略 **2.0.2 实测、遇回归回退 2.0.0** | decisions/01 完整评估：AS 白送 harness 层；2.0.1 曾有流式回归 issue | ✅ **已评估定稿**（待 Phase 1 实测回执） |
+| ~~Java 21 + Spring Boot 3 + Spring AI Alibaba~~ → **不引 Spring AI / SAA；Spring Boot 仅作 Web 壳（可选）** | AS 无 Spring 依赖、纯 POJO；SAA 仅对齐 Spring AI 1.1.x；官方模型清单无 Qwen | ✅ **已推翻并更新**（decisions/01 §3） |
 | 记忆三级自研 **M1 Redis / M2 PG / M3 pgvector**，AS Memory 仅桥接 | "记忆是灵魂，不外包" | ⚠️ 原则已定，实现待 Phase（不受选型影响） |
 | 首版范围：单用户、半双工语音 + 文本兜底、Web UI | 范围控制（§2.2 P0/P1/P2/暂缓） | ✅ 已定稿 |
-| 目录结构：`docs/` **已建**（仅公开安全内容，02 已移出）；Maven 模块 / `web/` / `persona/` 暂不创建 | 用户分步确认制 | 🕐 docs 已建，其余挂起 |
+| 目录结构：正文文档统一归档 `docs/`（index 索引 + 项目需求说明书 v1.2 / 系统架构图 v2.0 / CONTEXT / decisions），`handoff.md` 留在仓库根目录；Maven 模块 / `web/` / `persona/` 暂不创建 | 用户分步确认制 + v5–v7 文档整理指示 | ✅ 文档整理 v5–v7（未提交）；代码目录挂起 |
 | groupId `io.github.CHEN4042.openlexington`（工程代号词根，预选） | GitHub 用户名已确认 CHEN4042 | ✅ 待建工程时用 |
 
 ---
@@ -109,21 +120,21 @@ b45e6cb  Initial commit
 
 按顺序执行，每步可独立验证：
 
-1. **先 review 当前未提交改动（v4 命名收敛 + AGENTS.md / CONTEXT.md 新增）**：与用户对齐命名口径（`openlexington` 词根是否沿用、§0.3 预选表是否再调）；**用户明确指示后再 git commit / push**。
-2. 随后**通读《L.E.X.I.N.G.T.O.N. 项目需求说明书 v1.2.md》全文**（标题 v1.2.1）：§0 命名体系（双层，动手前必读）、§2.2 P0 范围、§7.2 Maven 模块结构（预选）、§8 记忆 M1–M3、§12 里程碑、§16 风险。
-3. **框架评估已完成** → 直接引用 `docs/01` 结论与版本策略，不必重复调研。
+1. **review v5–v7 文档整理改动**（`git status` 可见重命名与归档；`git diff --cached -M` 看内容级改名是否丢失）。目录与命名已按用户指示定稿：中文描述名 + 保留版本号（见 §1）；如无新指示直接进入下一步。**用户明确指示后再 git commit / push**。
+2. 随后**通读 `docs/项目需求说明书 v1.2.md` 全文**（《项目需求说明书》v1.2.1）：§0 命名体系（双层，动手前必读）、§2.2 P0 范围、§7.2 Maven 模块结构（预选）、§8 记忆 M1–M3、§12 里程碑、§16 风险。
+3. **框架评估已完成** → 直接引用 `docs/decisions/01-agentscope-vs-springai.md` 结论与版本策略，不必重复调研。
 4. **与用户确认后**：装 Maven → 按 AS 官方 Quickstart（`java.agentscope.io/v2/zh`）建 Maven 多模块骨架（`openlexington-{domain,application,infrastructure,server}` + `web/` + `persona/`），groupId `io.github.CHEN4042.openlexington`。
 5. 骨架落成后跑通最小 `HarnessAgent` 对话 + `streamEvents()` 流式 → 按 §12 Phase 1 验收（WS 首 token p95 < 2s、权限/沙箱）。
 6. 模型 key 未定：以 `dashscope:qwen-plus` 为默认示例（读 `DASHSCOPE_API_KEY`）。
 7. **（转 public 前，须用户明确指示）重写 git 历史**：清除个人邮箱与旧敏感内容（filter-repo 或 squash 为干净历史），重写后所有本地 clone 需重新同步。
-8. **会话结束前更新本文件**：刷新 Written / Last commit / 各章节，附本次 commit hash 供 `git log` 对账。
+8. **会话结束前更新本文件**（根目录 `handoff.md`）：刷新 Updated / Last commit / 各章节，附本次 commit hash 供 `git log` 对账。
 
 ---
 
 ## 7. 红线 · What NOT to Do
 
 - 🚫 **未经用户明确指示，不要 git commit / push**：完成任务先停下汇报，等用户 review 后说"提交/推送"再执行。
-- 🚫 **未经用户确认，不要创建任何新目录 / 新文件**（Maven 模块、`web/`、`persona/` 一律等指令）。
+- 🚫 **未经用户确认，不要创建代码目录 / 代码文件**（Maven 模块、`web/`、`persona/` 一律等指令）；`docs/` 内文档整理（重命名 / 归档 / 索引）可按用户指示执行。
 - 🚫 **公开化脱敏红线（v3 起，无论 private / public 一律适用）**：
   - 不出现**单位/组织相关字眼与信息**（组织名称与标识、内部项目名、内部仓库地址、内网/统一认证等部署事实，及任何可关联到具体工作单位或工作环境的内容）；
   - 不出现**个人敏感信息**：邮箱、手机/地址、本机绝对路径、设备/用户名、SSH 密钥细节；
@@ -161,8 +172,8 @@ ssh -T git@github.com
 # 远端确认（应为 git@github.com:CHEN4042/OpenLexington.git）
 git remote -v
 
-# 文件清单（应含 docs/：README + 01）
-ls -1 && ls docs/
+# 文件清单（整理后：根目录 README/AGENTS/handoff/.gitignore；docs/ 五项 + decisions/01）
+ls -1 && ls docs/ && ls docs/decisions/
 ```
 
 ---
@@ -171,12 +182,14 @@ ls -1 && ls docs/
 
 | 文件 | 作用 |
 | :--- | :--- |
-| `handoff.md` | 本文件：会话交接入口，先读它 |
-| `L.E.X.I.N.G.T.O.N. 项目需求说明书 v1.2.md` | **核心规格**：命名体系 / 功能 / 技术选型 / 架构 / 记忆 / 里程碑 / 风险 |
-| `L.E.X.I.N.G.T.O.N. 系统架构图 v2.0.md` | PlantUML 源码：AgentScope 运行时版架构图 |
-| `README.md` | 项目门面：Logo 与状态徽章 |
-| `docs/README.md` | docs 档案索引（编号规则 `NN-主题.md`、只追加不改写） |
-| `docs/01-选型-AgentScope-vs-SpringAI-2.0.md` | **选型分析（✅ 定稿）**：AgentScope 2.0 胜出 + 版本策略 |
+| `handoff.md` | 本文件（仓库根目录）：会话交接入口，先读它 |
+| `docs/项目需求说明书 v1.2.md` | **核心规格**（《项目需求说明书》v1.2.1）：命名体系 / 功能 / 技术选型 / 架构 / 记忆 / 里程碑 / 风险 |
+| `docs/系统架构图 v2.0.md` | PlantUML 源码：AgentScope 运行时版架构图 |
+| `docs/CONTEXT.md` | 共享语言与术语速查（速查，非规格） |
+| `README.md` | 项目门面：Logo、状态徽章、文档导航 |
+| `AGENTS.md` | Codex 入口指引（须留在仓库根目录） |
+| `docs/index.md` | 文档总索引（含每份文档概括、`decisions/` 决策清单与编号约定） |
+| `docs/decisions/01-agentscope-vs-springai.md` | **选型分析（✅ 定稿）**：AgentScope 2.0 胜出 + 版本策略 |
 | `.gitignore` | 忽略规则（含 `.DS_Store`） |
 
 > 注：docs/02（既往 Spring AI 自研实证）已于 2026-09-04 移出仓库并本地归档，不入库。
@@ -202,4 +215,4 @@ ls -1 && ls docs/
 - SAA vs AgentScope 定位（官方团队博客）：http://java2ai.com/en/blog/saa-agentscope-announcement/
 
 ---
-**End of Handoff** — 下一次会话结束时，请按第 6 节刷新本文件；git 操作须先获用户明确指示。
+**End of Handoff** — 下一次会话结束时，请按第 6 节刷新本文件（根目录 `handoff.md`）；git 操作须先获用户明确指示。
