@@ -24,6 +24,7 @@
 | 编号 | 文档 | 概括 | 状态 |
 | :-- | :--- | :--- | :--- |
 | 01 | [AgentScope Java 2.0 vs Spring AI 2.0 选型分析](./decisions/01-agentscope-vs-springai.md) | 框架级选型：结论选 AgentScope Java 2.0（版本策略：2.0.2 实测、遇回归回退 2.0.0） | ✅ 已定，待 Phase 1 实测回执 |
+| 02 | [MelonPaw 参考评估（AS 2.0 工程范式实证）](./decisions/02-melonpaw-reference.md) | 外部工程参考：HarnessAgent 装配 / workspace 文件即配置 / 工具·中间件·权限范式；含「记忆边界待 Phase 1 重验」 | ✅ 已评估（参考，非选型） |
 
 ## 建议阅读顺序
 
