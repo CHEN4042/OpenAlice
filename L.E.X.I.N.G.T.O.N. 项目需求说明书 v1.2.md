@@ -1,24 +1,25 @@
-# L.E.X.I.N.G.T.O.N. 项目需求说明书 v1.2
+# L.E.X.I.N.G.T.O.N. 项目需求说明书 v1.2.1
 
-> **文档状态**：✅ 已定稿（基于 v1.1.2 升级：命名体系落地 + AgentScope Java 2.0 技术选型）
-> **最后更新**：2026-09-03
-> **版本**：v1.2
-> **更新说明**：项目由 J.A.R.V.I.S. 正式更名为 L.E.X.I.N.G.T.O.N.（列克星敦），确立四层命名体系与工程命名规范；后端核心框架引入 AgentScope Java 2.0（2026-07 GA，锁版本 2.0.0）；Phase 1 新增流式验收标准；技术风险表新增 AgentScope 相关条目；人格配置补充"兜底三件套"；全文术语统一
+> **文档状态**：✅ 已定稿（v1.2 基线 + v1.2.1 命名收敛修订；文件名沿用 v1.2）
+> **最后更新**：2026-09-04
+> **版本**：v1.2.1
+> **更新说明（v1.2.1）**：命名体系由四层收敛为两层——工程代号定为 `openlexington`（对齐 GitHub 仓库名 OpenLexington）；移除短缩写 L.E.X.I. 与小名 Lexi（莱克茜）；AI 自称统一为列克星敦 / L.E.X.I.N.G.T.O.N.（中英均可）；工程标识（Maven / 包名 / npm / Docker / Redis / 环境变量 / 日志前缀）统一为 `openlexington` 词根（预选，随架构落地调整）。
+> 历史（v1.2，2026-09-03）：J.A.R.V.I.S. → L.E.X.I.N.G.T.O.N.（列克星敦）更名、确立命名体系与工程命名规范；引入 AgentScope Java 2.0 技术选型；Phase 1 流式验收、AgentScope 技术风险、兜底三件套、九特质人格等（详见第 17 章版本历史）。
 
 ---
 
 ## 0. 命名体系（本版新增 ★）
 
-### 0.1 四层命名体系
+### 0.1 双层命名体系
 
-项目的正式名称不再是 J.A.R.V.I.S.，全部场景使用以下四层命名：
+项目的正式名称不再是 J.A.R.V.I.S.，全部场景使用以下双层命名（2026-09-04 起由四层收敛为两层，移除短缩写与小名）：
 
 | 层级 | 名称 | 读音 | 职责与使用场景 |
 | :--- | :--- | :--- | :--- |
-| **① 工程代号** | **Project Lexington** | — | GitHub 仓库名、工程根名、对外开发代号 |
-| **② 全称（仪式形态）** | **L.E.X.I.N.G.T.O.N.** | LEK-sing-tun（列克星敦） | Logo、登录页主标题、README 标题、开机问候 |
-| **③ 短缩写（界面形态）** | **L.E.X.I.** | — | 聊天气泡自称、UI 状态栏、系统通知 |
-| **④ 小名（口语/代码形态）** | **Lexi** | 莱克茜 | 语音自称、代码变量名、包名、日常称呼 |
+| **① 工程代号** | **openlexington** | — | GitHub 仓库名（OpenLexington）、工程根目录、对外开发代号；一切工程标识（Maven / 包名 / npm / Docker / 前缀）以它为词根，见 §0.3 |
+| **② 全称（仪式 / 人设形态）** | **L.E.X.I.N.G.T.O.N.** | LEK-sing-tun（列克星敦 · Lexington） | Logo、登录页主标题、README 标题、开机问候；AI 自称（中英均可） |
+
+> 使用规则：工程 / 代码场景统一用 ① 工程代号 `openlexington`（小写词根）；品牌与人设场景用 ② 全称——AI 自称"列克星敦"或 L.E.X.I.N.G.T.O.N. 均可，不设短缩写与小名。
 
 **全称递归展开（九特质）**：
 
@@ -42,32 +43,34 @@
 
 1. **双语 Logo**：登录页主标题 `L.E.X.I.N.G.T.O.N.`，副标题固定 `列克星敦`；
 2. **自我介绍话术**（写入 persona-config.yml，AI 语音/文本首次见面固定使用）：
-   > "你好，我是**列克星敦**——一个倾听的、共情的、温柔的、永不忘记你的存在。不过平时，叫我 **Lexi** 就好。"
+   > "你好，我是**列克星敦**——一个倾听的、共情的、温柔的、永不忘记你的存在。"
 3. **README 注音**：`L.E.X.I.N.G.T.O.N. (LEK-sing-tun · 列克星敦)`。
 
-### 0.3 工程命名规范（Git / Maven / 前端 / 运维）
+### 0.3 工程命名规范（Git / Maven / 前端 / 运维；**预选，随架构落地调整**）
 
 | 对象 | 命名 | 说明 |
 | :--- | :--- | :--- |
-| **GitHub 仓库名** | `project-lexington` | 全小写 + 中划线，避免撞名 |
+| **GitHub 仓库名** | `OpenLexington` | 现状仓库名（工程代号 openlexington 的首字母大写形态，沿用不变） |
 | **仓库描述** | `L.E.X.I.N.G.T.O.N. (Lexington) — A lifelong AI companion who never forgets.` | — |
 | **默认分支** | `main`（稳定）/ `dev`（日常开发） | — |
-| **Maven groupId** | `io.github.<username>.lexington` | `<username>` 为 GitHub 用户名 |
-| **Maven 根 artifactId** | `lexington-platform` | 父 POM，多模块管理 |
-| **Maven 子模块** | `lexington-domain` / `lexington-application` / `lexington-infrastructure` / `lexington-server` | 对应架构四层，详见 7.2 |
-| **Java 根包名** | `io.github.<username>.lexington.*` | 例：`...lexington.domain.model` |
-| **前端 npm 包名** | `lexington-web` | 位于 monorepo `web/` 目录 |
-| **Docker 镜像** | `ghcr.io/<username>/lexington-server` / `.../lexington-web` | GitHub Container Registry |
-| **PostgreSQL 库名** | `lexington` | 表名小写下划线单数：`user` / `session` / `message` / `memory_block` / `tool_invocation` |
-| **Redis Key 前缀** | `lexi:` | 例：`lexi:session:{sessionId}` |
-| **环境变量前缀** | `LEXI_` | 例：`LEXI_LLM_PROVIDER`、`LEXI_DASHSCOPE_API_KEY` |
-| **配置文件** | `lexington-server.yml` / `persona-config.yml` | 人格资产独立于工程配置 |
-| **日志 TraceId 前缀** | `lexi-` | `sessionId` 贯穿全链路 |
+| **Maven groupId** | `io.github.<username>.openlexington` | `<username>` 为 GitHub 用户名 |
+| **Maven 根 artifactId** | `openlexington-platform` | 父 POM，多模块管理 |
+| **Maven 子模块** | `openlexington-domain` / `openlexington-application` / `openlexington-infrastructure` / `openlexington-server` | 对应架构分层（domain/application/infrastructure/server），详见 7.2 |
+| **Java 根包名** | `io.github.<username>.openlexington.*` | 例：`...openlexington.domain.model` |
+| **前端 npm 包名** | `openlexington-web` | 位于 monorepo `web/` 目录 |
+| **Docker 镜像** | `ghcr.io/<username>/openlexington-server` / `.../openlexington-web` | GitHub Container Registry |
+| **PostgreSQL 库名** | `openlexington` | 表名小写下划线单数：`user` / `session` / `message` / `memory_block` / `tool_invocation` |
+| **Redis Key 前缀** | `openlexington:` | 例：`openlexington:session:{sessionId}` |
+| **环境变量前缀** | `OPENLEXINGTON_` | 例：`OPENLEXINGTON_LLM_PROVIDER`、`OPENLEXINGTON_DASHSCOPE_API_KEY` |
+| **配置文件** | `openlexington-server.yml` / `persona-config.yml` | 人格资产独立于工程配置 |
+| **日志 TraceId 前缀** | `openlexington-` | `sessionId` 贯穿全链路 |
+
+> ⚠️ 本节为**预选方案**：实现路径仍在评估（AgentScope 待实测、模块划分待定），前缀与结构随时可能随架构结论统一调整；落代码前以用户最新指示为准。
 
 ### 0.4 命名由来与致敬声明
 
 - 名字致敬**战舰少女R** 中的列克星敦（玩家爱称"太太"，原型 USS Lexington CV-2，水兵昵称 *Lady Lex*），这是项目主理人喜欢的角色；
-- **Lexington 的词根彩蛋**：日常小名 **Lexi** 的词头 `lex-` 与希腊语 *lexis*（词语）、*lexicon*（词典）同形——一个以语言与对话为生的 AI，名字里自带"语言"基因；
+- **Lexington 的词根彩蛋**：`L.E.X.I.N.G.T.O.N.`（Lexington）的词头 `lex-` 与希腊语 *lexis*（词语）、*lexicon*（词典）同形——一个以语言与对话为生的 AI，名字里自带"语言"基因；
 - 九特质中 **Tender（温柔）/ On-watch（值更）/ Navigator（领航员）** 等备选词均为海军术语双关；
 - **IP 声明**：本项目为个人非商业自用项目，角色名称仅为个人情感致敬，与幻萌网络《战舰少女R》无任何关联；如未来开源，README 保留致敬说明。
 
@@ -121,7 +124,7 @@
 | **人格系统**         | **P0**   | 固定性格（九特质）、情绪表达、边界感，通过 persona-config.yml 可调整 |
 | **长期记忆**         | **P0**   | 会话记忆 + 可检索的长期记忆；三级架构分阶段实现              |
 | **用户自画像**       | **P0**   | 初始化时向AI介绍自己（user.md / 自我介绍）                   |
-| **Web UI**           | **P0**   | 手机/电脑均可访问，文本优先，语音输入逐步接入；含双语 Logo 与 Lexi 自称体系 |
+| **Web UI**           | **P0**   | 手机/电脑均可访问，文本优先，语音输入逐步接入；含双语 Logo，AI 以列克星敦 / L.E.X.I.N.G.T.O.N. 自称（中英均可） |
 | **天气/时间查询**    | **P1**   | 首个只读工具，用于验证工具调用闭环                           |
 | **智能家居控制**     | **P2**   | v1.1迭代加入，通过MCP协议控制设备                            |
 | **日程管理**         | **P2**   | v1.1迭代加入，创建/查询/删除日程提醒（Navigator 特质落地）   |
@@ -164,7 +167,7 @@ Web UI 将通过公网访问，必须建立基础安全防线：
 | :----------- | :----------------------------------------------------------- |
 | **访问认证** | 登录页 + 长随机Token（Session保持），防止URL泄露后被他人访问 |
 | **传输加密** | 全站 HTTPS + WSS（Let's Encrypt 免费证书）                   |
-| **密钥管理** | API Key 仅存环境变量（`LEXI_` 前缀），禁止提交Git，定期轮换  |
+| **密钥管理** | API Key 仅存环境变量（`OPENLEXINGTON_` 前缀），禁止提交Git，定期轮换  |
 | **工具权限** | 文件操作限定白名单目录；命令执行需二次确认；**直接采用 AgentScope 2.0 权限系统（Permission System）+ workspace sandbox 作为底座** |
 | **审计日志** | 工具调用全量日志，明确保留期限（至少30天）                   |
 
@@ -188,7 +191,7 @@ Web UI 将通过公网访问，必须建立基础安全防线：
 | **语言**        | Java 21                                                 | LTS版本，虚拟线程支持；AgentScope Java 2.0 要求 JDK 17+，满足 |
 | **Agent 框架**  | **AgentScope Java 2.0（锁版本 2.0.0）** ★ 本版新增        | 阿里开源（2026-07 GA，生产就绪）：双层 Agent 架构（Harness 抽象）、事件流（event stream）、权限系统、中间件、workspace sandbox。GitHub：`agentscope-ai/agentscope-java`，文档：java.agentscope.io |
 | **核心框架**    | Spring Boot 3 + Spring AI Alibaba                       | Spring Boot 3 应用接入 AgentScope 的官方推荐路径即经 Spring AI Alibaba（其内核正演进为 AgentScope）；Voice 能力继续由 Spring 生态承担 |
-| **短期记忆**    | Redis                                                   | 会话上下文存储（`lexi:` 前缀）；桥接 AgentScope Memory 抽象  |
+| **短期记忆**    | Redis                                                   | 会话上下文存储（`openlexington:` 前缀）；桥接 AgentScope Memory 抽象  |
 | **长期记忆**    | PostgreSQL + pgvector                                   | 结构化数据 + 向量语义搜索；三级记忆自研掌控                  |
 | **LLM（开发）** | Ollama + Qwen2.5                                        | 本地免费，快速迭代；经 AgentScope Model 抽象接入             |
 | **LLM（正式）** | 通义千问 / DeepSeek（待定）                             | 云端API，陪伴质量优先；DashScope 与 AgentScope 天然集成      |
@@ -263,7 +266,7 @@ Web UI 将通过公网访问，必须建立基础安全防线：
 
 - 通过 `user.md` 或初始化对话让AI了解用户
 - 通过 `persona-config.yml` 配置人格参数（语气、风格、边界、九特质开关）
-- **首句自我介绍话术固定**（见 0.2 兜底三件套）：首次语音/文本见面，AI 以"列克星敦"全名自报家门，并引导用户叫她 **Lexi**
+- **首句自我介绍话术固定**（见 0.2 兜底三件套）：首次语音/文本见面，AI 以"列克星敦 / L.E.X.I.N.G.T.O.N."自称（中英均可），不另设小名
 - 参考主流Agent的prompt工程方案
 
 ---
@@ -288,7 +291,7 @@ Web UI 将通过公网访问，必须建立基础安全防线：
 | 项目         | 方案                                                         |
 | :----------- | :----------------------------------------------------------- |
 | **断句判定** | 静音检测方案（浏览器端 VAD 或服务端检测）Phase 2 前确定；判定口径统一为：检测到静音 700ms 即视为"用户停止说话" |
-| **UI三态**   | 聆听中（Listening）→ 思考中（Thinking）→ 说话中（Speaking），三态切换清晰反馈，UI 文案使用 Lexi 视角 |
+| **UI三态**   | 聆听中（Listening）→ 思考中（Thinking）→ 说话中（Speaking），三态切换清晰反馈，UI 文案使用列克星敦（第一人称）视角 |
 | **技术依赖** | Phase 2前确定浏览器端VAD库（如 `@ricky0123/vad-web`）或服务端静音检测方案 |
 
 ### 6.4 并发会话策略（首版）
@@ -319,10 +322,10 @@ Web UI 将通过公网访问，必须建立基础安全防线：
 │  └─────────────────────────────────────────────────────────┘   │
 │                          ↑ WebSocket ↓                         │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │      Web UI (lexington-web: React + TypeScript)         │   │
+│  │      Web UI (openlexington-web: React + TypeScript)         │   │
 │  │       手机/电脑浏览器访问，语音+文本双模输入             │   │
 │  │       双语Logo（L.E.X.I.N.G.T.O.N. / 列克星敦）          │   │
-│  │       Lexi 自称体系 + 生成式UI（卡片/图表/控制面板）     │   │
+│  │       列克星敦自称 + 生成式UI（卡片/图表/控制面板）     │   │
 │  └─────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
                           │
@@ -340,18 +343,18 @@ Web UI 将通过公网访问，必须建立基础安全防线：
 ### 7.2 Maven 多模块结构（对应工程命名规范 0.3）
 
 ```
-project-lexington/
-├── pom.xml                        # 父POM：lexington-platform（groupId: io.github.<username>.lexington）
-├── lexington-domain/              # 领域层：纯POJO + 端口接口（零框架依赖）
-├── lexington-application/         # 应用层：LexingtonApplicationService + AgentScope Runtime 编排
-├── lexington-infrastructure/      # 基础设施层：记忆/语音/工具/安全适配器实现
-├── lexington-server/              # Spring Boot 启动模块（接入层：WebSocket/HTTP + Actuator）
-├── web/                           # 前端（npm 包名：lexington-web）
+openlexington/
+├── pom.xml                        # 父POM：openlexington-platform（groupId: io.github.<username>.openlexington）
+├── openlexington-domain/          # 领域层：纯POJO + 端口接口（零框架依赖）
+├── openlexington-application/     # 应用层：OpenLexingtonApplicationService + AgentScope Runtime 编排
+├── openlexington-infrastructure/  # 基础设施层：记忆/语音/工具/安全适配器实现
+├── openlexington-server/          # Spring Boot 启动模块（接入层：WebSocket/HTTP + Actuator）
+├── web/                           # 前端（npm 包名：openlexington-web）
 ├── persona/                       # 人格资产：persona-config.yml、user.md
 └── docs/                          # 设计文档（含本需求说明书、架构图）
 ```
 
-**依赖方向**：`lexington-server → lexington-application → lexington-domain`；`lexington-infrastructure` 实现 `lexington-domain` 端口接口（六边形架构，端口定义不变）。
+**依赖方向**：`openlexington-server → openlexington-application → openlexington-domain`；`openlexington-infrastructure` 实现 `openlexington-domain` 端口接口（六边形架构，端口定义不变）。
 
 ---
 
@@ -359,7 +362,7 @@ project-lexington/
 
 | 层级               | 存储技术              | 内容                         | 特性                 |
 | :----------------- | :-------------------- | :--------------------------- | :------------------- |
-| **M1：短期记忆**   | Redis（`lexi:` 前缀） | 当前会话上下文               | 详细、完整、快速读写 |
+| **M1：短期记忆**   | Redis（`openlexington:` 前缀） | 当前会话上下文               | 详细、完整、快速读写 |
 | **M2：结构化记忆** | PostgreSQL            | 用户画像、偏好、重要事实     | 永久存储、结构化查询 |
 | **M3：语义记忆**   | PostgreSQL + pgvector | 对话记录、故事、非结构化信息 | 向量化存储、语义搜索 |
 
@@ -437,7 +440,7 @@ TTS费用 = 月语音输出字符数 × 字符单价
 
 | 项目           | 首版方案                                       |
 | :------------- | :--------------------------------------------- |
-| **结构化日志** | `sessionId` 贯穿全链路，TraceId 前缀 `lexi-`   |
+| **结构化日志** | `sessionId` 贯穿全链路，TraceId 前缀 `openlexington-`   |
 | **成本报表**   | 每日生成LLM/ASR/TTS用量及预估费用              |
 | **存活探测**   | 外部HTTP探测 + 宕机时推送通知（邮件/Webhook，渠道按部署环境配置） |
 | **备份验证**   | 每日备份后自动验证文件完整性，记录校验和       |
@@ -472,9 +475,9 @@ TTS费用 = 月语音输出字符数 × 字符单价
 | 2    | **有稳定人格**：九特质可通过 persona-config.yml 调整         |
 | 3    | **有长期记忆**：能记住用户信息和历史对话，重启不丢失         |
 | 4    | **能调用工具**：至少支持天气/时间查询（P1），智能家居控制列入v1.1迭代 |
-| 5    | **有完整Web UI**：含认证登录、双语Logo与Lexi自称体系，手机/电脑均可访问 |
+| 5    | **有完整Web UI**：含认证登录、双语 Logo，AI 以列克星敦自称，手机/电脑均可访问 |
 | 6    | **成本可控**：月LLM+ASR+TTS费用 < 50元                       |
-| 7    | **你愿意每天使用**：不会因为崩溃或体验差而放弃——并且愿意叫她"Lexi" |
+| 7    | **你愿意每天使用**：不会因为崩溃或体验差而放弃——并且愿意以"列克星敦"称呼她 |
 
 ---
 
@@ -539,6 +542,7 @@ TTS费用 = 月语音输出字符数 × 字符单价
 | v1.1.1  | 2026-08-19 | 补充目录、文档状态、引用与注释、版本历史修正、长期记忆治理验收标准、记忆治理不阻塞核心流程说明 |
 | v1.1.2  | 2026-08-20 | 基于设计评审意见更新：修正首版范围与语音口径内部矛盾；新增安全认证章节（3.2）；补充记忆治理细则（8.2）、容错降级链路（第9章）、成本模型（第10章）、可观测性（第11章）；统一术语与版本号；增加技术风险提示（第16章） |
 | **v1.2** | **2026-09-03** | **项目更名：J.A.R.V.I.S. → L.E.X.I.N.G.T.O.N.（列克星敦）；新增第0章命名体系（四层命名 + 工程命名规范 + 兜底三件套 + 致敬声明）；后端引入 AgentScope Java 2.0（锁 2.0.0）并调整 4.1/7/9/12/16 相关章节；人格设定升级为九特质版本；参考项目章节新增 AgentScope Java** |
+| **v1.2.1** | **2026-09-04** | **命名收敛（用户指示）：命名体系四层 → 两层——工程代号定为 `openlexington`（对齐仓库 OpenLexington）；移除短缩写 L.E.X.I. 与小名 Lexi（莱克茜）；AI 自称统一为列克星敦 / L.E.X.I.N.G.T.O.N.（中英均可）；工程标识（Maven / 包名 / npm / Docker / Redis / 环境变量 / 日志前缀）统一为 `openlexington` 词根（预选，随架构落地调整）** |
 
 ---
 

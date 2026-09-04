@@ -1,7 +1,7 @@
 # Handoff · OpenLexington（L.E.X.I.N.G.T.O.N. 列克星敦）
 
 > 本文件是**给下一位接手本项目的 AI / 工程师的会话交接文档**（session handoff）。
-> 接手顺序：**先读本文件** → 再读《项目需求说明书 v1.2》→ 需要架构细节时读《系统架构图 v2.0》与 `docs/`。
+> 接手顺序：**先读本文件** → 再读《项目需求说明书 v1.2》（现为 v1.2.1 修订内容）→ 需要架构细节时读《系统架构图 v2.0》与 `docs/`。
 > 维护约定：每次会话结束（换人 / 换会话 / 上下文耗尽前）更新本文件；宁可整体重写，也不叠床架屋。
 
 ## 元信息 · Metadata
@@ -9,10 +9,10 @@
 | 项目 | 值 |
 | :--- | :--- |
 | **Written** | 2026-09-03（v2 · AgentScope 评估完成 + docs 档案建立） |
-| **Updated** | 2026-09-04（v3 · 公开化脱敏：移除组织相关/个人敏感信息，默认按 public 标准维护） |
+| **Updated** | 2026-09-04（v4 · 命名收敛：双层命名 + 工程代号 openlexington，移除 L.E.X.I. / Lexi） |
 | **Status** | `assessment-done` —— 文档阶段 + AgentScope 框架评估**已完成**（结论：选 AgentScope，见 docs/01）；**Phase 1 实测未启动** |
 | **Branch** | `main` |
-| **Last commit** | `cbaa6da` docs: 公开化脱敏 v3（移除组织/个人敏感信息，docs/02 移出仓库） |
+| **Last commit** | `f08ace5` docs: 公开化脱敏 v3（移除组织/个人敏感信息，docs/02 移出仓库）；**工作区含 v4 命名收敛未提交改动**（含 AGENTS.md / CONTEXT.md 新增） |
 | **Remote** | `git@github.com:CHEN4042/OpenLexington.git`（当前 **private**；未来可能转 public → 一律按 public 标准维护） |
 | **Previous handoff** | v1（`d68e5e3`） |
 
@@ -20,7 +20,11 @@
 
 ## 1. 本次任务 · Task
 
-任务分两个阶段，均已完成：
+任务分阶段推进；最近一轮（v4）改动已完成、**待用户 review 后提交**：
+
+**v4（2026-09-04）· 命名收敛（本次，未提交）**
+5. 命名体系四层 → **两层**：工程代号定为 `openlexington`（对齐 GitHub 仓库名 OpenLexington）；移除短缩写 L.E.X.I. 与小名 Lexi（莱克茜）；
+6. AI 自称统一为**列克星敦 / L.E.X.I.N.G.T.O.N.**（中英均可），不再引导用户叫 Lexi；工程命名规范标注"**预选，随架构落地调整**"（用户对实现路径仍犹豫）。
 
 **v2（2026-09-03）· AgentScope 框架评估**
 1. 完成 **AgentScope Java 2.0 vs Spring AI 实证差距分析**（公开资料 + 既往 Java Agent 工程实测）；
@@ -34,8 +38,8 @@
 
 ## 2. 当前状态 · Current State
 
-- `main` 分支；脱敏改动完成，待用户确认后提交推送。
-- 文件：README / 需求说明书 v1.2 / 系统架构图 v2.0 / handoff / .gitignore / `docs/`（README + 01）。
+- `main` 分支；v3 脱敏 + **v4 命名收敛**改动均在工作区**未提交**（AGENTS.md / CONTEXT.md 为 untracked 新增），待用户确认后提交推送。
+- 文件：README / 需求说明书 v1.2（标题 v1.2.1，文件名未改）/ 系统架构图 v2.0 / handoff / AGENTS.md / CONTEXT.md / .gitignore / `docs/`（README + 01）。
 - **尚无任何代码目录**（Maven 模块 / `web/` / `persona/` 均未创建）——用户分步确认制，等指令。
 - ✅ **隐私策略（v3 起，无论 private / public 一律适用）**：默认按 **public 标准**维护——不出现组织名称与标识、内部项目/仓库/部署细节，及个人邮箱、本机绝对路径、SSH 细节；入库前工具扫描验证；转 public 前须先重写 git 历史（历史含旧敏感内容，见 §7）。
 
@@ -80,13 +84,13 @@ b45e6cb  Initial commit
 
 | 决策 | 理由 | 状态 |
 | :--- | :--- | :--- |
-| 项目名 J.A.R.V.I.S. → **L.E.X.I.N.G.T.O.N.**（列克星敦），AI 自称 **Lexi** | 用户更名，四层命名体系（§0） | ✅ 已定稿（文档） |
+| 项目名 J.A.R.V.I.S. → **L.E.X.I.N.G.T.O.N.**（列克星敦）；工程代号 **openlexington**（对齐仓库 OpenLexington）；AI 自称**列克星敦 / L.E.X.I.N.G.T.O.N.**（中英均可），不设小名 | 用户指示（2026-09-04 命名收敛：四层 → 两层，需求书 v1.2.1） | ✅ 已定稿（文档，待提交） |
 | 后端 Agent 框架选 **AgentScope Java 2.0**；版本策略 **2.0.2 实测、不过回退 2.0.0** | docs/01 完整评估：AS 白送 harness 层；2.0.1 曾有流式回归 issue | ✅ **已评估定稿**（待 Phase 1 实测回执） |
 | ~~Java 21 + Spring Boot 3 + Spring AI Alibaba~~ → **不引 Spring AI / SAA；Spring Boot 仅作 Web 壳（可选）** | AS 无 Spring 依赖、纯 POJO；SAA 仅对齐 Spring AI 1.1.x；官方模型清单无 Qwen | ✅ **已推翻并更新**（docs/01 §3） |
 | 记忆三级自研 **M1 Redis / M2 PG / M3 pgvector**，AS Memory 仅桥接 | "记忆是灵魂，不外包" | ⚠️ 原则已定，实现待 Phase（不受选型影响） |
 | 首版范围：单用户、半双工语音 + 文本兜底、Web UI | 范围控制（§2.2 P0/P1/P2/暂缓） | ✅ 已定稿 |
 | 目录结构：`docs/` **已建**（仅公开安全内容，02 已移出）；Maven 模块 / `web/` / `persona/` 暂不创建 | 用户分步确认制 | 🕐 docs 已建，其余挂起 |
-| groupId `io.github.CHEN4042.lexington` | GitHub 用户名已确认 CHEN4042 | ✅ 待建工程时用 |
+| groupId `io.github.CHEN4042.openlexington`（工程代号词根，预选） | GitHub 用户名已确认 CHEN4042 | ✅ 待建工程时用 |
 
 ---
 
@@ -94,6 +98,7 @@ b45e6cb  Initial commit
 
 - 🟡 **AS 评估完成但未实测**：2.0.2 的事件流/权限/沙箱/Memory 桥接是否符合文档描述，待 Phase 1 验证（尤其流式首 token 延迟）。
 - 🟡 需求说明书 §15 待定事项未调研：LLM 正式选型、ASR/TTS、云服务商、人格语料、VAD 终端归属。
+- 🟡 工程命名（Maven 模块 / 包名 / Redis / 环境变量前缀 = `openlexington` 词根）为**预选**：用户对实现仍犹豫，代码落地前可能再调（需求书 §0.3 已标注）。
 - 🟢 系统架构图 v2.0（PlantUML）尚未实际渲染验证（低风险）。
 - 🟢 记忆 M1–M3 实现细节（Redis/PG/pgvector 选型与 schema）未设计。
 - 🟡 **git 历史含未脱敏内容**（个人邮箱 + docs/02 旧版本等）：转 public 前需重写历史（filter-repo 或重建干净分支），待用户排期指示。
@@ -104,13 +109,14 @@ b45e6cb  Initial commit
 
 按顺序执行，每步可独立验证：
 
-1. **通读《L.E.X.I.N.G.T.O.N. 项目需求说明书 v1.2.md》全文**：§0 命名体系（动手前必读）、§2.2 P0 范围、§7.2 Maven 模块结构、§8 记忆 M1–M3、§12 里程碑、§16 风险。
-2. **框架评估已完成** → 直接引用 `docs/01` 结论与版本策略，不必重复调研。
-3. **与用户确认后**：装 Maven → 按 AS 官方 Quickstart（`java.agentscope.io/v2/zh`）建 Maven 多模块骨架（domain / application / infrastructure / server + `web/` + `persona/`），groupId `io.github.CHEN4042.lexington`。
-4. 骨架落成后跑通最小 `HarnessAgent` 对话 + `streamEvents()` 流式 → 按 §12 Phase 1 验收（WS 首 token p95 < 2s、权限/沙箱）。
-5. 模型 key 未定：以 `dashscope:qwen-plus` 为默认示例（读 `DASHSCOPE_API_KEY`）。
-6. **（转 public 前，须用户明确指示）重写 git 历史**：清除个人邮箱与旧敏感内容（filter-repo 或 squash 为干净历史），重写后所有本地 clone 需重新同步。
-7. **会话结束前更新本文件**：刷新 Written / Last commit / 各章节，附本次 commit hash 供 `git log` 对账。
+1. **先 review 当前未提交改动（v4 命名收敛 + AGENTS.md / CONTEXT.md 新增）**：与用户对齐命名口径（`openlexington` 词根是否沿用、§0.3 预选表是否再调）；**用户明确指示后再 git commit / push**。
+2. 随后**通读《L.E.X.I.N.G.T.O.N. 项目需求说明书 v1.2.md》全文**（标题 v1.2.1）：§0 命名体系（双层，动手前必读）、§2.2 P0 范围、§7.2 Maven 模块结构（预选）、§8 记忆 M1–M3、§12 里程碑、§16 风险。
+3. **框架评估已完成** → 直接引用 `docs/01` 结论与版本策略，不必重复调研。
+4. **与用户确认后**：装 Maven → 按 AS 官方 Quickstart（`java.agentscope.io/v2/zh`）建 Maven 多模块骨架（`openlexington-{domain,application,infrastructure,server}` + `web/` + `persona/`），groupId `io.github.CHEN4042.openlexington`。
+5. 骨架落成后跑通最小 `HarnessAgent` 对话 + `streamEvents()` 流式 → 按 §12 Phase 1 验收（WS 首 token p95 < 2s、权限/沙箱）。
+6. 模型 key 未定：以 `dashscope:qwen-plus` 为默认示例（读 `DASHSCOPE_API_KEY`）。
+7. **（转 public 前，须用户明确指示）重写 git 历史**：清除个人邮箱与旧敏感内容（filter-repo 或 squash 为干净历史），重写后所有本地 clone 需重新同步。
+8. **会话结束前更新本文件**：刷新 Written / Last commit / 各章节，附本次 commit hash 供 `git log` 对账。
 
 ---
 
@@ -125,7 +131,7 @@ b45e6cb  Initial commit
   - 入库前工具扫描验证（grep 邮箱/路径/账号/单位关键词）；转 public 前先重写历史。
 - 🚫 **不要把"技术预选"当"已定架构"**：AS 尚未实测，随时可能回退 2.0.0 或双轨。
 - 🚫 **不要混用编号**：记忆层级 **M1–M3**；隐私分级 **L1/L2**（§3.3）。维度不同。
-- 🚫 **不要改动**需求说明书中的命名体系、人格、兜底三件套、致敬声明（项目灵魂）。
+- 🚫 命名体系 / 人格 / 兜底三件套 / 致敬声明 = 项目灵魂：**无用户明确指示不改动**（2026-09-04 已按用户指示收敛为双层命名，需求书 §0 已同步）。
 - 🚫 不提交 `.DS_Store`、SSH 私钥、口令、token；不混淆本仓库与第三方 `OpenLexington/OpenLexington`（本仓库归属 **CHEN4042**）。
 - 🚫 不要大包大揽一次性实现：当前阶段"文档只做参考、逐步推进"，先对齐再动手。
 
@@ -134,7 +140,7 @@ b45e6cb  Initial commit
 ## 8. 项目背景 · Context for Continuation
 
 - **项目是什么**：面向**唯一用户本人**的 AI 陪伴助手 —— "一个倾听的、共情的、温柔的、永不忘记你的存在"。核心价值是**情绪陪伴 + 深度交互**，记忆是灵魂。
-- **命名**：原名 J.A.R.V.I.S. → 现名 L.E.X.I.N.G.T.O.N.（列克星敦，LEK-sing-tun），AI 自称 **Lexi**；技术文档保持客观，行文尊重设定。
+- **命名**：原名 J.A.R.V.I.S. → 现名 L.E.X.I.N.G.T.O.N.（列克星敦，LEK-sing-tun）；工程代号 `openlexington`（对齐仓库）；AI 自称**列克星敦 / L.E.X.I.N.G.T.O.N.**（中英均可），**不设短缩写与小名**；技术文档保持客观，行文尊重设定。
 - **设计灵感**：HomeRail（语音优先 + 生成式 UI + DAG 可追溯）；参考不抄代码：OpenJarvis（本地/隐私优先）、jarvis-ai-platform（分层思路，Spring AI 实现）。
 - **交互形态**：语音为主（半双工点按说话，首版）、文本兜底；前端由 AI 全权开发，用户不写前端。
 - **开发节奏**：6 个月 / Phase 1–9（§12），每 Phase 留 10–20% 缓冲；本地 LLM 为 Ollama + Qwen2.5，正式待选（通义 / DeepSeek / GLM）。
