@@ -41,6 +41,10 @@ OpenLexington/
 - 禁止出现：组织名称与标识、内部项目 / 仓库 / 部署细节、个人邮箱（含工作邮箱）、本机绝对路径与用户名、SSH 细节、密钥 token。
 - 提交身份只用 GitHub 账号（noreply 优先）；转 public 前必须先重写 git 历史（历史含旧敏感内容）。
 
+## Git 协作规范
+- **commit：AI 负责本地提交**。完成大改动（文档整理 / 架构调整 / 代码骨架等）后由 Codex 本地 `git commit`；message 遵循 Conventional Commits：`<type>(<scope>): <中文 subject>`（type：feat / fix / docs / style / refactor / perf / test / chore / build）；大型变更在 body 简述「改了什么、为什么」。
+- **push：一律由用户手动执行**。Codex 不执行 `git push`；涉及远端的操作（推送、改写 git 历史、转 public 前处理）均由用户执行。
+
 ## 沟通与行文
 - 中文沟通（技术名词可英文）；本产品面向唯一用户本人，行文尊重设定（AI 自称列克星敦 / L.E.X.I.N.G.T.O.N.，中英均可），技术文档保持客观。
 - 命名双层体系（§0）：工程代号 `openlexington`（仓库 / 工程根 / 工程标识前缀，预选）/ 全称 L.E.X.I.N.G.T.O.N.（列克星敦；品牌、人设与 AI 自称，中英均可）。

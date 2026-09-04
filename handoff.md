@@ -9,20 +9,24 @@
 | 项目 | 值 |
 | :--- | :--- |
 | **Written** | 2026-09-03（v1 · 会话交接机制建立） |
-| **Updated** | 2026-09-04（v7 · 需求 / 架构文档名定稿：中文描述名 + 保留版本号） |
+| **Updated** | 2026-09-04（v8 · Git 协作规范：AI 本地 commit、push 留用户；状态行刷新至 `884c642`） |
 | **Status** | `assessment-done` —— 文档阶段 + AgentScope 框架评估**已完成**（结论：选 AgentScope，见 `docs/decisions/01-agentscope-vs-springai.md`）；**Phase 1 实测未启动** |
 | **Branch** | `main` |
-| **Last commit** | `8625a89` docs: 命名收敛 v1.2.1（已推送）；**工作区含 v5–v7 文档整理改动未提交**（已暂存，待 review） |
+| **Last commit** | `884c642` feat: 系统架构优化（v5–v7 文档整理一并提交，用户手动推送）；工作区干净 |
 | **Remote** | `git@github.com:CHEN4042/OpenLexington.git`（当前 **private**；未来可能转 public → 一律按 public 标准维护） |
-| **Previous handoff** | v1（`d68e5e3`）；v2–v7 为连续会话，本文件滚动刷新 |
+| **Previous handoff** | v1（`d68e5e3`）；v2–v8 为连续会话，本文件滚动刷新 |
 
 ---
 
 ## 1. 本次任务 · Task
 
-任务分阶段推进；最近一轮（v5–v7）为**仓库文档整理**，改动已完成、**待用户 review 后提交**：
+任务分阶段推进；最新一轮为 **v8（Git 协作规范）**，见下；v5–v7 文档整理已提交（`884c642`，用户手动推送）：
 
-**v5–v7（2026-09-04）· 仓库文档整理（本轮，未提交）**
+**v8（2026-09-04）· Git 协作规范（已提交）**
+- 用户指示（调研 Lumina AGENTS.md 的 git 部分后）：**大改动后由 Codex 本地 commit**（Conventional Commits + 中文，大改动带 body）；**push 一律由用户手动执行**；
+- `AGENTS.md` 新增「Git 协作规范」小节；`handoff.md` 同步冲突旧表述（§6 #1 / §7 第一条 / §8 沟通偏好 / §3.4 弯路记录）并刷新状态行。
+
+**v5–v7（2026-09-04）· 仓库文档整理（已提交 `884c642`，用户手动推送）**
 1. 参考 GitHub 通用文档组织惯例重构仓库结构：根目录保留 `README.md` / `AGENTS.md` / `handoff.md` / `.gitignore`；正文文档统一归档 `docs/`；
 2. 文档重命名（去掉 `L.E.X.I.N.G.T.O.N.` 前缀）：需求书 → `docs/项目需求说明书 v1.2.md`、架构图 → `docs/系统架构图 v2.0.md`、CONTEXT → `docs/CONTEXT.md`、决策 → `docs/decisions/01-agentscope-vs-springai.md`（需求 / 架构文件名**保留版本号**；版本以正文头部为准）；
 3. `docs/README.md` 更名 `docs/index.md` 并升级为**文档总索引**：每份文档附「概括 + 何时读」，确立约定 **先读 index、按需选读，不全量通读**；
@@ -47,7 +51,7 @@
 
 ## 2. 当前状态 · Current State
 
-- `main` 分支：v4 命名收敛已提交并推送（`8625a89`）；**v5–v6 文档整理改动在工作区（已暂存）未提交**，待用户确认后 commit / push。
+- `main` 分支：v4 命名收敛（`8625a89`）与 v5–v7 文档整理 / 系统架构优化（`884c642`）均已提交并推送（用户手动执行）；**当前工作区干净**。
 - 文件（整理后）：根目录 `README.md` / `AGENTS.md` / `handoff.md` / `.gitignore`；`docs/`：`index.md`（总索引）、`项目需求说明书 v1.2.md`、`系统架构图 v2.0.md`、`CONTEXT.md`、`decisions/01-agentscope-vs-springai.md`。
 - **尚无任何代码目录**（Maven 模块 / `web/` / `persona/` 均未创建）——用户分步确认制，等指令。
 - ✅ **隐私策略（v3 起，无论 private / public 一律适用）**：默认按 **public 标准**维护——不出现组织名称与标识、内部项目/仓库/部署细节，及个人邮箱、本机绝对路径、SSH 细节；入库前工具扫描验证；转 public 前须先重写 git 历史（历史含旧敏感内容，见 §7）。
@@ -85,7 +89,7 @@ b45e6cb  Initial commit
 > ⚠️ **git 历史含旧敏感内容**（个人邮箱、docs/02 历史版本等）：仅清洗工作区文件不够——**转 public 前必须重写历史**（squash / filter-repo），需用户明确指示后执行。
 
 ### 3.4 走过的弯路 · Dead Ends（下一位勿重蹈）
-- 未确认就 commit：用户要求**完成任务先停下汇报、等明确指示再提交**（见 §7 红线第一条）。
+- 推送纪律演进：早期规则曾为「完成任务先停下汇报、等明确指示再 commit / push」；**2026-09-04（v8）起改为「大改动后 AI 本地 commit、push 一律留用户手动」**（见 §7）；commit 前仍须先跑脱敏扫描。
 - 误以为"脱敏=写作时避开"即可：写作之外还要**工具扫描验证**（grep 邮箱/路径/账号/单位关键词），并覆盖 **git 历史与提交文案**；脱敏范围常漏：个人邮箱、本机绝对路径、密钥相关细节、内部仓库地址。docs/02 先按"只去标识"处理，v3 用户明确要求**不出现任何单位/组织相关字眼与信息** → 整份移出仓库。
 - 沙箱可写目录指向已删除旧路径：所有命令显式 `workdir` 到仓库 + `login:false` + `shell=/bin/sh` 可恢复偶发 `CreateProcess` 报错。
 
@@ -100,7 +104,7 @@ b45e6cb  Initial commit
 | ~~Java 21 + Spring Boot 3 + Spring AI Alibaba~~ → **不引 Spring AI / SAA；Spring Boot 仅作 Web 壳（可选）** | AS 无 Spring 依赖、纯 POJO；SAA 仅对齐 Spring AI 1.1.x；官方模型清单无 Qwen | ✅ **已推翻并更新**（decisions/01 §3） |
 | 记忆三级自研 **M1 Redis / M2 PG / M3 pgvector**，AS Memory 仅桥接 | "记忆是灵魂，不外包" | ⚠️ 原则已定，实现待 Phase（不受选型影响） |
 | 首版范围：单用户、半双工语音 + 文本兜底、Web UI | 范围控制（§2.2 P0/P1/P2/暂缓） | ✅ 已定稿 |
-| 目录结构：正文文档统一归档 `docs/`（index 索引 + 项目需求说明书 v1.2 / 系统架构图 v2.0 / CONTEXT / decisions），`handoff.md` 留在仓库根目录；Maven 模块 / `web/` / `persona/` 暂不创建 | 用户分步确认制 + v5–v7 文档整理指示 | ✅ 文档整理 v5–v7（未提交）；代码目录挂起 |
+| 目录结构：正文文档统一归档 `docs/`（index 索引 + 项目需求说明书 v1.2 / 系统架构图 v2.0 / CONTEXT / decisions），`handoff.md` 留在仓库根目录；Maven 模块 / `web/` / `persona/` 暂不创建 | 用户分步确认制 + v5–v7 文档整理指示 | ✅ 文档整理 v5–v7 已提交（`884c642`，用户推送）；代码目录挂起 |
 | groupId `io.github.CHEN4042.openlexington`（工程代号词根，预选） | GitHub 用户名已确认 CHEN4042 | ✅ 待建工程时用 |
 
 ---
@@ -120,7 +124,7 @@ b45e6cb  Initial commit
 
 按顺序执行，每步可独立验证：
 
-1. **review v5–v7 文档整理改动**（`git status` 可见重命名与归档；`git diff --cached -M` 看内容级改名是否丢失）。目录与命名已按用户指示定稿：中文描述名 + 保留版本号（见 §1）；如无新指示直接进入下一步。**用户明确指示后再 git commit / push**。
+1. v5–v7 文档整理已完成并推送（`884c642`）；目录与命名定稿：中文描述名 + 保留版本号（见 §1）。新改动按 §7「Git 协作规范」：**Codex 本地 commit，push 一律等用户手动执行**。
 2. 随后**通读 `docs/项目需求说明书 v1.2.md` 全文**（《项目需求说明书》v1.2.1）：§0 命名体系（双层，动手前必读）、§2.2 P0 范围、§7.2 Maven 模块结构（预选）、§8 记忆 M1–M3、§12 里程碑、§16 风险。
 3. **框架评估已完成** → 直接引用 `docs/decisions/01-agentscope-vs-springai.md` 结论与版本策略，不必重复调研。
 4. **与用户确认后**：装 Maven → 按 AS 官方 Quickstart（`java.agentscope.io/v2/zh`）建 Maven 多模块骨架（`openlexington-{domain,application,infrastructure,server}` + `web/` + `persona/`），groupId `io.github.CHEN4042.openlexington`。
@@ -133,7 +137,7 @@ b45e6cb  Initial commit
 
 ## 7. 红线 · What NOT to Do
 
-- 🚫 **未经用户明确指示，不要 git commit / push**：完成任务先停下汇报，等用户 review 后说"提交/推送"再执行。
+- 🚫 **push：一律由用户手动执行**。Codex 只做本地 commit（大改动完成后自行提交，遵循 Conventional Commits + 中文，见 AGENTS.md「Git 协作规范」）；**未经用户指示不执行 `git push`** 及远端操作（改写历史 / 转 public 处理）。
 - 🚫 **未经用户确认，不要创建代码目录 / 代码文件**（Maven 模块、`web/`、`persona/` 一律等指令）；`docs/` 内文档整理（重命名 / 归档 / 索引）可按用户指示执行。
 - 🚫 **公开化脱敏红线（v3 起，无论 private / public 一律适用）**：
   - 不出现**单位/组织相关字眼与信息**（组织名称与标识、内部项目名、内部仓库地址、内网/统一认证等部署事实，及任何可关联到具体工作单位或工作环境的内容）；
@@ -156,7 +160,7 @@ b45e6cb  Initial commit
 - **交互形态**：语音为主（半双工点按说话，首版）、文本兜底；前端由 AI 全权开发，用户不写前端。
 - **开发节奏**：6 个月 / Phase 1–9（§12），每 Phase 留 10–20% 缓冲；本地 LLM 为 Ollama + Qwen2.5，正式待选（通义 / DeepSeek / GLM）。
 - **环境事实**：macOS + zsh；GitHub 账号 CHEN4042；开发在 2 台 macOS 间进行，文档**不记录本机绝对路径/用户名**（防公开泄露）。
-- **沟通偏好**：中文沟通（技术名词可用英文），回答保持中文；提交习惯：直接 push `main`，无 PR 流程（但**须先获用户指示**）。
+- **沟通偏好**：中文沟通（技术名词可用英文），回答保持中文；提交习惯：Codex 本地 commit（Conventional Commits + 中文）、**push 由用户手动执行**，直接推 `main`，无 PR 流程。
 
 ---
 
