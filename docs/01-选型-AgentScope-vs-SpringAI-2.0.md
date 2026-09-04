@@ -5,14 +5,14 @@
 | 日期 | 2026-09-03 |
 | 决策 | ✅ **选 AgentScope Java 2.0**；Spring Boot 仅作 Web 壳，**不引入 Spring AI / Spring AI Alibaba** |
 | 状态 | 结论已定；依赖 **Phase 1 流式实测回执**（见 §7 风险与对策） |
-| 关联 | 实证证据见 [02-Jarvis-实证分析](./02-实证-Jarvis-SpringAI-vs-AgentScope.md)；预选出处《需求说明书 v1.2》§4/§14.1 |
+| 关联 | 预选出处《需求说明书 v1.2》§4/§14.1；原实证附录（02）因含既往工程细节已于 2026-09-04 移出仓库 |
 
 ---
 
 ## 1. 评估背景
 
 - 目标：为 L.E.X.I.N.G.T.O.N.（单用户陪伴型 AI，语音为主 + 文本兜底，**记忆是灵魂**）确定后端 Agent 底座。
-- 候选：AgentScope Java 2.0（新事物，学习价值高） vs Spring AI 2.0（企业生态成熟）。
+- 候选：AgentScope Java 2.0（新事物，学习价值高） vs Spring AI 2.0（生态与社区成熟）。
 - 前提：本机 JDK 17 已够 AS 运行（AS 要求 17+）；Java 21 为文档预选，非硬约束。
 - 用户定位：算法工程师 + Java agent 工程师；选型同时承担"锻炼算法 + Java agent 工程能力"的目的。
 
@@ -55,9 +55,9 @@
 
 ## 5. 决定性差异
 
-1. **定位层级不同**：Spring AI 是"模型接入 + 工具调用"的**模型层**；AgentScope Java 2.0 是 **ReAct 内核之上再叠 Harness 工程层**的**完整 agent 底座**。本项目要的 workspace/人格、记忆沉淀、权限、事件流、子 agent，Spring AI 全都不提供，需要像公司 Jarvis 那样**自研 ~1 万行**（见 02 号实证文档）。
+1. **定位层级不同**：Spring AI 是“模型接入 + 工具调用”的**模型层**；AgentScope Java 2.0 是 **ReAct 内核之上再叠 Harness 工程层**的**完整 agent 底座**。本项目要的 workspace/人格、记忆沉淀、权限、事件流、子 agent，Spring AI 全都不提供 → 选它意味着 agent 运行时需自研（既往 Spring AI 工程实测：万行级，细节不随本文公开）。
 2. **记忆定位契合**：本项目记忆 M1–M3 自研（Redis/PG/pgvector）是"记忆是灵魂、不外包"的既定决策——**该决策不受选型影响**；AS 的 Memory 仅作桥接，正好保留 M2/M3 的算法锻炼点。
-3. **白送底座**：AS 额外提供 workspace、事件流、权限、沙箱、子 agent、Channel、scheduled wakeup 等 Jarvis 手搓过的能力，降低首版工程量。
+3. **白送底座**：AS 额外提供 workspace、事件流、权限、沙箱、子 agent、Channel、scheduled wakeup 等既往 Spring AI 自研工程中需手工实现的对应能力，降低首版工程量。
 
 ## 6. 对 L.E.X.I.N.G.T.O.N. 决策的影响
 
@@ -78,7 +78,7 @@
 
 ## 8. 结论
 
-**选 AgentScope Java 2.0**。它把"agent 运行时 + Harness 工程层"作为第一公民，与项目"人格/记忆/陪伴"的产品重心契合；Spring AI 阵营仅在 RAG/社区规模占优，且其 agent 运行时缺口已被公司 Jarvis 的 ~1 万行自研代码实证（见 02）。以 2.0.2 实测启动 Phase 1，保留回退 2.0.0 的版本策略。
+**选 AgentScope Java 2.0**。它把“agent 运行时 + Harness 工程层”作为第一公民，与项目“人格/记忆/陪伴”的产品重心契合；Spring AI 阵营仅在 RAG/社区规模占优，且其 agent 运行时缺口已被既往 Spring AI 自研工程的万行级投入所证实。以 2.0.2 实测启动 Phase 1，保留回退 2.0.0 的版本策略。
 
 ---
 *本文档为决策记录；与《需求说明书 v1.2》§4/§14.1 的预选冲突处以本文档为准，需求书相关小节待回写。*
