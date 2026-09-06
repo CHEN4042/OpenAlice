@@ -10,9 +10,9 @@
 | :--- | :--- |
 | **Written** | 2026-09-03（v1 · 会话交接机制建立） |
 | **Updated** | 2026-09-06（v10 · 项目更名 OpenAlice + 全仓同步 + 命名体系瘦身） |
-| **Status** | `direction-locked` + `renamed` —— 框架方向已定：**Java + AgentScope 2.0**（decisions/01）；项目已更名 **OpenAlice**（品牌形态 **A.L.I.C.E.** · 爱丽丝，工程代号 `openalice`）；**v10 改动尚未提交，等待用户 review 后指示**；尚无代码目录，Step A 探针待用户批准 |
+| **Status** | `direction-locked` + `renamed` —— 框架方向已定：**Java + AgentScope 2.0**（decisions/01）；项目已更名 **OpenAlice**（品牌形态 **A.L.I.C.E.** · 爱丽丝，工程代号 `openalice`）；**v10 已提交并推送（`4fe654e`，用户指示直接 push）；GitHub 仓库改名 OpenAlice 待用户操作**；尚无代码目录，Step A 探针待用户批准 |
 | **Branch** | `main` |
-| **Last commit** | 已全部推送至 `8c73b81`（用户手动）；本次 v10 改名**未提交** |
+| **Last commit** | 已推送至 `4fe654e`（v10 更名提交，用户指示直接 push；GitHub 仓库改名 OpenAlice 后本地 remote 同步为新地址） |
 | **Remote** | 当前 `git@github.com:CHEN4042/OpenLexington.git`（private）；**待用户在 GitHub 将仓库改名为 OpenAlice**（远端 301 自动跳转；本地 `git remote set-url git@github.com:CHEN4042/OpenAlice.git` 一并更新） |
 | **Previous handoff** | v1（`d68e5e3`）；v2–v10 为连续会话，本文件滚动刷新 |
 
@@ -22,7 +22,7 @@
 
 任务分阶段推进；最新一轮为 **v10（2026-09-06）· 项目更名 OpenAlice + 命名体系瘦身**，见下：
 
-**v10（2026-09-06）· 项目更名 OpenAlice（本次改动，未提交）**
+**v10（2026-09-06）· 项目更名 OpenAlice（已提交 `4fe654e` 并推送，用户指示直接 push）**
 - 用户拍板：项目名 **OpenLexington → OpenAlice**（工程代号 `openalice`）；品牌 / 人设形态 **A.L.I.C.E.**（点分大写），中文名 / AI 自称 **爱丽丝**（中英均可）；读音 `/ˈælɪs/`。
 - **删除**：全称递归展开为九特质（Listening / Empathetic / Xenial / Intimate / Nurturing / Growing / Trustworthy / Open-hearted / Navigator）、字母↔需求映射表、"名字即人格说明书"、README 特质展开行、战舰少女R / 航母 / lex- 词根致敬——命名不再承担"人格说明书"职能。
 - **改写**：九特质人格表述 → 不绑定名字的普通人格条目（倾听 / 共情呵护 / 温柔亲切 / 坦诚边界 / 亲密 / 成长可信赖 / 生活领航 / 情绪状态），语义保留（需求书 §5.1）；"九特质开关"→"人格维度开关"；"Navigator 特质"引用 →"生活领航"表述。
@@ -55,7 +55,7 @@
 
 ## 2. 当前状态 · Current State
 
-- `main` 分支：已全部推送至 `8c73b81`（v9 调研收尾，用户手动）。**v10 改名改动未提交**，等用户 review 后指示。
+- `main` 分支：已推送至 `4fe654e`（v10 更名提交，用户指示直接 push）；GitHub 仓库改名 OpenAlice 待用户操作。
 - 方向状态：框架方向**已锁定 Java + AgentScope 2.0**（decisions/01）；第一步目标已定义（§1 v9）；**尚无任何代码目录**（Maven 模块 / `web/` / `persona/` 均未创建），探针与骨架均待用户批准。
 - 文件（当前）：根目录 `README.md` / `AGENTS.md` / `handoff.md` / `.gitignore`；`docs/`：`index.md`（总索引）、`项目需求说明书 v1.2.md`（正文 v1.3）、`系统架构图 v2.0.md`、`CONTEXT.md`、`decisions/01-agentscope-vs-springai.md`、`decisions/02-melonpaw-reference.md`、`decisions/03-skylark-voice-reference.md`、`decisions/04-openalice-renaming.md`（v10 新增）。
 - ✅ **隐私策略（v3 起，无论 private / public 一律适用）**：默认按 **public 标准**维护——不出现组织名称与标识、内部项目 / 仓库 / 部署细节，及个人邮箱、本机绝对路径、SSH 细节；入库前工具扫描验证；转 public 前须先重写 git 历史（历史含旧敏感内容，见 §7）。
@@ -100,7 +100,7 @@ d68e5e3  docs: 新增 handoff.md 会话交接文档（v1）
 
 | 决策 | 理由 | 状态 |
 | :--- | :--- | :--- |
-| 项目名 **OpenAlice**（品牌 / 人设形态 **A.L.I.C.E.** · 爱丽丝，/ˈælɪs/）；工程代号 **openalice**；AI 自称**爱丽丝 / A.L.I.C.E.**（中英均可）；删除九特质递归展开与旧致敬，改 Alice 三重灵感 + 无关联声明 | 用户指示（2026-09-06 更名 OpenAlice；对应 handoff v10 / 需求书 v1.3 / ADR 04） | ✅ 已定稿（v10，待 commit） |
+| 项目名 **OpenAlice**（品牌 / 人设形态 **A.L.I.C.E.** · 爱丽丝，/ˈælɪs/）；工程代号 **openalice**；AI 自称**爱丽丝 / A.L.I.C.E.**（中英均可）；删除九特质递归展开与旧致敬，改 Alice 三重灵感 + 无关联声明 | 用户指示（2026-09-06 更名 OpenAlice；对应 handoff v10 / 需求书 v1.3 / ADR 04） | ✅ 已定稿并提交（v10 · `4fe654e`） |
 | 命名沿革：J.A.R.V.I.S. → L.E.X.I.N.G.T.O.N.（列克星敦，v1.2 / `8625a89`）→ **OpenAlice（A.L.I.C.E. 爱丽丝，v1.3 / v10）** | 用户两次更名指示 | ✅ 历史已定稿 |
 | 后端 Agent 框架选 **AgentScope Java 2.0**；版本策略 **2.0.2 实测、遇回归回退 2.0.0** | decisions/01 完整评估：AS 白送 harness 层；2.0.1 曾有流式回归 issue | ✅ **已评估定稿**（待 Phase 1 实测回执） |
 | ~~Java 21 + Spring Boot 3 + Spring AI Alibaba~~ → **不引 Spring AI / SAA；Spring Boot 仅作 Web 壳（可选）** | AS 无 Spring 依赖、纯 POJO；SAA 仅对齐 Spring AI 1.1.x；官方模型清单无 Qwen | ✅ **已推翻并更新**（decisions/01 §3） |
