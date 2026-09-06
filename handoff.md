@@ -12,7 +12,7 @@
 | 阶段 | Phase 1 implementation |
 | 分支 | `main` |
 | 当前架构 | 根目录四模块：`openalice-core / openalice-memory / openalice-agent / openalice-server` |
-| Git 状态 | 本轮文档 + 代码骨架变更未 commit / push |
+| Git 状态 | Phase 1 初始架构已提交并推送到 `origin/main`，工作区干净 |
 
 ## 1. 用户最新确认
 
@@ -20,7 +20,7 @@
 2. **取消 `service/` 聚合层**。
 3. 四个 Maven 模块直接放在仓库根目录。
 4. 更新相关文档后，直接开始写最基础版本代码。
-5. 本轮完成后等待用户 review；不要主动 commit，push 一律由用户手动执行。
+5. 用户已确认本轮提交并推送；后续仍默认不主动 commit / push，除非用户明确指示。
 
 ## 2. 当前架构
 
@@ -139,11 +139,9 @@ curl -X POST http://localhost:8080/api/v1/chat \
 
 ## 6. 下一步
 
-1. 用户 review 本轮结构与代码。
-2. 确认后用户指示 commit（AI 不主动提交，push 由用户执行）。
-3. 后续如需继续微调 AgentScope Harness 安全面，可研究内置 `wait_async_results` 工具是否能完全关闭；Phase 1 其他不需要的 Harness 能力已默认关闭。
-4. 下一步优先二选一：接入真实 LLM model，或先设计持久化 memory / M1。
-5. 后续可统一 `PersonaPrompt` 与 `AgentRuntimeProperties.systemPrompt` 的关系；当前二者内容接近，Phase 1 尚未形成行为差异。
+1. 下一步优先二选一：接入真实 LLM model，或先设计持久化 memory / M1。
+2. 后续如需继续微调 AgentScope Harness 安全面，可研究内置 `wait_async_results` 工具是否能完全关闭；Phase 1 其他不需要的 Harness 能力已默认关闭。
+3. 后续可统一 `PersonaPrompt` 与 `AgentRuntimeProperties.systemPrompt` 的关系；当前二者内容接近，Phase 1 尚未形成行为差异。
 
 ---
 **End of Handoff** — 下一位接手者先读本文件，再动手。
