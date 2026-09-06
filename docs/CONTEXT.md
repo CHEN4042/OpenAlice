@@ -1,38 +1,45 @@
 # CONTEXT.md · 共享语言与术语速查
 
-> 目的：给 Codex / 协作者一个**最小共识词汇表**，避免每次用长句重述概念（省 token、防偏差、统一命名）。
-> 性质：**速查索引，不是规格**。一切以《项目需求说明书》与 `docs/` 决策为准；权威层级与冲突处理见根目录 `AGENTS.md`。
-> 维护：新增术语或决策落地时同步更新；保持精简，别写成第二份需求书。
+> 目的：给 Codex / 协作者一个最小共识词汇表，避免每次用长句重述概念。
+> 性质：速查索引，不是规格。以《项目需求说明书》与 `docs/decisions/` 最新决策为准。
 
 ## 一句话定位
-A.L.I.C.E.（爱丽丝）= 面向**唯一用户本人**的 AI 陪伴助手 —— "一个倾听的、共情的、温柔的、永不忘记你的存在"。情绪陪伴 + 深度交互，**记忆是灵魂**。
 
-## 命名双层体系（工程标识统一用 ① openalice）
+A.L.I.C.E.（爱丽丝）= 面向**唯一用户本人**的 AI 陪伴助手 —— “一个倾听的、共情的、温柔的、永不忘记你的存在”。情绪陪伴 + 深度交互，**记忆是灵魂**。
+
+## 命名双层体系
+
 | 层级 | 名称 | 使用场景 |
-| :--- | :--- | :--- |
-| ① 工程代号 | **openalice** | GitHub 仓库名（OpenAlice）、工程根目录、工程标识前缀（Maven / 包名 / 变量等，预选） |
-| ② 全称 | **A.L.I.C.E.**（爱丽丝 · Alice，/ˈælɪs/） | Logo、README 标题、开机问候；AI 自称（中英均可） |
+| :-- | :-- | :-- |
+| ① 工程代号 | **openalice** | GitHub 仓库名（OpenAlice）、Maven artifact、Java 根包 |
+| ② 全称 | **A.L.I.C.E.**（爱丽丝 · Alice，/ˈælɪs/） | Logo、README 标题、AI 自称 |
 
-> **A.L.I.C.E. 非首字母缩写**：点分形态仅为仪式 / Logo 呈现；名字取自 Alice（灵感来源见需求书 §0.4），人格表述与名字解耦（需求书 §5.1）。
+> A.L.I.C.E. 非首字母缩写；点分形态仅为仪式 / Logo 呈现。人格表述与名字解耦。
+
+## 当前技术结论
+
+- Agent 框架：AgentScope Java 2.0.2，Phase 1 实测；如关键回归可回退 2.0.0。
+- Web 壳：Spring Boot 3.5.16，仅用于 HTTP / 装配，不引入 Spring AI。
+- Java：17。
+- 构建：Maven 多模块，根目录聚合 `core / memory / agent / server`。
+- Phase 1 模型：`DeterministicChatModel`，不依赖外部 LLM API。
+- Phase 1 记忆：`InMemoryMemoryPort`，后续替换为 Redis / PostgreSQL / pgvector。
+- Agent 不直接依赖 memory 实现，只依赖 `core.MemoryPort`。
+- 语音、learning、插件、多 Agent 仅保留架构位置，Phase 1 不实现。
 
 ## 高频术语
-| 术语 | 含义 | 出处 |
-| :--- | :--- | :--- |
-| 发音兜底三件套 | 双语 Logo + 自我介绍话术（persona-config.yml）+ README 注音，首版必落地 | 需求书 §0.2 |
-| persona-config.yml | 人格配置文件，与工程配置分离 | 需求书 §0.3 / §5.2 |
-| 半双工语音（首版） | 点按说话 / 松开结束；全双工 + 可打断 = 技术验证目标，不计首版验收 | 需求书 §6.3 |
-| M1–M3（记忆） | M1 短期（Redis `openalice:`）→ M2 结构化（PG）→ M3 语义（PG+pgvector）；**自研掌控** | 需求书 §8 |
-| L1/L2（隐私） | L1 可上云（云端 LLM）；L2 仅本地（Ollama，不经过云 API） | 需求书 §3.3 |
-| P0/P1/P2/暂缓 | 功能优先级：P0 = 首版必交付 | 需求书 §2.1 |
-| 记忆注入预算 | 每次注入 ≤ 5 条、合计 ≤ 800 token | 需求书 §8.2 |
-| 降级链路 | 云端 LLM 异常自动切本地 Ollama 等（表见 §9） | 需求书 §9 |
 
-## 选型结论（以 `docs/decisions/01-agentscope-vs-springai.md` 为准，属"技术预选"）
-- **Agent 框架**：AgentScope Java 2.0（选型定稿，`docs/decisions/01-agentscope-vs-springai.md`）——版本策略：**按 2.0.2 实测，遇流式回归回退 2.0.0**。
-- 需求书 §4.1 / §9 中"锁 2.0.0 / 经 SAA 接入"为历史表述，**待回写**，不要当作最新结论引用。
-- 技术栈速览：Java 21 / Spring Boot 3 / Redis + PostgreSQL(+pgvector) / Ollama+Qwen2.5（开发）→ 通义 / DeepSeek（正式，待定）；Maven 多模块（模块划分见需求书 §7.2）。
+| 术语 | 含义 |
+| :-- | :-- |
+| M1–M3（记忆） | M1 短期 → M2 结构化 → M3 语义；必须自研掌控 |
+| L1/L2（隐私） | L1 可上云；L2 仅本地 |
+| P0/P1/P2/暂缓 | 功能优先级 |
+| 组合根 | `openalice-server.composition`，唯一负责依赖装配 |
+| 端口 | `openalice-core.port` 中的接口抽象 |
+| 全双工语音 | 目标形态：边听边说、可打断；Phase 1 不实现 |
 
 ## 行文与编号纪律
-- 编号维度不同，**禁止混用**：记忆 = M1–M3；隐私 = L1/L2；优先级 = P0/P1/P2/暂缓。
-- "AgentScope 尚未实测"：评估结论 ≠ 已定架构，随时可能回退或双轨。
-- 本仓库默认按 public 维护（公开安全红线见 AGENTS.md）。
+
+- 记忆 = M1–M3；隐私 = L1/L2；优先级 = P0/P1/P2/暂缓，禁止混用。
+- 参考项目与需求书只作参考，不约束最终实现。
+- 仓库按 public 安全标准维护。

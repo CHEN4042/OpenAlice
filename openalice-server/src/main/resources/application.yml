@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: openalice
+
+server:
+  port: 8080
+
