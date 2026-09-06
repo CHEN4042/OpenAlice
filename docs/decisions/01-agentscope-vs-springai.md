@@ -11,7 +11,7 @@
 
 ## 1. 评估背景
 
-- 目标：为 L.E.X.I.N.G.T.O.N.（单用户陪伴型 AI，语音为主 + 文本兜底，**记忆是灵魂**）确定后端 Agent 底座。
+- 目标：为 **OpenAlice**（A.L.I.C.E. · 爱丽丝，单用户陪伴型 AI，语音为主 + 文本兜底，**记忆是灵魂**）确定后端 Agent 底座。
 - 候选：AgentScope Java 2.0（新事物，学习价值高） vs Spring AI 2.0（生态与社区成熟）。
 - 前提：本机 JDK 17 已够 AS 运行（AS 要求 17+）；Java 21 为文档预选，非硬约束。
 - 用户定位：算法工程师 + Java agent 工程师；选型同时承担"锻炼算法 + Java agent 工程能力"的目的。
@@ -59,7 +59,7 @@
 2. **记忆定位契合**：本项目记忆 M1–M3 自研（Redis/PG/pgvector）是"记忆是灵魂、不外包"的既定决策——**该决策不受选型影响**；AS 的 Memory 仅作桥接，正好保留 M2/M3 的算法锻炼点。
 3. **白送底座**：AS 额外提供 workspace、事件流、权限、沙箱、子 agent、Channel、scheduled wakeup 等既往 Spring AI 自研工程中需手工实现的对应能力，降低首版工程量。
 
-## 6. 对 L.E.X.I.N.G.T.O.N. 决策的影响
+## 6. 对 OpenAlice 决策的影响
 
 - ✅ 后端底座：**AgentScope Java 2.0**（maven 坐标 `io.agentscope:*`）。
 - ✅ Web 壳：Spring Boot 仅作可选项（如需 REST/WS/静态资源托管），**不引 Spring AI / SAA**。

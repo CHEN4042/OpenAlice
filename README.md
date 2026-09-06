@@ -1,13 +1,11 @@
 <div align="center">
 
 
-# L.E.X.I.N.G.T.O.N.
+# A.L.I.C.E.
 
-### 列克星敦
+### 爱丽丝
 
-*(LEK-sing-tun)*
-
-**L**istening · **E**mpathetic · **X**enial · **I**ntimate — **N**urturing · **G**rowing · **T**rustworthy · **O**pen-hearted **N**avigator
+*(/ˈælɪs/ · Alice)*
 
 *一个倾听的、共情的、温柔的、永不忘记你的存在。*
 *A lifelong AI companion who never forgets.*
@@ -25,6 +23,8 @@
 
 面向**唯一用户本人**的 AI 陪伴助手 —— 情绪陪伴 + 深度交互，**记忆是灵魂**。当前处于文档与框架评估阶段，尚无代码。
 
+> ℹ️ 项目代号 **OpenAlice**（工程词根 `openalice`）；个人独立项目，与 GitHub 上任何同名 / 近似项目（如 `TraderAlice/OpenAlice` 等）**无任何关联**。
+
 ## 当前状态
 
 - 📄 **评估完成，尚无代码**：需求 / 架构 / 选型文档已就绪，Phase 1 未启动。
@@ -36,7 +36,7 @@
 | :--- | :--- |
 | [docs/index.md](docs/index.md) | 文档总索引：先读它，按需选读（建议入口） |
 | [handoff.md](handoff.md) | 会话交接：下一位 AI / 协作者先读 |
-| [docs/项目需求说明书 v1.2.md](docs/项目需求说明书%20v1.2.md) | 项目需求说明书 v1.2.1（核心规格） |
+| [docs/项目需求说明书 v1.2.md](docs/项目需求说明书%20v1.2.md) | 项目需求说明书 v1.3（核心规格） |
 | [docs/系统架构图 v2.0.md](docs/系统架构图%20v2.0.md) | 系统架构图（PlantUML 源码） |
 | [docs/CONTEXT.md](docs/CONTEXT.md) | 共享语言与术语速查 |
 | [docs/decisions/](docs/decisions/) | 技术决策记录（ADR） |

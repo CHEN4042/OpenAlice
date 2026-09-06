@@ -1,6 +1,6 @@
 # docs · 文档索引（index.md）
 
-> L.E.X.I.N.G.T.O.N.（列克星敦 · 工程代号 openlexington）的**文档统一入口**。
+> A.L.I.C.E.（爱丽丝 · 工程代号 openalice）的**文档统一入口**。
 > **读取约定：先读本索引 → 按「何时读」判断是否需要打开对应文件 → 不全量通读所有文档。**
 > 根目录保留：`README.md`（项目门面）、`AGENTS.md`（Codex 入口指引，须留根目录）、`handoff.md`（会话交接）。
 
@@ -15,7 +15,7 @@
 ### docs/ 归档
 | 文档 | 概括 | 何时读 |
 | :--- | :--- | :--- |
-| [项目需求说明书 v1.2](./项目需求说明书%20v1.2.md) | 核心规格 v1.2.1：命名体系 / 功能 / 选型 / 架构 / 记忆 / 里程碑 | 动需求、命名、里程碑前必读 |
+| [项目需求说明书 v1.2](./项目需求说明书%20v1.2.md) | 核心规格 v1.3：命名体系 / 功能 / 选型 / 架构 / 记忆 / 里程碑 | 动需求、命名、里程碑前必读 |
 | [系统架构图 v2.0](./系统架构图%20v2.0.md) | 系统架构图 v2.0（PlantUML 源码） | 需要架构 / 模块细节时 |
 | [CONTEXT.md](./CONTEXT.md) | 共享语言与术语速查 | 术语、编号拿不准时随手查 |
 | [decisions/](./decisions/) | 技术决策记录（ADR） | 技术选型 / 评估结论以它为准 |
@@ -26,6 +26,7 @@
 | 01 | [AgentScope Java 2.0 vs Spring AI 2.0 选型分析](./decisions/01-agentscope-vs-springai.md) | 框架级选型：结论选 AgentScope Java 2.0（版本策略：2.0.2 实测、遇回归回退 2.0.0） | ✅ 已定，待 Phase 1 实测回执 |
 | 02 | [MelonPaw 参考评估（AS 2.0 工程范式实证）](./decisions/02-melonpaw-reference.md) | 外部工程参考：HarnessAgent 装配 / workspace 文件即配置 / 工具·中间件·权限范式；含「记忆边界待 Phase 1 重验」 | ✅ 已评估（参考，非选型） |
 | 03 | [Skylark 参考评估（Java 语音链路组件地图）](./decisions/03-skylark-voice-reference.md) | 语音链路参考（VAD/ASR/TTS/RTC 纯 Java 实现 + 全双工状态机）；agent 部分为 1.x 不参考 | ✅ 已评估（供 §15 语音选型实证） |
+| 04 | [OpenAlice 更名决议（OpenLexington → OpenAlice）](./decisions/04-openalice-renaming.md) | 命名决议（v1.3）：双层命名换新、删除九特质递归展开与相关致敬、Alice 三重灵感、无关联声明 | ✅ 已定（2026-09-06，v1.3） |
 
 ## 建议阅读顺序
 
@@ -44,3 +45,4 @@
 - 2026-09-04：需求 / 架构文档文件名定稿为中文描述名并**保留版本号**（去掉 `L.E.X.I.N.G.T.O.N.` 前缀、去掉英文短名）：`requirements.md` → `项目需求说明书 v1.2.md`、`architecture.md` → `系统架构图 v2.0.md`。
 - 2026-09-04：仓库文档整理 —— 根目录中文长文件名文档、CONTEXT 统一归档至 `docs/`；决策记录移入 `docs/decisions/`。
 - 2026-09-04：02 号（既往工程实证）因含工程细节已移出仓库、本地归档；01 号结论不受影响。
+- 2026-09-06：项目更名 OpenLexington → OpenAlice（工程代号 openalice / A.L.I.C.E. · 爱丽丝）；需求书升 v1.3、新增 decisions/04；历史记录保留不改写。
