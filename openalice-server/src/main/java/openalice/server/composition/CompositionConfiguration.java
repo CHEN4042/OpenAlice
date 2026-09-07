@@ -1,5 +1,6 @@
 package openalice.server.composition;
 
+import openalice.agent.config.AgentRuntimeProperties;
 import openalice.agent.runtime.AgentRuntime;
 import openalice.agent.runtime.AgentRuntimeFactory;
 import openalice.core.port.MemoryPort;
@@ -17,7 +18,7 @@ class CompositionConfiguration {
 
     @Bean(destroyMethod = "close")
     AgentRuntime agentRuntime(MemoryPort memoryPort) {
-        return AgentRuntimeFactory.create(memoryPort);
+        return AgentRuntimeFactory.create(memoryPort, AgentRuntimeProperties.fromEnvironment());
     }
 }
 

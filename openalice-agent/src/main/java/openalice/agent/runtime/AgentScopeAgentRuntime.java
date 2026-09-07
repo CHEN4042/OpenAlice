@@ -7,7 +7,7 @@ import io.agentscope.harness.agent.HarnessAgent;
 import java.time.Duration;
 import java.util.Objects;
 import openalice.agent.config.AgentRuntimeProperties;
-import openalice.agent.model.DeterministicChatModel;
+import openalice.agent.model.LlmModelFactory;
 import openalice.core.domain.ChatMessage;
 import openalice.core.domain.MessageRole;
 import openalice.core.port.MemoryPort;
@@ -25,7 +25,7 @@ final class AgentScopeAgentRuntime implements AgentRuntime {
                 .name(properties.agentName())
                 .description(properties.description())
                 .sysPrompt(properties.systemPrompt())
-                .model(new DeterministicChatModel(properties.replyPrefix()))
+                .model(LlmModelFactory.create(properties))
                 .stateStore(new InMemoryAgentStateStore())
                 .workspace(properties.workspace())
                 .maxIters(1)

@@ -62,6 +62,32 @@ mvn -pl openalice-server -am package
 mvn -pl openalice-server spring-boot:run
 ```
 
+### LLM 接入（环境变量）
+
+未配置任何 key 时自动回落到确定性 mock（回复形如 `收到：你好`）；配置后走真实模型。
+`agent` 模块按以下环境变量解析，key 只经环境变量传入、不落盘不入库：
+
+| 变量 | 说明 | 默认 |
+| :-- | :-- | :-- |
+| `OPENALICE_LLM_PROVIDER` | `auto` / `mock` / `deepseek` / `agentrouter` | `auto`：有中转 key 走中转 → 有 DeepSeek key 走官方 → 都无则 mock |
+| `OPENALICE_AGENTROUTER_API_KEY` | AgentRouter 中转站 key（优先） | — |
+| `OPENALICE_DEEPSEEK_API_KEY` | DeepSeek 官方 key（兜底） | — |
+| `OPENALICE_LLM_MODEL` | 模型名覆盖 | `deepseek-v4-flash` |
+| `OPENALICE_LLM_BASE_URL` | API Base URL 覆盖 | 官方 `https://api.deepseek.com` / 中转 `https://agentrouter.org` |
+| `OPENALICE_LLM_PROXY` | HTTP 代理 `host:port`（中转站需走代理时设置） | 不代理 |
+
+示例（中转站）：
+
+```bash
+OPENALICE_LLM_PROVIDER=agentrouter \
+OPENALICE_AGENTROUTER_API_KEY=... \
+OPENALICE_LLM_PROXY=127.0.0.1:7897 \
+mvn -pl openalice-server spring-boot:run
+```
+
+> 说明：AgentRouter 中转站有 WAF，只放行带 Codex 客户端指纹头的请求；`agent` 内部
+> 的 `ConfiguredHttpTransport` 会自动注入该指纹头，因此 Java 侧可直接对接，无需额外反代。
+
 测试接口：
 
 ```bash
@@ -80,9 +106,11 @@ curl -X POST http://localhost:8080/api/v1/chat \
 }
 ```
 
+> 注：上述为未配置 LLM key（mock 模式）的响应；配置真实 key 后返回模型真实输出。
+
 ## 当前边界
 
-- 当前代码用 `DeterministicChatModel` 过渡；P1 底座目标即替换为真实双 provider（中转站优先 + DeepSeek 官方兜底）；
+- LLM 已接入真实双 provider（AgentRouter 中转站优先 + DeepSeek 官方兜底），未配置 key 自动回落 mock；模型层已流式（`stream=true`），HTTP `/chat` SSE 客户端流式留待后续；
 - 当前使用内存存储（进程重启不保留）；P1 底座目标 = M1 会话消息落 PostgreSQL `session_message`（重启不丢）；Redis 已砍、预留后置；
 - 语音、learning、插件、多 Agent 只保留架构位置，暂不实现；
 - `web/` 只是占位，不进入 Maven Reactor。
