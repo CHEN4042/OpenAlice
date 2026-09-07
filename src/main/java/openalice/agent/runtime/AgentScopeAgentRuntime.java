@@ -8,7 +8,7 @@ import java.time.Duration;
 import java.util.Objects;
 import openalice.agent.llm.LlmModelFactory;
 import openalice.model.ChatMessage;
-import openalice.model.MessageRole;
+import openalice.enums.MessageRole;
 
 /**
  * AgentScope 底座上的 agent 执行器。

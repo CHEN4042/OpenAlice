@@ -14,15 +14,16 @@ OpenAlice/
 ├── src/
 │   ├── main/java/openalice/
 │   │   ├── OpenAliceApplication.java   # 启动类（组合根 = Spring 容器）
-│   │   ├── model/                      # 纯 POJO：ChatMessage / MessageRole / UserId / SessionId
+│   │   ├── model/                      # 纯 POJO：ChatMessage / UserId / SessionId
+│   │   ├── enums/                      # 共享枚举：MessageRole / LlmProvider（零依赖）
 │   │   ├── port/                       # 端口接口：MemoryPort（= dao 抽象层）
 │   │   ├── memory/                     # MemoryPort 的内存实现（将来换 PostgreSQL 实现）
 │   │   ├── agent/
 │   │   │   ├── runtime/                # AgentRuntime 接口 + AgentScope 实现 + 工厂 + 配置
-│   │   │   └── llm/                    # 模型接入：LlmProvider / LlmModelFactory / mock / HTTP 传输
+│   │   │   └── llm/                    # 模型接入：LlmModelFactory / mock / HTTP 传输
 │   │   ├── service/                    # ★ ChatService：一次 /chat 的业务编排（见下）
-│   │   ├── controller/                 # HTTP 入口：ChatApiController / HealthController / 异常处理
-│   │   ├── dto/                        # 出入参对象：ChatRequest / ChatReply / MessageView
+│   │   ├── controller/                 # HTTP 入口：ChatController / HealthController / 异常处理
+│   │   ├── dto/                        # 出入参对象：ChatRequest / ChatResponse / MessageView
 │   │   └── config/                     # Spring @Configuration：组装 MemoryPort 与 AgentRuntime
 │   ├── test/java/openalice/            # 测试镜像 main 的包结构
 │   └── main/resources/application.yml

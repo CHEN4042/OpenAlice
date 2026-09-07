@@ -1,6 +1,4 @@
-package openalice.agent.llm;
-
-import openalice.agent.runtime.AgentRuntimeProperties;
+package openalice.enums;
 
 import java.util.Locale;
 
@@ -18,12 +16,12 @@ public enum LlmProvider {
     DEEPSEEK(
             "https://api.deepseek.com",
             "deepseek-v4-flash",
-            AgentRuntimeProperties.ENV_DEEPSEEK_API_KEY
+            "OPENALICE_DEEPSEEK_API_KEY"
     ),
     AGENTROUTER(
             "https://agentrouter.org",
             "deepseek-v4-flash",
-            AgentRuntimeProperties.ENV_AGENTROUTER_API_KEY
+            "OPENALICE_AGENTROUTER_API_KEY"
     );
 
     private final String defaultBaseUrl;

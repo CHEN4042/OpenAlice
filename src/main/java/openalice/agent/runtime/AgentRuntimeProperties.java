@@ -40,8 +40,6 @@ public record AgentRuntimeProperties(
     public static final String ENV_MODEL = "OPENALICE_LLM_MODEL";
     public static final String ENV_BASE_URL = "OPENALICE_LLM_BASE_URL";
     public static final String ENV_PROXY = "OPENALICE_LLM_PROXY";
-    public static final String ENV_DEEPSEEK_API_KEY = "OPENALICE_DEEPSEEK_API_KEY";
-    public static final String ENV_AGENTROUTER_API_KEY = "OPENALICE_AGENTROUTER_API_KEY";
 
     public AgentRuntimeProperties {
         agentName = normalize(agentName, "Alice");

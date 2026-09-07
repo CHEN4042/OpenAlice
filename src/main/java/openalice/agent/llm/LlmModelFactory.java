@@ -3,6 +3,7 @@ package openalice.agent.llm;
 import io.agentscope.core.model.Model;
 import io.agentscope.extensions.model.openai.OpenAIChatModel;
 import openalice.agent.runtime.AgentRuntimeProperties;
+import openalice.enums.LlmProvider;
 
 /**
  * Builds the {@link Model} backing the agent runtime from configuration.
@@ -30,10 +31,10 @@ public final class LlmModelFactory {
         if (requested != LlmProvider.AUTO) {
             return requested;
         }
-        if (hasEnv(AgentRuntimeProperties.ENV_AGENTROUTER_API_KEY)) {
+        if (hasEnv(LlmProvider.AGENTROUTER.apiKeyEnv())) {
             return LlmProvider.AGENTROUTER;
         }
-        if (hasEnv(AgentRuntimeProperties.ENV_DEEPSEEK_API_KEY)) {
+        if (hasEnv(LlmProvider.DEEPSEEK.apiKeyEnv())) {
             return LlmProvider.DEEPSEEK;
         }
         return LlmProvider.MOCK;

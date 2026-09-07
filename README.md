@@ -35,6 +35,7 @@ OpenAlice/
 ├── src/main/java/openalice/
 │   ├── OpenAliceApplication.java   # 启动类（组合根 = Spring 容器）
 │   ├── model/                      # 纯 POJO：ChatMessage · UserId · SessionId …
+│   ├── enums/                      # 共享枚举：MessageRole · LlmProvider
 │   ├── port/                       # 端口接口：MemoryPort
 │   ├── memory/                     # 记忆实现：InMemoryMemoryPort（将来换 PostgreSQL）
 │   ├── agent/runtime + llm/        # AgentScope 执行器 + LLM 模型接入

@@ -11,7 +11,7 @@
 | 项目 | OpenAlice（A.L.I.C.E. 爱丽丝） |
 | 阶段 | P1（会说真话 · 底座）：真实双 provider 已接入（`7f1b4dd`，本地）；**四模块 → 单模块收敛重构完成（未 commit）**；SSE / M1-PG / persona 待编码 |
 | 分支 | `main`（本地领先 origin/main 1 commit；push 由用户手动执行） |
-| 当前架构 | **单 Maven 模块**：根 `pom.xml` 即 Spring Boot 应用（`io.openalice:openalice`），根包 `openalice`，顶层包分层 `model / port / memory / agent(runtime|llm) / service / controller / dto / config`（ADR 08，修订 ADR 06） |
+| 当前架构 | **单 Maven 模块**：根 `pom.xml` 即 Spring Boot 应用（`io.openalice:openalice`），根包 `openalice`，顶层包分层 `model / enums / port / memory / agent(runtime|llm) / service / controller / dto / config`（ADR 08，修订 ADR 06） |
 | Git 状态 | 双 provider（`7f1b4dd`）已本地 commit、待用户 push；单模块重构代码 + 文档同步**已完成、未 commit**，待用户 review 后本地 commit |
 
 ## 1. 用户最新确认
@@ -45,15 +45,16 @@ OpenAlice/
 ├── pom.xml                      # 单模块 Spring Boot 应用（io.openalice:openalice），唯一可运行 jar
 ├── src/main/java/openalice/
 │   ├── OpenAliceApplication.java   # 启动类（组合根 = Spring 容器）
-│   ├── model/                      # 纯 POJO / 值对象：ChatMessage · MessageRole · UserId · SessionId
+│   ├── model/                      # 纯 POJO / 值对象：ChatMessage · UserId · SessionId
+│   ├── enums/                      # 共享枚举（零依赖）：MessageRole · LlmProvider
 │   ├── port/                       # 端口接口：MemoryPort
 │   ├── memory/                     # MemoryPort 适配器：InMemoryMemoryPort（将来 PostgreSQL 实现）
 │   ├── agent/
 │   │   ├── runtime/                # AgentRuntime · AgentScopeAgentRuntime · AgentRuntimeFactory · ChatResult · AgentRuntimeProperties
-│   │   └── llm/                    # LlmProvider · LlmModelFactory · DeterministicChatModel · ConfiguredHttpTransport
+│   │   └── llm/                    # LlmModelFactory · DeterministicChatModel · ConfiguredHttpTransport
 │   ├── service/                    # ★ ChatService：一次 /chat 的业务编排（见下）
-│   ├── controller/                 # ChatApiController · HealthController · ApiExceptionHandler
-│   ├── dto/                        # ChatRequest · ChatReply · MessageView
+│   ├── controller/                 # ChatController · HealthController · ApiExceptionHandler
+│   ├── dto/                        # ChatRequest · ChatResponse · MessageView
 │   └── config/                     # OpenAliceConfiguration：Spring @Configuration 组合根
 ├── src/main/resources/application.yml   # server.port=8080
 ├── src/test/java/openalice/        # 测试镜像 main 的包结构
@@ -84,7 +85,11 @@ config → memory + agent + model       # Spring 装配组合根
 ## 3. Phase 1 实现内容（按包）
 
 ### `model/`（原 core.domain）
-- `MessageRole` / `UserId` / `SessionId` / `ChatMessage`（纯 POJO，零框架依赖）
+- `UserId` / `SessionId` / `ChatMessage`（纯 POJO，零框架依赖）
+
+### `enums/`（共享枚举，零依赖）
+- `MessageRole`（USER / ASSISTANT / SYSTEM）
+- `LlmProvider`（AUTO / MOCK / DEEPSEEK / AGENTROUTER，自带 base_url / model / env key 默认值）
 
 ### `port/`（原 core.port）
 - `MemoryPort`（append / history 抽象）
@@ -94,7 +99,7 @@ config → memory + agent + model       # Spring 装配组合根
 
 ### `agent/runtime/` + `agent/llm/`（原 openalice-agent）
 - `AgentRuntime` / `ChatResult` / `AgentRuntimeFactory` / `AgentScopeAgentRuntime` / `AgentRuntimeProperties`
-- `LlmProvider` / `LlmModelFactory` / `DeterministicChatModel`（mock）/ `ConfiguredHttpTransport`
+- `LlmModelFactory` / `DeterministicChatModel`（mock）/ `ConfiguredHttpTransport`
 - 使用 AgentScope `HarnessAgent + RuntimeContext + InMemoryAgentStateStore`；不把会话状态存在 runtime 字段
 
 ### `service/`（本次新增）
@@ -171,7 +176,7 @@ curl -X POST http://localhost:8080/api/v1/chat \
 refactor(openalice): 四模块收敛为单模块 + service 编排层（ADR 08）
 
 - Maven 四模块（core/memory/agent/server）收敛为单模块 openalice，根 pom 即应用
-- 顶层包分层 model/port/memory/agent(runtime|llm)/service/controller/dto/config
+- 顶层包分层 model/enums/port/memory/agent(runtime|llm)/service/controller/dto/config
 - 新增 service.ChatService：一次 /chat 编排（存消息 → 问 agent → 存回复）
 - agent runtime 瘦身：只答一次、不再持有 MemoryPort；controller 只依赖 ChatService
 - 删 0 引用死代码：PersonaPrompt / MemoryQuery / MemoryRecord / TracePort

@@ -1,7 +1,7 @@
 package openalice.controller;
 
 import java.util.List;
-import openalice.dto.ChatReply;
+import openalice.dto.ChatResponse;
 import openalice.dto.ChatRequest;
 import openalice.dto.MessageView;
 import openalice.service.ChatService;
@@ -20,17 +20,17 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/v1")
-public class ChatApiController {
+public class ChatController {
 
     private final ChatService chatService;
 
-    public ChatApiController(ChatService chatService) {
+    public ChatController(ChatService chatService) {
         this.chatService = chatService;
     }
 
     @PostMapping("/chat")
     @ResponseStatus(HttpStatus.OK)
-    public ChatReply chat(@RequestBody ChatRequest request) {
+    public ChatResponse chat(@RequestBody ChatRequest request) {
         return chatService.chat(request);
     }
 

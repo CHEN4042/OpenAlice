@@ -1,6 +1,7 @@
 package openalice.model;
 
 import java.time.Instant;
+import openalice.enums.MessageRole;
 import java.util.Objects;
 import java.util.UUID;
 

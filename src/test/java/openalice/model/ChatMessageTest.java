@@ -1,5 +1,6 @@
 package openalice.model;
 
+import openalice.enums.MessageRole;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

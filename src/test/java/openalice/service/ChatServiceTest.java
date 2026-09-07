@@ -3,12 +3,12 @@ package openalice.service;
 import java.util.List;
 import openalice.agent.runtime.AgentRuntime;
 import openalice.agent.runtime.ChatResult;
-import openalice.dto.ChatReply;
+import openalice.dto.ChatResponse;
 import openalice.dto.ChatRequest;
 import openalice.dto.MessageView;
 import openalice.memory.InMemoryMemoryPort;
 import openalice.model.ChatMessage;
-import openalice.model.MessageRole;
+import openalice.enums.MessageRole;
 import openalice.model.SessionId;
 import openalice.model.UserId;
 import openalice.port.MemoryPort;
@@ -36,7 +36,7 @@ class ChatServiceTest {
         MemoryPort memory = new InMemoryMemoryPort();
         ChatService service = new ChatService(new EchoAgentRuntime(), memory);
 
-        ChatReply reply = service.chat(new ChatRequest("user", "session", "你好"));
+        ChatResponse reply = service.chat(new ChatRequest("user", "session", "你好"));
 
         assertThat(reply.reply()).isEqualTo("收到：你好");
         List<ChatMessage> history = memory.history(UserId.of("user"), SessionId.of("session"), 10);

@@ -1,4 +1,4 @@
-package openalice.model;
+package openalice.enums;
 
 public enum MessageRole {
     USER,

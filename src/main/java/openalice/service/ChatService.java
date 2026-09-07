@@ -3,7 +3,7 @@ package openalice.service;
 import java.util.List;
 import openalice.agent.runtime.AgentRuntime;
 import openalice.agent.runtime.ChatResult;
-import openalice.dto.ChatReply;
+import openalice.dto.ChatResponse;
 import openalice.dto.ChatRequest;
 import openalice.dto.MessageView;
 import openalice.model.ChatMessage;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
  *   <li>先把用户消息写入 memory（通过 {@link MemoryPort}，具体存哪由实现决定）；</li>
  *   <li>把用户消息交给 {@link AgentRuntime}，向模型要一句回复；</li>
  *   <li>再把助手回复也写入 memory，保证 history 两端都有；</li>
- *   <li>返回 {@link ChatReply} 给 controller。</li>
+ *   <li>返回 {@link ChatResponse} 给 controller。</li>
  * </ol>
  */
 @Service
@@ -37,7 +37,7 @@ public class ChatService {
         this.memoryPort = memoryPort;
     }
 
-    public ChatReply chat(ChatRequest request) {
+    public ChatResponse chat(ChatRequest request) {
         requireText(request.message(), "message");
 
         UserId userId = UserId.of(request.userId());
@@ -49,7 +49,7 @@ public class ChatService {
         ChatResult result = agentRuntime.chat(userMessage);
         memoryPort.append(ChatMessage.assistant(userId, sessionId, result.reply()));
 
-        return new ChatReply(userId.value(), sessionId.value(), result.reply());
+        return new ChatResponse(userId.value(), sessionId.value(), result.reply());
     }
 
     public List<MessageView> history(String userId, String sessionId) {

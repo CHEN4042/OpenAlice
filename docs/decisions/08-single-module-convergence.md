@@ -24,15 +24,16 @@
 ```text
 src/main/java/openalice/
 ├── OpenAliceApplication.java   # 启动类（组合根 = Spring 容器）
-├── model/        # 纯 POJO / 值对象：ChatMessage · MessageRole · UserId · SessionId
+├── model/        # 纯 POJO / 值对象：ChatMessage · UserId · SessionId
+├── enums/        # 共享枚举（零依赖）：MessageRole · LlmProvider
 ├── port/         # 端口接口：MemoryPort
 ├── memory/       # MemoryPort 适配器：InMemoryMemoryPort（将来 PostgreSQL 实现）
 ├── agent/
 │   ├── runtime/  # AgentRuntime · AgentScopeAgentRuntime · AgentRuntimeFactory · ChatResult · AgentRuntimeProperties
-│   └── llm/      # LlmProvider · LlmModelFactory · DeterministicChatModel · ConfiguredHttpTransport
+│   └── llm/      # LlmModelFactory · DeterministicChatModel · ConfiguredHttpTransport
 ├── service/      # ChatService：一次 /chat 的业务编排（存消息 → 问 agent → 存回复）
-├── controller/   # ChatApiController · HealthController · ApiExceptionHandler
-├── dto/          # ChatRequest · ChatReply · MessageView
+├── controller/   # ChatController · HealthController · ApiExceptionHandler
+├── dto/          # ChatRequest · ChatResponse · MessageView
 └── config/       # OpenAliceConfiguration：Spring 组合根
 ```
 
@@ -71,3 +72,10 @@ controller/ SpringBootTest 全链路（MockMvc）
 - P1 存储仍是 `InMemoryMemoryPort`；接 PostgreSQL（M1 会话消息）时在 `memory/` 下新增适配器，不引入新顶层结构。
 - 若未来业务域膨胀（如记忆写入管线、语音），先按 `service/` 或 `agent/` 下再分子包演进，包超过 ~10 个顶层目录再评估拆分模块。
 - ADR 06 中「Maven 模块依赖方向、组合根位置」相关结论被本 ADR 取代；其 §3 最小实现范围与 §5 预留原则继续有效。
+
+
+## 7. 后续微调（2026-09-07，仍属本 ADR 布局）
+
+1. **新增顶层 `enums/` 包**：`MessageRole`（原 model/）、`LlmProvider`（原 agent/llm/）集中于此；`LlmProvider` 去除对 `AgentRuntimeProperties` 的依赖（API key 环境变量名改为 enum 自带），保证 `enums/` 零依赖。
+2. **命名统一**：`ChatApiController → ChatController`（controller 包 + `/api/v1` 已表意，去掉冗余 Api）；`ChatReply → ChatResponse`（与 `ChatRequest` 形成 Request/Response 配对）。
+3. **防臃肿纪律**（吸取 Jarvis 单平包 400+ 文件的教训）：`enums/` 只放 enum 类型，不放常量类 / 常量接口；顶层包总量控制在 ~10 个内，超限先治理再拆模块。
