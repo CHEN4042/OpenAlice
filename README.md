@@ -27,25 +27,25 @@ P1（会说真话 · 底座）进行中：`HTTP → AgentScope → MemoryPort` �
 
 ## 架构
 
+单 Spring Boot 模块（`io.openalice:openalice`），源码根包 `openalice`，按职责分层：
+
 ```text
 OpenAlice/
-├── openalice-core/       # 领域模型与端口：不依赖 Spring / AgentScope
-├── openalice-memory/     # 自研记忆实现：Phase 1 使用 InMemoryMemoryPort
-├── openalice-agent/      # AgentScope HarnessAgent runtime
-├── openalice-server/     # Spring Boot HTTP 壳与唯一组合根
-├── web/                  # 未来前端占位，不进入 Maven Reactor
-└── pom.xml               # Maven 聚合父工程
+├── pom.xml                    # 单模块应用工程
+├── src/main/java/openalice/
+│   ├── OpenAliceApplication.java   # 启动类（组合根 = Spring 容器）
+│   ├── model/                      # 纯 POJO：ChatMessage · UserId · SessionId …
+│   ├── port/                       # 端口接口：MemoryPort
+│   ├── memory/                     # 记忆实现：InMemoryMemoryPort（将来换 PostgreSQL）
+│   ├── agent/runtime + llm/        # AgentScope 执行器 + LLM 模型接入
+│   ├── service/                    # ChatService：一次 /chat 的业务编排
+│   ├── controller/ dto/            # HTTP 入口与出入参
+│   └── config/                     # Spring 组合根（换存储只改这里）
+├── web/                      # 未来前端占位，不进入 Maven
+└── docs/                     # 文档索引 docs/index.md 入口
 ```
 
-依赖规则：
-
-```text
-core ← memory
-core ← agent
-agent + memory ← server
-```
-
-`agent` 不直接依赖 `memory`，只依赖 `core.MemoryPort`；由 `openalice-server` 完成装配。
+一次 `/chat` 的职责链：`controller`（只接 HTTP）→ `ChatService`（编排：先存用户消息 → 问 agent → 存回复）→ `agent.runtime`（只问模型一次）→ `MemoryPort`（存哪由实现决定）。`agent` 不依赖记忆实现，只面向 `port.MemoryPort`。
 
 ## 构建与运行
 
@@ -55,11 +55,11 @@ agent + memory ← server
 # 全量测试
 mvn clean test
 
-# 打包 executable server
-mvn -pl openalice-server -am package
+# 打包可执行 jar
+mvn package
 
-# 启动
-mvn -pl openalice-server spring-boot:run
+# 本地启动
+mvn spring-boot:run
 ```
 
 ### LLM 接入（环境变量）
@@ -82,7 +82,7 @@ mvn -pl openalice-server spring-boot:run
 OPENALICE_LLM_PROVIDER=agentrouter \
 OPENALICE_AGENTROUTER_API_KEY=... \
 OPENALICE_LLM_PROXY=127.0.0.1:7897 \
-mvn -pl openalice-server spring-boot:run
+mvn spring-boot:run
 ```
 
 > 说明：AgentRouter 中转站有 WAF，只放行带 Codex 客户端指纹头的请求；`agent` 内部
@@ -122,7 +122,8 @@ curl -X POST http://localhost:8080/api/v1/chat \
 | [docs/index.md](docs/index.md) | 文档总索引：先读它，按需选读 |
 | [handoff.md](handoff.md) | 会话交接：下一位 AI / 协作者先读 |
 | [docs/项目需求说明书 v1.2.md](docs/项目需求说明书%20v1.2.md) | 项目需求说明书 v1.5（核心规格） |
-| [docs/decisions/06-phase1-root-module-layout.md](docs/decisions/06-phase1-root-module-layout.md) | 当前架构决议：根目录四模块布局 |
-| [docs/decisions/05-architecture-naming-evolution.md](docs/decisions/05-architecture-naming-evolution.md) | 架构蓝图 v4（顶层布局已被 ADR 06 修订） |
+| [docs/decisions/08-single-module-convergence.md](docs/decisions/08-single-module-convergence.md) | 当前架构决议：单模块收敛 + 顶层包分层 |
+| [docs/decisions/07-p1-base-decisions.md](docs/decisions/07-p1-base-decisions.md) | P1 底座五项技术决策 |
+| [docs/decisions/05-architecture-naming-evolution.md](docs/decisions/05-architecture-naming-evolution.md) | 架构蓝图 v4（顶层布局已被 ADR 08 修订） |
 | [docs/CONTEXT.md](docs/CONTEXT.md) | 共享语言与术语速查 |
 | [docs/decisions/](docs/decisions/) | 技术决策记录（ADR） |

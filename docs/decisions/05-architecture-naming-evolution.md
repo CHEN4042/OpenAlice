@@ -1,6 +1,6 @@
 # 05 · OpenAlice 架构蓝图（讨论稿 v4）
 
-> **状态说明（2026-09-06）**：本文的模块边界、开发规范、测试策略与扩展预留仍具参考价值；但 v4 中“使用 `service/` 聚合 Java 后端”的顶层布局**已被 [ADR 06](./06-phase1-root-module-layout.md) 修订**。当前 Phase 1 采用仓库根目录四模块：`openalice-core / openalice-memory / openalice-agent / openalice-server`，另保留 `web/` 前端占位。
+> **状态说明（2026-09-06，2026-09-07 再修订）**：本文的模块边界、开发规范、测试策略与扩展预留仍具参考价值；但 v4 中“使用 `service/` 聚合 Java 后端”的顶层布局**先后被 [ADR 06](./06-phase1-root-module-layout.md) 与 [ADR 08](./08-single-module-convergence.md) 修订**。当前 Phase 1 为**单 Maven 模块**（根 pom 即应用，顶层包分层 `model/port/memory/agent/service/controller/dto/config`），另保留 `web/` 前端占位。
 
 | 元信息 | 值 |
 | :--- | :--- |
