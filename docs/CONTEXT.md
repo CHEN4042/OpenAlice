@@ -20,7 +20,7 @@ A.L.I.C.E.（爱丽丝）= 面向**唯一用户本人**的 AI 陪伴助手 —�
 
 - Agent 框架：AgentScope Java 2.0.2，Phase 1 实测；如关键回归可回退 2.0.0。
 - Web 壳：Spring Boot 3.5.16，仅用于 HTTP / 装配，不引入 Spring AI。
-- Java：17。
+- Java：21。
 - 构建：Maven 多模块，根目录聚合 `core / memory / agent / server`。
 - Phase 1 模型：`DeterministicChatModel`，不依赖外部 LLM API。
 - Phase 1 记忆：`InMemoryMemoryPort`，后续替换为 Redis / PostgreSQL / pgvector。

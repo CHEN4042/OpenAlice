@@ -26,8 +26,8 @@
   </modules>
 
   <properties>
-    <java.version>17</java.version>
-    <maven.compiler.release>17</maven.compiler.release>
+    <java.version>21</java.version>
+    <maven.compiler.release>21</maven.compiler.release>
     <agentscope.version>2.0.2</agentscope.version>
   </properties>
 

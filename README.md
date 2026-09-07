@@ -49,7 +49,7 @@ agent + memory ← server
 
 ## 构建与运行
 
-要求：Java 17+、Maven 3.9+。
+要求：Java 21+、Maven 3.9+。
 
 ```bash
 # 全量测试

@@ -1,6 +1,7 @@
 package openalice.server.api;
 
 import java.util.List;
+import openalice.agent.runtime.AgentRuntime;
 import openalice.core.domain.ChatMessage;
 import openalice.core.domain.SessionId;
 import openalice.core.domain.UserId;
@@ -8,7 +9,6 @@ import openalice.core.port.MemoryPort;
 import openalice.server.api.dto.ChatReply;
 import openalice.server.api.dto.ChatRequest;
 import openalice.server.api.dto.MessageView;
-import openalice.agent.runtime.AgentRuntime;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

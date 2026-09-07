@@ -37,7 +37,7 @@ OpenAlice/
 
 ## 当前工程规则
 
-- Java 17，Maven 多模块，根目录 `pom.xml` 聚合四个模块。
+- Java 21，Maven 多模块，根目录 `pom.xml` 聚合四个模块。
 - AgentScope Java 2.0.2 是预选底座；Spring Boot 3.5.16 仅作 Web 壳。
 - 不引入 Spring AI / Spring AI Alibaba。
 - `openalice-agent` 不依赖 `openalice-memory`，只依赖 `openalice-core` 的 `MemoryPort`。

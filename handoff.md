@@ -128,7 +128,7 @@ curl -X POST http://localhost:8080/api/v1/chat \
 
 - AgentScope Java 2.0.2；如关键回归回退 2.0.0。
 - Spring Boot 3.5.16 仅作 Web 壳。
-- Java 17。
+- Java 21。
 - Phase 1 不接外部 LLM API，使用 deterministic model。
 - Phase 1 不做持久化，使用 in-memory memory。
 - 语音 / learning / OpenHanako 式能力只保留架构位置。

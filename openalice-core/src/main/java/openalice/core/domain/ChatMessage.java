@@ -29,10 +29,6 @@ public record ChatMessage(
         return new ChatMessage(null, MessageRole.ASSISTANT, content, userId, sessionId, null);
     }
 
-    public ChatMessage withRole(MessageRole newRole) {
-        return new ChatMessage(id, newRole, content, userId, sessionId, timestamp);
-    }
-
     private static String normalize(String id) {
         return id == null || id.isBlank() ? UUID.randomUUID().toString() : id;
     }
