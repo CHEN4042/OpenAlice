@@ -21,11 +21,11 @@ A.L.I.C.E.（爱丽丝）= 面向**唯一用户本人**的 AI 陪伴助手 —�
 - Agent 框架：AgentScope Java 2.0.2，Phase 1 实测；如关键回归可回退 2.0.0。
 - Web 壳：Spring Boot 3.5.16，仅用于 HTTP / 装配，不引入 Spring AI。
 - Java：21。
-- 构建：**Maven 单模块**（ADR 08，修订 ADR 06）：根 `pom.xml` 即 Spring Boot 应用（`io.openalice:openalice`），根包 `openalice`，顶层包分层 `model / enums / port / memory / agent(runtime|llm) / service / controller / dto / config`。
-- LLM（真实，P1 起）：**中转站（OpenAI 兼容，优先）+ DeepSeek 官方 API（兜底）**，双 provider 故障自动切换；key 走 `OPENALICE_*` 环境变量；`auto` 回退链 = 中转 → DeepSeek → 无 key 回落 `DeterministicChatModel`（mock），代码见 `openalice.agent.llm.LlmModelFactory`。
-- Phase 1 记忆：当前 `InMemoryMemoryPort`（过渡）；P1 目标 = M1 会话消息实时落 PostgreSQL（`session_message`），AgentScope 运行态单实例**进程内**；**Redis 已砍、预留后置**（需求书 v1.5 / ADR 07）。
-- Agent 不直接依赖 memory 实现，只依赖 `port.MemoryPort`（单模块后 runtime 连 MemoryPort 都不持有，编排收敛到 `service.ChatService`）。
-- 单用户：固定唯一用户，`user_id` 仅作存储预留、不作路由键；首次启动引导初始化 `persona/` 文件（user.md 等，参考 OpenHanako）。
+- 构建：**Maven 单模块**（ADR 08，修订 ADR 06）：根 `pom.xml` 即 Spring Boot 应用（`io.openalice:openalice`），根包 `com.openalice`，顶层包分层 `model / repository / agent(runtime|llm) / service / controller / dto / config`。
+- LLM（真实，P1 起）：**中转站（OpenAI 兼容，优先）+ DeepSeek 官方 API（兜底）**，双 provider 故障自动切换；key 走 `OPENALICE_*` 环境变量；`auto` 回退链 = 中转 → DeepSeek → 无 key 回落 `DeterministicChatModel`（mock），代码见 `com.openalice.agent.llm.LlmModelFactory`。
+- P1.5 会话存储：当前 `InMemoryConversationStore`（过渡）；M1 目标 = 会话消息实时落 PostgreSQL（`session_message`），AgentScope 运行态单实例**进程内**；**Redis 已砍、预留后置**（需求书 v1.5 / ADR 07）。
+- Agent 不读取存储；`service.ContextAssembler` 从 `repository.ConversationStore` 组装显式 `AgentRequest`，AgentScope state 仅作运行态 scratch。
+- 单用户：HTTP API 不暴露 `userId`，服务端固定 `UserId.DEFAULT`；存储字段为未来认证预留。首次启动引导初始化 `persona/` 文件（user.md 等，参考 OpenHanako）仍待实现。
 - 文本通道：`/chat` 走 HTTP + SSE 流式（P1 起）；WebSocket 双向通路留给 P3 语音。
 - 语音、learning、插件、多 Agent 仅保留架构位置：语音 P3、Web / 工具 / 主动 P4，P1 不实现。
 
@@ -37,7 +37,7 @@ A.L.I.C.E.（爱丽丝）= 面向**唯一用户本人**的 AI 陪伴助手 —�
 | L1/L2（隐私） | L1 可上云；L2 仅本地 |
 | P1–P4 / 暂缓 | 阶段坐标（P = Phase）：P1 会说真话（底座）→ P2 记得住（记忆）→ P3 听得到（语音）→ P4 看得见 / 摸得到；「暂缓」= 无明确排期 |
 | 组合根 | `config.OpenAliceConfiguration`，唯一手写装配点（Spring `@Configuration`） |
-| 端口 | `port/` 包中的接口抽象（如 `MemoryPort`） |
+| 会话存储 | `repository.ConversationStore`：业务会话历史 append / history 抽象 |
 | 全双工语音 | 目标形态：边听边说、可打断；P3 技术验证目标，不计入阶段验收 |
 
 ## 行文与编号纪律

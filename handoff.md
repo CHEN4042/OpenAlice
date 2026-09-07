@@ -6,182 +6,262 @@
 ## 0. 当前快照
 
 | 项目 | 内容 |
-| :-- | :-- |
-| 日期 | 2026-09-07 |
+| :--- | :--- |
+| 日期 | 2026-09-08 |
 | 项目 | OpenAlice（A.L.I.C.E. 爱丽丝） |
-| 阶段 | P1（会说真话 · 底座）：真实双 provider 已接入（`7f1b4dd`，本地）；**四模块 → 单模块收敛重构完成（未 commit）**；SSE / M1-PG / persona 待编码 |
-| 分支 | `main`（本地领先 origin/main 1 commit；push 由用户手动执行） |
-| 当前架构 | **单 Maven 模块**：根 `pom.xml` 即 Spring Boot 应用（`io.openalice:openalice`），根包 `openalice`，顶层包分层 `model / enums / port / memory / agent(runtime|llm) / service / controller / dto / config`（ADR 08，修订 ADR 06） |
-| Git 状态 | 双 provider（`7f1b4dd`）已本地 commit、待用户 push；单模块重构代码 + 文档同步**已完成、未 commit**，待用户 review 后本地 commit |
+| 阶段 | P1.5（语义重构 + 物理结构整理）已完成编码与文档同步，待用户 review |
+| 分支 | `main` |
+| 当前架构 | 单 Maven 模块；Java 根包 `com.openalice`；分层为 `model / repository / agent(runtime|llm) / service / controller / dto / config`（ADR 09，修订 ADR 08） |
+| Git 状态 | P1 SSE 实现与本轮 P1.5 重构均未 commit；旧路径显示删除、新 `com/` 路径未跟踪，属正常移动状态，待 `git add -A` 后可识别 rename |
+| 验证 | 2026-09-08 全量测试通过：22 tests / 0 failures / 0 errors（本机 Java 17 临时覆盖 release；仓库目标仍是 Java 21） |
 
-## 1. 用户最新确认
+## 1. 用户最新确认（P1.5）
 
-**2026-09-07（单模块收敛重构）**：
+1. 在已确认的 P1.5 语义方案上继续，允许直接修改代码。
+2. 物理结构同步优化：Java 根包改为 `com.openalice`，目录/文件按职责重新归位。
+3. 参考本地 Jarvis 的优点，但不照搬：
+   - Controller 薄、Service 编排；
+   - 用户身份由服务端 / 上下文处理，不散落在请求协议；
+   - Agent 调用前显式组装上下文。
+4. 保持单 Maven 模块，不引入 Spring AI / Spring AI Alibaba。
+5. 本轮不迁移到 PostgreSQL；M1 存储持久化另起任务。
+6. Git 红线：不 commit、不 push；等待用户 review 与明确指示。
 
-1. 用户改主意：放弃四 Maven 模块，**收敛为单模块**，大致仿照本地 Jarvis（单 Spring Boot 模块 + 顶层分包），包命名采用 `model`（不用 domain/entity）。
-2. 改造过程多参考开源项目（openhanako / nanobot / openclaw / khoj / 本地 Jarvis），取其精华去其糟粕。
-3. 重构完成、测试全绿后，先展示给用户 review，**不要直接 commit**（AGENTS.md Git 红线：commit 需用户明确指示）。
-4. 已落 **ADR 08**（`docs/decisions/08-single-module-convergence.md`）：单模块收敛决议，修订 ADR 06 顶层布局。
-
-**2026-09-07（P1 底座五项决策，需求书 v1.5 / ADR 07）**：
-
-1. **砍 Redis**：唯一外部存储 = PostgreSQL（pgvector）；M1 会话消息落 PG，AgentScope 运行态单实例进程内；Redis 预留后置。
-2. **真实 LLM 双 provider**：中转站（OpenAI 兼容，优先）+ DeepSeek 官方 API（兜底），key 走 `OPENALICE_*` 环境变量；移除 Ollama 轨。
-3. **`/chat` 直接走 SSE 流式**（P1 起）；WebSocket 留给 P3 语音。
-4. **单用户**：固定用户、首启引导配置 `persona/` 文件（user.md 等，参考 OpenHanako）；`user_id` 仅存储预留、不作路由键。
-5. **Phase 坐标统一 P1–P4**（P1 会说真话 → P2 记得住 → P3 听得到 → P4 看得见/摸得到）；废弃功能优先级 P0/P1/P2 标记。
-
-**2026-09-07（代码学习导览）**：新增《代码学习导览 v0.1》（`docs/`，现内容 v0.2），用于帮唯一开发者读懂 AI 写的代码；约定三条学习纪律——① AI 讲解按 What/Why/对应文件；② 用户需回讲验证理解；③ 用户需亲手改一处并跑通。该文档**随代码维护**（接口/端点/模型变更必更新，见其 §10）。
-
-**历史（2026-09-06）**：
-
-1. 曾对四模块架构方向满意 → **2026-09-07 已被单模块收敛替代（ADR 08）**。
-2. **协作约定（2026-09-07 起）**：大改动后 Codex 自行本地 commit，push 留给用户手动执行；commit 前先给用户 review。
-
-## 2. 当前架构（单模块 · ADR 08）
+## 2. 当前架构
 
 ```text
 OpenAlice/
-├── pom.xml                      # 单模块 Spring Boot 应用（io.openalice:openalice），唯一可运行 jar
-├── src/main/java/openalice/
-│   ├── OpenAliceApplication.java   # 启动类（组合根 = Spring 容器）
-│   ├── model/                      # 纯 POJO / 值对象：ChatMessage · UserId · SessionId
-│   ├── enums/                      # 共享枚举（零依赖）：MessageRole · LlmProvider
-│   ├── port/                       # 端口接口：MemoryPort
-│   ├── memory/                     # MemoryPort 适配器：InMemoryMemoryPort（将来 PostgreSQL 实现）
+├── pom.xml                      # 单模块 Spring Boot 应用，目标 Java 21
+├── src/main/java/com/openalice/
+│   ├── OpenAliceApplication.java
+│   ├── model/
+│   │   ├── ChatMessage.java
+│   │   ├── UserId.java
+│   │   ├── SessionId.java
+│   │   ├── MessageRole.java
+│   │   ├── ConversationTurn.java
+│   │   └── TurnStatus.java
+│   ├── repository/
+│   │   ├── ConversationStore.java
+│   │   └── memory/InMemoryConversationStore.java
 │   ├── agent/
-│   │   ├── runtime/                # AgentRuntime · AgentScopeAgentRuntime · AgentRuntimeFactory · ChatResult · AgentRuntimeProperties
-│   │   └── llm/                    # LlmModelFactory · DeterministicChatModel · ConfiguredHttpTransport
-│   ├── service/                    # ★ ChatService：一次 /chat 的业务编排（见下）
-│   ├── controller/                 # ChatController · HealthController · ApiExceptionHandler
-│   ├── dto/                        # ChatRequest · ChatResponse · MessageView
-│   └── config/                     # OpenAliceConfiguration：Spring @Configuration 组合根
-├── src/main/resources/application.yml   # server.port=8080
-├── src/test/java/openalice/        # 测试镜像 main 的包结构
-├── web/                            # 前端占位，不进入 Maven
-├── docs/                           # 索引 / 需求书 / CONTEXT / 学习导览 / decisions（handoff 在根目录）
-├── README.md / AGENTS.md
+│   │   ├── AgentRequest.java
+│   │   ├── AgentEvent.java
+│   │   ├── TextDeltaEvent.java
+│   │   ├── DoneEvent.java
+│   │   ├── ErrorEvent.java
+│   │   ├── runtime/
+│   │   └── llm/
+│   ├── service/
+│   │   ├── ChatService.java
+│   │   ├── ContextAssembler.java
+│   │   └── SessionCoordinator.java
+│   ├── controller/
+│   ├── dto/
+│   └── config/
+├── src/test/java/com/openalice/  # 测试镜像新包结构
+├── src/main/resources/application.yml
+├── docs/
+├── web/
 └── handoff.md
 ```
 
-包依赖纪律（防乱，靠 AGENTS.md + 评审维护，暂无 ArchUnit）：
+依赖方向：
 
 ```text
-model ← port ← memory
-model ← agent（runtime / llm）
-service → port + agent + model        # ChatService 编排：存消息 → 问 agent → 存回复
+model ← repository
+model ← agent
+service → model + repository + agent
 controller → service
-config → memory + agent + model       # Spring 装配组合根
+config 组装 repository + agent
 ```
 
-关键约束：
+核心边界：
 
-- `agent` 不依赖 `memory`，且 runtime 现在**连 `MemoryPort` 都不持有**——只做「校验 → 问一次模型 → 返回回复」；
-- 编排收敛到 `service.ChatService`；`controller` 只接 HTTP，依赖 `ChatService` 门面（学 Jarvis）；
-- `config.OpenAliceConfiguration` 是唯一手写装配点（换存储只改它的 `memoryPort()` 一个方法）；
-- `web/` 只是前端占位，不进入 Maven Reactor；
-- 不引入 Spring AI / Spring AI Alibaba。
+- `model`：纯 POJO / 值对象，无框架与持久层依赖；
+- `repository`：会话消息存储接口与实现；未来 PG 实现放 `repository.postgres`；
+- `agent`：不读取 `ConversationStore`，只消费 `AgentRequest`、产出 `AgentEvent`；
+- `service`：Turn 生命周期、上下文组装、持久化与 session 并发控制；
+- `controller`：只做 HTTP / SSE 翻译；
+- `config`：唯一组合根。
 
-## 3. Phase 1 实现内容（按包）
+## 3. 本轮 P1.5 改动
 
-### `model/`（原 core.domain）
-- `UserId` / `SessionId` / `ChatMessage`（纯 POJO，零框架依赖）
+### 3.1 物理结构
 
-### `enums/`（共享枚举，零依赖）
-- `MessageRole`（USER / ASSISTANT / SYSTEM）
-- `LlmProvider`（AUTO / MOCK / DEEPSEEK / AGENTROUTER，自带 base_url / model / env key 默认值）
+- Java 根包：`openalice` → `com.openalice`，测试同步镜像。
+- `MemoryPort` → `ConversationStore`。
+- `InMemoryMemoryPort` → `repository.memory.InMemoryConversationStore`。
+- `MessageRole` 移入 `model`。
+- `LlmProvider` 移入 `agent.llm`。
+- 删除顶层 `enums/`，避免杂项包。
+- Maven 依赖未新增，`pom.xml` 仅保持既有依赖与 Java 21 目标。
 
-### `port/`（原 core.port）
-- `MemoryPort`（append / history 抽象）
+### 3.2 Turn 生命周期
 
-### `memory/`（原 openalice-memory）
-- `InMemoryMemoryPort`：按 `(userId, sessionId)` 隔离；同 session append/history 共用对象锁防并发丢消息；history 返回不可变副本；不依赖 Spring / AgentScope
+新增：
 
-### `agent/runtime/` + `agent/llm/`（原 openalice-agent）
-- `AgentRuntime` / `ChatResult` / `AgentRuntimeFactory` / `AgentScopeAgentRuntime` / `AgentRuntimeProperties`
-- `LlmModelFactory` / `DeterministicChatModel`（mock）/ `ConfiguredHttpTransport`
-- 使用 AgentScope `HarnessAgent + RuntimeContext + InMemoryAgentStateStore`；不把会话状态存在 runtime 字段
+- `com.openalice.model.ConversationTurn`
+- `com.openalice.model.TurnStatus`
 
-### `service/`（本次新增）
-- `ChatService`：一次 `/chat` 编排——先存 user 消息 → 问 agent → 再存 assistant 回复
-
-### `controller/` + `dto/`（原 openalice-server.api）
-- `POST /api/v1/chat`（当前同步 JSON；P1 目标改 SSE 流式）
-- `GET /api/v1/users/{userId}/sessions/{sessionId}/messages`
-- `GET /actuator/health`
-- `ApiExceptionHandler`
-
-### P1 底座目标（需求书 v1.5）
-
-- ✅ 真实双 provider 接入（已编码，commit `7f1b4dd`，待用户 push）：中转站（优先）+ DeepSeek 官方兜底，`OPENALICE_*` 环境变量，auto 回退链 = 中转 → DeepSeek → 无 key 回落 mock；`DeterministicChatModel` 保留为回落。
-- ⏳ `POST /api/v1/chat` 改 `text/event-stream`（SSE：`text_delta / done / error`）。
-- M1：`PgSessionMemoryPort`（表 `session_message`）替换 `InMemoryMemoryPort`，会话重启不丢。
-- `persona/` 初始化：首启引导生成 `user.md` 等（单用户）。
-
-## 4. 构建与验证
-
-**单模块重构后（本次）**：
-
-- `mvn clean test`：**通过（13 tests）**
-  - model 2 / memory 4（含同 session 128 次并发写入）/ agent 2（AgentScope 双 session 并发隔离）/ service 3（ChatServiceTest：fake runtime + InMemoryMemoryPort 测编排顺序）/ controller 2（MockMvc 全链路）
-
-**历史（四模块时代，2026-09-06）**：
-
-- `mvn clean test` 通过（core 2 / memory 4 / agent 2 / server 2）；真实进程冒烟通过（jar 启动、`POST /chat` 返回「收到：你好」、消息历史 / health 正常）。冒烟细节见 git 历史，重构后未重跑进程冒烟。
-
-常用命令（单模块，无 `-pl`）：
-
-```bash
-mvn clean test
-mvn package
-mvn spring-boot:run          # 默认 8080
-```
-
-请求示例：
-
-```bash
-curl -X POST http://localhost:8080/api/v1/chat \
-  -H 'Content-Type: application/json' \
-  -d '{"userId":"user","sessionId":"default","message":"你好"}'
-```
-
-## 5. 关键决策与红线
-
-- AgentScope Java 2.0.2；如关键回归回退 2.0.0。
-- Spring Boot 3.5.16 仅作 Web 壳；Java 21；**单 Maven 模块**（ADR 08 修订 ADR 06）。
-- 架构参照：本地 Jarvis（单模块 + 顶层分包 + controller/service 分层）、openhanako / nanobot / openclaw / khoj（仅思想参考，语言无关）。
-- P1 底座起接真实 LLM：中转站（优先）+ DeepSeek 官方兜底；`DeterministicChatModel` 仅回落。
-- P1 底座目标 = M1 会话消息 PG 持久化（`session_message`，重启不丢）；`InMemoryMemoryPort` 仅过渡；**Redis 已砍、预留后置**。
-- 单用户：`user_id` 仅存储预留、不作路由键；首启引导 `persona/` 初始化。
-- 文本走 SSE 流式；WebSocket 留给 P3 语音。
-- 语音 / learning / OpenHanako 式能力只保留架构位置。
-- 记忆 M1–M3 自研，AgentScope memory 只做桥接不替代。
-- 不把 OpenAlice / A.L.I.C.E. 解释为字母递归人格。
-- 参考项目只作参考，不约束最终实现。
-- 仓库按 public 安全标准维护：不出现公司/组织信息、真实 key、个人邮箱、本机路径、SSH 细节。
-- Git：大改动后 Codex 本地 commit（先 review），**push 一律用户手动**。
-
-## 6. 下一步
-
-1. **单模块重构收尾**（当前）：待用户 review 代码 + 文档（ADR 08 / AGENTS / README / CONTEXT / index / 学习导览 v0.2 / handoff）→ 确认后本地 commit（建议 message 见下），push 由用户执行。
-2. 与用户讨论并启动 **P1 底座剩余编码**（顺序建议）：`/chat` SSE 流式（首 token p95 < 2s 验收）→ M1 `session_message` PG 持久化 → `persona/` 首启初始化。
-3. 双 provider（`7f1b4dd`）待用户 push 后真机验证：auto 回退、中转 WAF 指纹头、代理组合。
-4. 技术验证：AgentScope Java 2.0 流式（event stream）在真实 ChatModel 下是否稳定（锁 2.0.2，回退线 2.0.0）；`PersonaPrompt` 已随重构删除（0 引用死代码，未来按 persona 需求重建）。
-5. 记忆侧 P2（记得住）再启动：M2 / A1 / 写入管线 / M3（详见《记忆架构设计 v0.4》§8）。
-6. **文档纪律**：每次代码/接口/端点大改动后，同步维护《代码学习导览》（§4 链路 / §5 专题 / §8 追踪表），并引导用户回讲 + 亲手改一处。
-
-### 建议 commit message（单模块重构）
+状态：
 
 ```text
-refactor(openalice): 四模块收敛为单模块 + service 编排层（ADR 08）
+RECEIVED → RUNNING → COMPLETED
+                   → FAILED
+RECEIVED/RUNNING → CANCELLED
+```
 
-- Maven 四模块（core/memory/agent/server）收敛为单模块 openalice，根 pom 即应用
-- 顶层包分层 model/enums/port/memory/agent(runtime|llm)/service/controller/dto/config
-- 新增 service.ChatService：一次 /chat 编排（存消息 → 问 agent → 存回复）
-- agent runtime 瘦身：只答一次、不再持有 MemoryPort；controller 只依赖 ChatService
-- 删 0 引用死代码：PersonaPrompt / MemoryQuery / MemoryRecord / TracePort
-- 文档同步：ADR 08 / AGENTS / README / CONTEXT / index / 代码学习导览 v0.2 / handoff
-- 测试全绿：13 tests（model 2 / memory 4 / agent 2 / service 3 / controller 2）
+当前 Turn 是进程内生命周期对象，未持久化；未来若需要审计，再扩展 `ConversationStore`，不提前加死接口。
+
+### 3.3 单用户 API
+
+```text
+POST /api/v1/chat
+{"sessionId":"default","message":"你好"}
+
+GET /api/v1/sessions/{sessionId}/messages
+```
+
+- HTTP 请求 / 响应不暴露 `userId`；
+- 服务端固定 `UserId.DEFAULT`；
+- `ChatMessage.userId` 字段保留，为未来认证上下文注入预留；
+- `ChatRequest` / `ChatStreamEvent` / `MessageView` 外部字段已同步去除 userId。
+
+### 3.4 ContextAssembler
+
+新增 `com.openalice.service.ContextAssembler`：
+
+- 从 `ConversationStore` 读取最近 N 条业务历史；
+- 校验当前 USER 消息一定在上下文中；
+- 携带 system prompt；
+- 生成不可变 `AgentRequest`；
+- 配置项：`openalice.agent.context-window-size`，默认 20。
+
+### 3.5 AgentRequest / AgentEvent
+
+新增：
+
+- `com.openalice.agent.AgentRequest`
+- `com.openalice.agent.AgentEvent`
+- `com.openalice.agent.TextDeltaEvent`
+- `com.openalice.agent.DoneEvent`
+- `com.openalice.agent.ErrorEvent`
+
+`AgentRuntime` 接口：
+
+```java
+Flux<AgentEvent> stream(AgentRequest request);
+```
+
+`AgentScopeAgentRuntime` 每次：
+
+1. 根据Turn 构建 `RuntimeContext`；
+2. `agent.clearContext(context)`；
+3. 将 `AgentRequest.conversationContext` 转成 AgentScope messages；
+4. 调用 `agent.streamEvents(messages, context)`；
+5. 输出 `TextDeltaEvent / DoneEvent / ErrorEvent`。
+
+注意：AgentScope 2.0.2 不允许 hook 将 SYSTEM message 注入 input messages；system prompt 仍通过 `HarnessAgent.builder().sysPrompt(...)` 设置。业务历史唯一真相源是 `ConversationStore`，AgentScope state 只是运行态 scratch。
+
+### 3.6 SessionCoordinator
+
+新增 `com.openalice.service.SessionCoordinator`：
+
+- 同一 `sessionId` 的完整 turn 串行执行；
+- 不同 `sessionId` 可并行；
+- 串行范围覆盖 USER append、history 读取、AgentRequest 组装、Agent 调用、ASSISTANT append、Turn 状态转换；
+- 使用 per-session `Semaphore(1)` 与 `Flux.usingWhen`，完成 / 错误 / 取消都会释放。
+
+当前不为 semaphore map 做复杂清理，避免小规模单用户场景下引入竞态；未来 session 数量显著增大时再评估安全清理。
+
+## 4. 测试状态
+
+2026-09-08 验证结果：
+
+```text
+22 tests passed
+0 failures
+0 errors
+```
+
+测试分布：
+
+```text
+model: 4
+repository.memory: 4
+agent.runtime: 3
+service: 8
+controller: 3
+```
+
+新增 / 更新测试：
+
+- `com.openalice.model.ConversationTurnTest`
+- `com.openalice.repository.memory.InMemoryConversationStoreTest`
+- `com.openalice.service.ContextAssemblerTest`
+- `com.openalice.service.SessionCoordinatorTest`
+- `com.openalice.service.ChatServiceTest`
+- `com.openalice.agent.runtime.AgentScopeAgentRuntimeTest`
+- `com.openalice.controller.ChatControllerTest`
+- `com.openalice.model.ChatMessageTest`
+
+验证说明：
+
+- 当前机器只有 Java 17，因此测试时临时使用 `-Dmaven.compiler.release=17`；
+- Mockito 在该 JDK 组合下需显式挂 Byte Buddy agent；
+- 仓库目标仍是 Java 21，需在 Java 21 环境复跑标准 `mvn clean test`；
+- 真实进程 SSE 冒烟未执行；测试已覆盖 MockMvc async dispatch 下的完整 `text_delta → done` 链路。
+
+## 5. 文档状态
+
+已同步：
+
+- `docs/decisions/09-p15-semantic-and-package-structure.md`
+- `docs/CONTEXT.md`
+- `docs/index.md`
+- `docs/代码学习导览 v0.1.md`（内容 v0.5）
+- `README.md`
+- `AGENTS.md`
+- `handoff.md`
+- `src/main/resources/application.yml`
+
+旧历史 ADR / 需求书中保留当时的 `MemoryPort`、旧包路径和旧 API 表述，这是历史记录，不需要整体改写；当前有效架构以 ADR 09 与本文件为准。
+
+## 6. 红线与约定
+
+- Java 21 目标；Spring Boot 3.5.16；AgentScope Java 2.0.2。
+- 单 Maven 模块；不引入 Spring AI / Spring AI Alibaba。
+- 不做 PostgreSQL M1；当前仅 in-memory。
+- 不提前创建空包 / 空模块 / 无人引用死代码。
+- `web/` 不进入 Maven。
+- 公开安全：不提交真实 key、个人邮箱、本机绝对路径、组织信息、构建产物。
+- Git：commit 需用户明确确认；push 一律用户手动执行。
+- 不把 OpenAlice / A.L.I.C.E. 解释为字母递归人格。
+
+## 7. 下一步
+
+1. 用户 review 当前 diff；
+2. review 确认后执行 `git add -A`，让旧路径删除 + 新路径新增被识别为 rename；
+3. 用户明确指示后本地 commit（建议 message 见下）；
+4. 在 Java 21 环境复跑标准 `mvn clean test`；
+5. 如需真实验证，启动进程并用 `curl -N` 冒烟 SSE；
+6. 下一个架构任务：M1 PostgreSQL `session_message` 持久化；
+7. M1 后做 persona 首启初始化。
+
+### 建议 commit message
+
+```text
+refactor(architecture): 完成 P1.5 语义与包结构整理
+
+- Java 根包迁移至 com.openalice，测试镜像同步
+- MemoryPort 重命名为 ConversationStore，实现迁移至 repository.memory
+- 引入 ConversationTurn / TurnStatus 与显式 Turn 生命周期
+- HTTP API 移除 userId，服务端固定单用户身份
+- 新增 ContextAssembler，Agent 调用前显式组装上下文
+- AgentRuntime 改为 Flux<AgentEvent>，Controller 仅负责 SSE 翻译
+- 新增 SessionCoordinator，同 session 串行、不同 session 并行
+- 同步 ADR 09、README、AGENTS、CONTEXT、学习导览与测试
 ```
 
 ---

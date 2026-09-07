@@ -33,14 +33,15 @@
 | 04 | [OpenAlice 更名决议](./decisions/04-openalice-renaming.md) | OpenLexington → OpenAlice | ✅ 已定 |
 | 05 | [OpenAlice 架构蓝图](./decisions/05-architecture-naming-evolution.md) | 讨论稿 v4：模块边界、开发规范、测试策略、扩展预留 | 🟡 顶层布局经 ADR 06 → 再经 ADR 08 修订 |
 | 06 | [Phase 1 根目录四模块布局](./decisions/06-phase1-root-module-layout.md) | 取消 `service/`，四个 Maven 模块直接放根目录（**顶层布局已被 ADR 08 修订**） | ✅ 已被 ADR 08 修订顶层布局 |
-| 08 | [单模块收敛决议](./decisions/08-single-module-convergence.md) | **当前架构决议**：四模块收敛为单模块 + `model/enums/port/memory/agent/service/controller/dto/config` 顶层包分层；新增 ChatService 编排 | ✅ 当前有效 |
+| 08 | [单模块收敛决议](./decisions/08-single-module-convergence.md) | 四模块收敛为单模块 + service 编排；根包与目录细节已被 ADR 09 修订 | 🟡 历史有效 |
+| 09 | [P1.5 语义重构与包结构整理](./decisions/09-p15-semantic-and-package-structure.md) | **当前架构决议**：`com.openalice` 根包、ConversationStore、Turn、AgentRequest/AgentEvent、ContextAssembler、SessionCoordinator、单用户 API | ✅ 当前有效 |
 | 07 | [P1 底座技术决策](./decisions/07-p1-base-decisions.md) | v1.5 五项拍板：砍 Redis / 真实双 provider / /chat SSE / 单用户 + persona / Phase 坐标 P1–P4；修订 ADR 01 M1-Redis 前提、ADR 06 Java 与 P1 范围 | ✅ 当前有效 |
 
 ## 建议阅读顺序
 
 1. `handoff.md`
 2. 本索引
-3. ADR 08（当前单模块布局）/ ADR 07（P1 底座决策）
+3. ADR 09（当前语义与包结构）/ ADR 07（P1 底座决策）
 4. ADR 05 中仍有效的开发规范与测试策略
 5. 按任务需要选读其他文档
 6. 想读懂代码 / 边做边学：读《代码学习导览 v0.1》并按其 §8 更新学习追踪表
@@ -54,6 +55,7 @@
 
 ## 整理记录
 
+- 2026-09-07：新增 **ADR 09**——根包改为 `com.openalice`，`port + memory` 收敛为 `repository`，新增 Turn / ConversationStore / AgentRequest / AgentEvent / ContextAssembler / SessionCoordinator，并改为单用户 API。
 - 2026-09-07：新增 **ADR 08**——四 Maven 模块收敛为单模块（根 `pom.xml` 即应用），顶层包分层 `model/port/memory/agent/service/controller/dto/config`；新增 `ChatService` 编排层与 `OpenAliceConfiguration` 组合根；删除 0 引用占位；AGENTS.md / README / handoff / 学习导览同步。
 - 2026-09-07：命名与结构微调——新增顶层 `enums/` 包（MessageRole / LlmProvider 集中，均零依赖）；`ChatApiController → ChatController`、`ChatReply → ChatResponse`（Request/Response 配对）；AGENTS / README / CONTEXT / handoff / 学习导览同步。
 - 2026-09-07：新增《代码学习导览 v0.1》（代码学习地图：模块全景 / `POST /chat` 主线链路 / 双 provider 专题 / 学习追踪表；随代码维护，见其 §10）。

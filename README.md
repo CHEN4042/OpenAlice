@@ -9,7 +9,7 @@
 *一个倾听的、共情的、温柔的、永不忘记你的存在。*
 *A lifelong AI companion who never forgets.*
 
-![Status](https://img.shields.io/badge/status-phase%201-blue)
+![Status](https://img.shields.io/badge/status-phase%201.5-blue)
 ![JDK](https://img.shields.io/badge/JDK-21-blue?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.16-6DB33F?logo=springboot)
 ![AgentScope Java](https://img.shields.io/badge/AgentScope%20Java-2.0.2-9cf)
@@ -23,61 +23,71 @@
 
 面向**唯一用户本人**的 AI 陪伴助手 —— 情绪陪伴 + 深度交互，**记忆是灵魂**。
 
-P1（会说真话 · 底座）进行中：`HTTP → AgentScope → MemoryPort` 最小链路已跑通（in-memory 过渡）；P1 目标为接入真实模型（**中转站优先 + DeepSeek 官方兜底**）、`/chat` SSE 流式、M1 会话消息 PG 持久化与单用户 `persona/` 初始化。
+P1.5（语义整理）进行中：`HTTP/SSE → ChatService → ContextAssembler → AgentScope → ConversationStore` 链路已整理为显式 Turn 与 AgentEvent；P1 目标为真实模型双 provider、SSE 流式、M1 会话消息 PostgreSQL 持久化与单用户 `persona/` 初始化。
 
 ## 架构
 
-单 Spring Boot 模块（`io.openalice:openalice`），源码根包 `openalice`，按职责分层：
+单 Spring Boot 模块（`io.openalice:openalice`），源码根包 `com.openalice`：
 
 ```text
 OpenAlice/
-├── pom.xml                    # 单模块应用工程
-├── src/main/java/openalice/
-│   ├── OpenAliceApplication.java   # 启动类（组合根 = Spring 容器）
-│   ├── model/                      # 纯 POJO：ChatMessage · UserId · SessionId …
-│   ├── enums/                      # 共享枚举：MessageRole · LlmProvider
-│   ├── port/                       # 端口接口：MemoryPort
-│   ├── memory/                     # 记忆实现：InMemoryMemoryPort（将来换 PostgreSQL）
-│   ├── agent/runtime + llm/        # AgentScope 执行器 + LLM 模型接入
-│   ├── service/                    # ChatService：一次 /chat 的业务编排
-│   ├── controller/ dto/            # HTTP 入口与出入参
-│   └── config/                     # Spring 组合根（换存储只改这里）
-├── web/                      # 未来前端占位，不进入 Maven
-└── docs/                     # 文档索引 docs/index.md 入口
+├── pom.xml                         # 单模块应用工程
+├── src/main/java/com/openalice/
+│   ├── OpenAliceApplication.java   # 启动类（Spring 组合根）
+│   ├── model/                      # 消息、会话、用户、Turn 等纯模型
+│   ├── repository/
+│   │   ├── ConversationStore.java  # 会话存储接口
+│   │   └── memory/                 # 内存实现；未来 postgres/ 放同级
+│   ├── agent/
+│   │   ├── AgentRequest.java       # 显式上下文输入
+│   │   ├── AgentEvent.java         # TextDelta / Done / Error 事件
+│   │   ├── runtime/                # AgentRuntime + AgentScope 适配器
+│   │   └── llm/                    # 双 provider 模型接入
+│   ├── service/                    # ChatService · ContextAssembler · SessionCoordinator
+│   ├── controller/                 # HTTP/SSE 翻译
+│   ├── dto/                        # API 出入参
+│   └── config/                     # Spring 组合根
+├── web/                            # 未来前端占位，不进入 Maven
+└── docs/
 ```
 
-一次 `/chat` 的职责链：`controller`（只接 HTTP）→ `ChatService`（编排：先存用户消息 → 问 agent → 存回复）→ `agent.runtime`（只问模型一次）→ `MemoryPort`（存哪由实现决定）。`agent` 不依赖记忆实现，只面向 `port.MemoryPort`。
+一次 `/chat` 的职责链：
+
+```text
+ChatController          # HTTP/SSE 翻译，不写业务
+  → ChatService        # Turn 生命周期 + USER/ASSISTANT 持久化
+    → SessionCoordinator  # 同 session 串行，不同 session 并行
+    → ContextAssembler   # 从 ConversationStore 读取最近 N 条，生成 AgentRequest
+    → AgentRuntime       # clearContext 后传显式上下文，返回 Flux<AgentEvent>
+```
+
+`ConversationStore` 是业务历史唯一真相源；AgentScope state store 只是运行态 scratch，不承担业务记忆。
 
 ## 构建与运行
 
 要求：Java 21+、Maven 3.9+。
 
 ```bash
-# 全量测试
 mvn clean test
-
-# 打包可执行 jar
 mvn package
-
-# 本地启动
 mvn spring-boot:run
 ```
 
 ### LLM 接入（环境变量）
 
 未配置任何 key 时自动回落到确定性 mock（回复形如 `收到：你好`）；配置后走真实模型。
-`agent` 模块按以下环境变量解析，key 只经环境变量传入、不落盘不入库：
 
 | 变量 | 说明 | 默认 |
-| :-- | :-- | :-- |
-| `OPENALICE_LLM_PROVIDER` | `auto` / `mock` / `deepseek` / `agentrouter` | `auto`：有中转 key 走中转 → 有 DeepSeek key 走官方 → 都无则 mock |
+| :--- | :--- | :--- |
+| `OPENALICE_LLM_PROVIDER` | `auto` / `mock` / `deepseek` / `agentrouter` | `auto`：中转 → DeepSeek → mock |
 | `OPENALICE_AGENTROUTER_API_KEY` | AgentRouter 中转站 key（优先） | — |
 | `OPENALICE_DEEPSEEK_API_KEY` | DeepSeek 官方 key（兜底） | — |
 | `OPENALICE_LLM_MODEL` | 模型名覆盖 | `deepseek-v4-flash` |
-| `OPENALICE_LLM_BASE_URL` | API Base URL 覆盖 | 官方 `https://api.deepseek.com` / 中转 `https://agentrouter.org` |
-| `OPENALICE_LLM_PROXY` | HTTP 代理 `host:port`（中转站需走代理时设置） | 不代理 |
+| `OPENALICE_LLM_BASE_URL` | API Base URL 覆盖 | provider 默认值 |
+| `OPENALICE_LLM_PROXY` | HTTP 代理 `host:port` | 不代理 |
+| `OPENALICE_SYSTEM_PROMPT` | 系统提示词覆盖 | Alice 默认提示词 |
 
-示例（中转站）：
+示例：
 
 ```bash
 OPENALICE_LLM_PROVIDER=agentrouter \
@@ -86,45 +96,44 @@ OPENALICE_LLM_PROXY=127.0.0.1:7897 \
 mvn spring-boot:run
 ```
 
-> 说明：AgentRouter 中转站有 WAF，只放行带 Codex 客户端指纹头的请求；`agent` 内部
-> 的 `ConfiguredHttpTransport` 会自动注入该指纹头，因此 Java 侧可直接对接，无需额外反代。
+## API
 
-测试接口：
+### 聊天（SSE）
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/chat \
+curl -N -X POST http://localhost:8080/api/v1/chat \
+  -H 'Accept: text/event-stream' \
   -H 'Content-Type: application/json' \
-  -d '{"userId":"user","sessionId":"default","message":"你好"}'
+  -d '{"sessionId":"default","message":"你好"}'
 ```
 
-预期响应：
+```text
+event:text_delta
+data:{"type":"text_delta","sessionId":"default","delta":"收到：你好"}
 
-```json
-{
-  "userId": "user",
-  "sessionId": "default",
-  "reply": "收到：你好"
-}
+event:done
+data:{"type":"done","sessionId":"default","reply":"收到：你好"}
 ```
 
-> 注：上述为未配置 LLM key（mock 模式）的响应；配置真实 key 后返回模型真实输出。
+### 历史消息
+
+```bash
+curl http://localhost:8080/api/v1/sessions/default/messages
+```
 
 ## 当前边界
 
-- LLM 已接入真实双 provider（AgentRouter 中转站优先 + DeepSeek 官方兜底），未配置 key 自动回落 mock；模型层已流式（`stream=true`），HTTP `/chat` SSE 客户端流式留待后续；
-- 当前使用内存存储（进程重启不保留）；P1 底座目标 = M1 会话消息落 PostgreSQL `session_message`（重启不丢）；Redis 已砍、预留后置；
+- LLM 已接入 AgentRouter 优先 + DeepSeek 官方兜底，无 key 自动回落 mock；
+- 当前使用 `InMemoryConversationStore`，进程重启不保留；M1 将替换为 PostgreSQL `session_message`；
 - 语音、learning、插件、多 Agent 只保留架构位置，暂不实现；
 - `web/` 只是占位，不进入 Maven Reactor。
 
 ## 文档导航
 
 | 文档 | 说明 |
-| :-- | :-- |
-| [docs/index.md](docs/index.md) | 文档总索引：先读它，按需选读 |
-| [handoff.md](handoff.md) | 会话交接：下一位 AI / 协作者先读 |
-| [docs/项目需求说明书 v1.2.md](docs/项目需求说明书%20v1.2.md) | 项目需求说明书 v1.5（核心规格） |
-| [docs/decisions/08-single-module-convergence.md](docs/decisions/08-single-module-convergence.md) | 当前架构决议：单模块收敛 + 顶层包分层 |
-| [docs/decisions/07-p1-base-decisions.md](docs/decisions/07-p1-base-decisions.md) | P1 底座五项技术决策 |
-| [docs/decisions/05-architecture-naming-evolution.md](docs/decisions/05-architecture-naming-evolution.md) | 架构蓝图 v4（顶层布局已被 ADR 08 修订） |
-| [docs/CONTEXT.md](docs/CONTEXT.md) | 共享语言与术语速查 |
-| [docs/decisions/](docs/decisions/) | 技术决策记录（ADR） |
+| :--- | :--- |
+| [docs/index.md](docs/index.md) | 文档总索引 |
+| [handoff.md](handoff.md) | 会话交接 |
+| [docs/decisions/09-p15-semantic-and-package-structure.md](docs/decisions/09-p15-semantic-and-package-structure.md) | 当前架构决议 |
+| [docs/decisions/07-p1-base-decisions.md](docs/decisions/07-p1-base-decisions.md) | P1 底座决策 |
+| [docs/CONTEXT.md](docs/CONTEXT.md) | 术语速查 |
