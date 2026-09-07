@@ -93,7 +93,7 @@ curl -X POST http://localhost:8080/api/v1/chat \
 | :-- | :-- |
 | [docs/index.md](docs/index.md) | 文档总索引：先读它，按需选读 |
 | [handoff.md](handoff.md) | 会话交接：下一位 AI / 协作者先读 |
-| [docs/项目需求说明书 v1.2.md](docs/项目需求说明书%20v1.2.md) | 项目需求说明书 v1.3（核心规格） |
+| [docs/项目需求说明书 v1.2.md](docs/项目需求说明书%20v1.2.md) | 项目需求说明书 v1.4（核心规格） |
 | [docs/decisions/06-phase1-root-module-layout.md](docs/decisions/06-phase1-root-module-layout.md) | 当前架构决议：根目录四模块布局 |
 | [docs/decisions/05-architecture-naming-evolution.md](docs/decisions/05-architecture-naming-evolution.md) | 架构蓝图 v4（顶层布局已被 ADR 06 修订） |
 | [docs/CONTEXT.md](docs/CONTEXT.md) | 共享语言与术语速查 |
