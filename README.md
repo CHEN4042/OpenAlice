@@ -38,11 +38,13 @@ OpenAlice/
 │   ├── chat/                       # ★ 业务：对话（业务包，内部按类型整理）
 │   │   ├── service/                # ChatService · ContextAssembler · SessionCoordinator
 │   │   └── store/                  # ConversationStore · StoredMessage · memory/ 内存实现
-│   ├── agent/
-│   │   ├── AgentRequest.java       # 显式输入：userId/sessionId + 上下文
+│   ├── agent/                      # 内核：一次 agent 执行 → Flux<AgentEvent>
+│   │   ├── AgentExecutor.java      # 执行端口（取代原 AgentRuntime）
+│   │   ├── AgentScopeReActAgent.java  # 默认实现：AgentScope ReAct 引擎
+│   │   ├── AgentRequest.java       # 显式输入：userId/sessionId + 上下文 + system prompt
 │   │   ├── AgentEvent.java         # TextDelta / Done / Error 事件
-│   │   ├── runtime/                # AgentRuntime + AgentScope 适配器
-│   │   └── llm/                    # 双 provider 模型接入
+│   │   └── tool/                   # AgentToolkit（集中注册）+ CurrentTimeTool 示例
+│   ├── llm/                        # 模型接入：LlmProvider · LlmModelFactory · LlmSettings
 │   ├── controller/                 # HTTP/SSE 翻译
 │   ├── dto/                        # API 出入参
 │   └── config/                     # Spring 组合根
@@ -57,7 +59,7 @@ ChatController          # HTTP/SSE 翻译，不写业务
   → ChatService        # Turn 生命周期 + USER/ASSISTANT 持久化
     → SessionCoordinator  # 同 session 串行，不同 session 并行
     → ContextAssembler   # 从 ConversationStore 读取最近 N 条，生成 AgentRequest
-    → AgentRuntime       # clearContext 后传显式上下文，返回 Flux<AgentEvent>
+    → AgentExecutor      # 基于 AgentScope ReAct（推理→工具→观察），返回 Flux<AgentEvent>
 ```
 
 `ConversationStore` 是业务历史唯一真相源；AgentScope state store 只是运行态 scratch，不承担业务记忆。

@@ -11,9 +11,10 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 /**
- * Serializes work by session while allowing different sessions to proceed in
- * parallel. The permit is held for the whole streaming lifecycle, including
- * USER append, history read, agent execution, and ASSISTANT append.
+ * 按会话串行化执行，同时允许不同会话并行。
+ *
+ * <p>信号量在整条流式生命周期内持有——覆盖 USER 追加、历史读取、agent 执行与
+ * ASSISTANT 追加，保证同一会话的消息顺序不被并发请求打乱。</p>
  */
 @Service
 public class SessionCoordinator {

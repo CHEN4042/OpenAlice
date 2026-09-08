@@ -1,10 +1,10 @@
 package com.openalice.chat.service;
 
 import com.openalice.agent.AgentEvent;
+import com.openalice.agent.AgentExecutor;
 import com.openalice.agent.AgentRequest;
 import com.openalice.agent.DoneEvent;
 import com.openalice.agent.ErrorEvent;
-import com.openalice.agent.runtime.AgentRuntime;
 import com.openalice.chat.store.ConversationStore;
 import com.openalice.chat.store.StoredMessage;
 import com.openalice.dto.ChatRequest;
@@ -15,32 +15,33 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * Chat orchestration for one turn.
+ * 一轮 /chat 的业务编排。
  *
- * <p>The complete turn runs under SessionCoordinator: USER append, history
- * assembly, agent call and ASSISTANT append are serialized for the same session.
- * The controller only translates AgentEvents to SSE.</p>
+ * <p>完整的一轮在 {@link SessionCoordinator} 内串行执行：追加 USER 消息 →
+ * 组装上下文 → 调用 agent（{@link AgentExecutor}）→ 追加 ASSISTANT 消息，
+ * 同一会话不会被并发插入打乱；agent 抛错时兜成 {@link ErrorEvent} 继续走 SSE。
+ * Controller 只负责把 {@link AgentEvent} 翻译成 SSE。</p>
  */
 @Service
 public class ChatService {
 
-    /** Single-user API default; the storage layer keeps it per row for future auth. */
+    /** 单用户 API 的默认内部用户；存储层仍按行保留 userId，为将来认证预留。 */
     private static final String DEFAULT_USER_ID = "openalice-user";
 
     private static final int HISTORY_LIMIT = 100;
 
-    private final AgentRuntime agentRuntime;
+    private final AgentExecutor agentExecutor;
     private final ConversationStore conversationStore;
     private final ContextAssembler contextAssembler;
     private final SessionCoordinator sessionCoordinator;
 
     public ChatService(
-            AgentRuntime agentRuntime,
+            AgentExecutor agentExecutor,
             ConversationStore conversationStore,
             ContextAssembler contextAssembler,
             SessionCoordinator sessionCoordinator
     ) {
-        this.agentRuntime = agentRuntime;
+        this.agentExecutor = agentExecutor;
         this.conversationStore = conversationStore;
         this.contextAssembler = contextAssembler;
         this.sessionCoordinator = sessionCoordinator;
@@ -55,7 +56,7 @@ public class ChatService {
             conversationStore.append(userMessage);
             AgentRequest agentRequest = contextAssembler.assemble(DEFAULT_USER_ID, sessionId);
 
-            return agentRuntime.stream(agentRequest)
+            return agentExecutor.stream(agentRequest)
                     .concatMap(event -> {
                         if (event instanceof DoneEvent doneEvent) {
                             conversationStore.append(StoredMessage.assistant(
@@ -66,8 +67,7 @@ public class ChatService {
                         }
                         return Flux.just(event);
                     })
-                    .onErrorResume(error ->
-                            Flux.just(new ErrorEvent(safeErrorMessage(error))));
+                    .onErrorResume(error -> Flux.just(new ErrorEvent(safeErrorMessage(error))));
         }));
     }
 
@@ -98,18 +98,18 @@ public class ChatService {
     }
 
     private static String requireSessionId(String value) {
-        requireText(value, "sessionId");
+        return requireText(value, "sessionId");
+    }
+
+    private static String requireText(String value, String field) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(field + " must not be blank");
+        }
         return value.trim();
     }
 
     private static String safeErrorMessage(Throwable error) {
         String message = error.getMessage();
         return message == null || message.isBlank() ? "chat failed" : message;
-    }
-
-    private static void requireText(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " must not be blank");
-        }
     }
 }

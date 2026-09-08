@@ -1,7 +1,6 @@
 package com.openalice.chat.service;
 
 import com.openalice.agent.AgentRequest;
-import com.openalice.agent.runtime.AgentRuntimeProperties;
 import com.openalice.chat.store.ConversationStore;
 import com.openalice.chat.store.StoredMessage;
 import com.openalice.model.ChatMessage;
@@ -11,12 +10,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * Builds the explicit agent input from the conversation store.
+ * 从会话存储显式组装 agent 入参。
  *
- * <p>This keeps history assembly out of the controller and out of the AgentScope
- * adapter. The store remains the source of truth for business history. The caller
- * runs inside {@link SessionCoordinator}, so the newest stored message is the USER
- * message that was just appended.</p>
+ * <p>职责是让「历史拼装」既不在 Controller 也不在 Agent 实现里发生：
+ * 存储仍是业务历史的唯一事实来源，这里把最近 N 条历史 + 系统提示词（来自
+ * {@code openalice.agent.system-prompt} 配置）转成 {@link AgentRequest}。
+ * 调用方运行在 {@link SessionCoordinator} 内，因此最新一条已存消息必然是
+ * 本轮刚追加的 USER 消息。</p>
  */
 @Service
 public class ContextAssembler {
@@ -27,11 +27,11 @@ public class ContextAssembler {
 
     public ContextAssembler(
             ConversationStore conversationStore,
-            AgentRuntimeProperties properties,
+            @Value("${openalice.agent.system-prompt}") String systemPrompt,
             @Value("${openalice.agent.context-window-size:20}") int contextWindowSize
     ) {
         this.conversationStore = conversationStore;
-        this.systemPrompt = properties.systemPrompt();
+        this.systemPrompt = systemPrompt;
         this.contextWindowSize = contextWindowSize;
         if (contextWindowSize <= 0) {
             throw new IllegalArgumentException("contextWindowSize must be positive");

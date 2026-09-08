@@ -1,12 +1,11 @@
 package com.openalice.chat.service;
 
 import com.openalice.agent.AgentEvent;
+import com.openalice.agent.AgentExecutor;
 import com.openalice.agent.AgentRequest;
 import com.openalice.agent.DoneEvent;
 import com.openalice.agent.ErrorEvent;
 import com.openalice.agent.TextDeltaEvent;
-import com.openalice.agent.runtime.AgentRuntime;
-import com.openalice.agent.runtime.AgentRuntimePropertiesFixture;
 import com.openalice.chat.store.ConversationStore;
 import com.openalice.chat.store.StoredMessage;
 import com.openalice.chat.store.memory.InMemoryConversationStore;
@@ -24,7 +23,9 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 
 class ChatServiceTest {
 
-    private static final class RecordingAgentRuntime implements AgentRuntime {
+    private static final String SYSTEM_PROMPT = "You are Alice, a warm and attentive AI companion.";
+
+    private static final class RecordingAgentExecutor implements AgentExecutor {
         private final List<AgentRequest> requests = new CopyOnWriteArrayList<>();
 
         @Override
@@ -45,14 +46,14 @@ class ChatServiceTest {
     }
 
     private static ChatService service(
-            AgentRuntime runtime,
+            AgentExecutor executor,
             ConversationStore store,
             int contextWindowSize
     ) {
         return new ChatService(
-                runtime,
+                executor,
                 store,
-                new ContextAssembler(store, AgentRuntimePropertiesFixture.mock(), contextWindowSize),
+                new ContextAssembler(store, SYSTEM_PROMPT, contextWindowSize),
                 new SessionCoordinator()
         );
     }
@@ -64,7 +65,7 @@ class ChatServiceTest {
     @Test
     void shouldPersistUserAndAssistantAroundAgentCall() {
         ConversationStore store = new InMemoryConversationStore();
-        ChatService service = service(new RecordingAgentRuntime(), store, 20);
+        ChatService service = service(new RecordingAgentExecutor(), store, 20);
 
         complete(service, new ChatRequest("session", "你好"));
 
@@ -82,15 +83,15 @@ class ChatServiceTest {
         String sessionId = "session";
         store.append(StoredMessage.user("user-1", sessionId, "历史问题"));
         store.append(StoredMessage.assistant("user-1", sessionId, "历史回答"));
-        RecordingAgentRuntime runtime = new RecordingAgentRuntime();
-        ChatService service = service(runtime, store, 20);
+        RecordingAgentExecutor executor = new RecordingAgentExecutor();
+        ChatService service = service(executor, store, 20);
 
         complete(service, new ChatRequest("session", "新问题"));
 
-        AgentRequest request = runtime.requests.get(0);
+        AgentRequest request = executor.requests.get(0);
         assertThat(request.userId()).isNotBlank();
         assertThat(request.sessionId()).isEqualTo("session");
-        assertThat(request.systemPrompt()).isEqualTo(AgentRuntimePropertiesFixture.SYSTEM_PROMPT);
+        assertThat(request.systemPrompt()).isEqualTo(SYSTEM_PROMPT);
         assertThat(request.conversationContext())
                 .extracting(ChatMessage::content)
                 .containsExactly("历史问题", "历史回答", "新问题");
@@ -102,8 +103,8 @@ class ChatServiceTest {
     @Test
     void shouldEmitErrorEventWhenAgentStreamFails() {
         ConversationStore store = new InMemoryConversationStore();
-        AgentRuntime failingRuntime = request -> Flux.error(new IllegalStateException("provider unavailable"));
-        ChatService service = service(failingRuntime, store, 20);
+        AgentExecutor failingExecutor = request -> Flux.error(new IllegalStateException("provider unavailable"));
+        ChatService service = service(failingExecutor, store, 20);
 
         List<AgentEvent> events = complete(service, new ChatRequest("session", "hi"));
 
@@ -114,7 +115,7 @@ class ChatServiceTest {
     @Test
     void shouldExposeHistoryAsMessageViews() {
         ConversationStore store = new InMemoryConversationStore();
-        ChatService service = service(new RecordingAgentRuntime(), store, 20);
+        ChatService service = service(new RecordingAgentExecutor(), store, 20);
         complete(service, new ChatRequest("session", "hi"));
 
         List<MessageView> views = service.history("session");
@@ -127,7 +128,7 @@ class ChatServiceTest {
     @Test
     void shouldRejectBlankMessage() {
         ChatService service = service(
-                new RecordingAgentRuntime(),
+                new RecordingAgentExecutor(),
                 new InMemoryConversationStore(),
                 20
         );

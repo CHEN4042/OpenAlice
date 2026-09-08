@@ -21,8 +21,8 @@ A.L.I.C.E.（爱丽丝）= 面向**唯一用户本人**的 AI 陪伴助手 —�
 - Agent 框架：AgentScope Java 2.0.2，Phase 1 实测；如关键回归可回退 2.0.0。
 - Web 壳：Spring Boot 3.5.16，仅用于 HTTP / 装配，不引入 Spring AI。
 - Java：21。
-- 构建：**Maven 单模块**（ADR 08，修订 ADR 06）：根 `pom.xml` 即 Spring Boot 应用（`io.openalice:openalice`），根包 `com.openalice`，顶层包分层 `model / agent(runtime|llm) / chat(service|store) / controller / dto / config`（ADR 10，修订 ADR 09 顶层布局）。
-- LLM（真实，P1 起）：**中转站（OpenAI 兼容，优先）+ DeepSeek 官方 API（兜底）**，双 provider 故障自动切换；`auto` 回退链 = 中转 → DeepSeek → 无 key 回落 `DeterministicChatModel`（mock）。配置默认值在 `application.yml`（`openalice.agent.*` / `openalice.llm.*`，Spring 绑定见 `config.OpenAliceSettings`）；**真实 key 只放 gitignored `application-local.yml`（`--spring.profiles.active=local`）或 `OPENALICE_*` 环境变量**，见 ADR 11。代码见 `com.openalice.agent.llm.LlmModelFactory`。
+- 构建：**Maven 单模块**（ADR 08，修订 ADR 06）：根 `pom.xml` 即 Spring Boot 应用（`io.openalice:openalice`），根包 `com.openalice`，顶层包分层 `model / agent / llm / chat(service|store) / controller / dto / config`（ADR 10，修订 ADR 09 顶层布局；`runtime/`、`agent.llm` 已在本轮拆除，`llm` 上提为顶层包）。
+- LLM（真实，P1 起）：**中转站（OpenAI 兼容，优先）+ DeepSeek 官方 API（兜底）**，双 provider 故障自动切换；`auto` 解析 = 中转（AgentRouter）有 key 优先 → DeepSeek 兜底 → 都无 key 直接启动/调用报错（mock 回退已移除，真实 key 见 ADR 11 与本机 local 配置）。配置默认值在 `application.yml`（`openalice.agent.*` / `openalice.llm.*`，Spring 绑定见 `config.OpenAliceSettings`）；**真实 key 只放 gitignored `application-local.yml`（`--spring.profiles.active=local`）或 `OPENALICE_*` 环境变量**。代码见 `com.openalice.llm.LlmModelFactory`（顶层 `llm` 包）。
 - P1.5 会话存储：当前 `InMemoryConversationStore`（过渡）；M1 目标 = 会话消息实时落 PostgreSQL（`session_message`），AgentScope 运行态单实例**进程内**；**Redis 已砍、预留后置**（需求书 v1.5 / ADR 07）。
 - Agent 不读取存储；`chat.service.ContextAssembler` 从 `chat.store.ConversationStore` 组装显式 `AgentRequest`，AgentScope state 仅作运行态 scratch。
 - 单用户：HTTP API 不暴露 `userId`，服务端固定默认用户（`ChatService` 私有常量）；`ChatMessage` 纯 role/content，归属与时间戳下沉到 `chat.store.StoredMessage`（id / userId / sessionId / createdAt），存储行保留 `userId` 供未来认证（ADR 13）。首次启动引导初始化 `persona/` 文件（user.md 等，参考 OpenHanako）仍待实现。

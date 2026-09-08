@@ -7,6 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * {@link ConversationStore} 的内存实现（按会话分桶）。
+ *
+ * <p>仅用于本地开发与测试；将来接 PostgreSQL 时新增一个同名端口实现并在
+ * 组合根替换即可。</p>
+ */
 public final class InMemoryConversationStore implements ConversationStore {
 
     private final Map<String, List<StoredMessage>> sessions = new ConcurrentHashMap<>();

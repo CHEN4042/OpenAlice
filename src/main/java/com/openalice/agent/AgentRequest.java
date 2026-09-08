@@ -5,13 +5,12 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Explicit input to the agent runtime.
+ * 传给智能体运行时的显式入参。
  *
- * <p>{@code userId} / {@code sessionId} identify the RuntimeContext; the single-user
- * API always passes the service's default user. {@code conversationContext} contains
- * the recent business history, including the current USER message. {@code systemPrompt}
- * is assembled separately by the service layer so the agent adapter does not read the
- * store itself.</p>
+ * <p>{@code userId} / {@code sessionId} 标识 RuntimeContext；单用户 API 始终使用
+ * service 的默认用户。{@code conversationContext} 是最近一段业务历史（含当前这条
+ * USER 消息）。{@code systemPrompt} 由 service 层单独拼好，agent 适配器自己不读
+ * 存储。</p>
  */
 public record AgentRequest(
         String userId,

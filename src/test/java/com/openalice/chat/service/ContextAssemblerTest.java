@@ -1,7 +1,6 @@
 package com.openalice.chat.service;
 
 import com.openalice.agent.AgentRequest;
-import com.openalice.agent.runtime.AgentRuntimePropertiesFixture;
 import com.openalice.chat.store.ConversationStore;
 import com.openalice.chat.store.StoredMessage;
 import com.openalice.chat.store.memory.InMemoryConversationStore;
@@ -15,6 +14,7 @@ class ContextAssemblerTest {
 
     private static final String USER_ID = "user-1";
     private static final String SESSION_ID = "session";
+    private static final String SYSTEM_PROMPT = "You are Alice, a warm and attentive AI companion.";
 
     @Test
     void shouldReadRecentHistoryFromConversationStore() {
@@ -24,7 +24,7 @@ class ContextAssemblerTest {
         }
         ContextAssembler assembler = new ContextAssembler(
                 store,
-                AgentRuntimePropertiesFixture.mock(),
+                SYSTEM_PROMPT,
                 3
         );
 
@@ -32,7 +32,7 @@ class ContextAssemblerTest {
 
         assertThat(request.userId()).isEqualTo(USER_ID);
         assertThat(request.sessionId()).isEqualTo(SESSION_ID);
-        assertThat(request.systemPrompt()).isEqualTo(AgentRuntimePropertiesFixture.SYSTEM_PROMPT);
+        assertThat(request.systemPrompt()).isEqualTo(SYSTEM_PROMPT);
         assertThat(request.conversationContext())
                 .extracting(ChatMessage::content)
                 .containsExactly("message-4", "message-5", "message-6");
@@ -44,7 +44,7 @@ class ContextAssemblerTest {
         store.append(StoredMessage.assistant(USER_ID, SESSION_ID, "assistant without user"));
         ContextAssembler assembler = new ContextAssembler(
                 store,
-                AgentRuntimePropertiesFixture.mock(),
+                SYSTEM_PROMPT,
                 20
         );
 

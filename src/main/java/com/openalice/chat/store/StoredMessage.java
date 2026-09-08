@@ -7,12 +7,12 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * One stored conversation record — a database row: the business {@link ChatMessage}
- * plus ownership ({@code userId} / {@code sessionId}) and storage metadata
- * ({@code id} / {@code createdAt}).
+ * 一条已存储的会话记录（对应数据库一行）：业务消息 {@link ChatMessage}
+ * 加上归属（{@code userId} / {@code sessionId}）与存储元数据
+ * （{@code id} / {@code createdAt}）。
  *
- * <p>The single-user API always writes the service's default user; the {@code userId}
- * column is kept so the storage model does not change when authentication arrives.</p>
+ * <p>单用户 API 始终写入 service 的默认用户；保留 {@code userId} 列是为了
+ * 将来接入认证时存储模型不必再改。</p>
  */
 public record StoredMessage(
         String id,

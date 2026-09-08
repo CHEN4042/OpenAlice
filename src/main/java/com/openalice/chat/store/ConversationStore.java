@@ -3,12 +3,11 @@ package com.openalice.chat.store;
 import java.util.List;
 
 /**
- * Conversation persistence boundary.
+ * 对话持久化端口（存储抽象）。
  *
- * <p>The store is the source of truth for business conversation history. The
- * AgentScope state store is only runtime scratch state and is cleared before each
- * call. The API is single-user, so history is keyed by {@code sessionId}; the
- * stored record still carries {@code userId} for future authentication.</p>
+ * <p>存储是业务对话历史的唯一事实来源。AgentScope 的状态存储只是运行时暂存，
+ * 每次调用前会被清空。外部 API 是单用户的，历史按 {@code sessionId} 读取；
+ * 存储记录仍携带 {@code userId}，为将来接入认证预留。</p>
  */
 public interface ConversationStore {
 

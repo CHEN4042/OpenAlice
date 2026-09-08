@@ -1,4 +1,4 @@
-package com.openalice.agent.llm;
+package com.openalice.llm;
 
 import io.agentscope.core.model.transport.HttpRequest;
 import io.agentscope.core.model.transport.HttpResponse;
@@ -15,17 +15,16 @@ import java.util.regex.Pattern;
 import reactor.core.publisher.Flux;
 
 /**
- * {@link HttpTransport} decorator that optionally routes through an HTTP proxy and/or
- * injects the Codex CLI fingerprint headers required by the AgentRouter relay's WAF.
+ * {@link HttpTransport} 装饰器：按需走 HTTP 代理，以及为 AgentRouter 中转的
+ * WAF 注入 Codex CLI 指纹请求头。
  *
- * <p>The relay only accepts requests that look like they come from an official Codex
- * client (see {@code Originator}/{@code Version}/{@code User-Agent}); the underlying
- * {@code OpenAIClient} only sends {@code Authorization}/{@code Content-Type} plus its
- * own {@code User-Agent}, so those requests would be rejected with 401 otherwise.</p>
+ * 该中转只放行看起来来自官方 Codex 客户端的请求（校验
+ * {@code Originator} / {@code Version} / {@code User-Agent}）；底层
+ * {@code OpenAIClient} 只会发送 {@code Authorization} / {@code Content-Type}
+ * 和它自己的 {@code User-Agent}，否则这类请求会被 401 拒绝。
  *
- * <p>Lifecycle: transports created here with a proxy are registered with
- * {@link HttpTransportFactory} so they are closed on shutdown; the shared default
- * transport is never closed by this decorator.</p>
+ * 生命周期：这里创建的带代理 transport 会注册到 {@link HttpTransportFactory}，
+ * 由它统一在关闭时回收；共享的默认 transport 不会被本装饰器关闭。
  */
 final class ConfiguredHttpTransport implements HttpTransport {
 
@@ -85,8 +84,8 @@ final class ConfiguredHttpTransport implements HttpTransport {
 
     @Override
     public void close() {
-        // Own transports are registered with HttpTransportFactory for lifecycle management;
-        // the shared default transport must not be closed here.
+        // 自建的 transport 已注册到 HttpTransportFactory 统一管理生命周期；
+        // 共享默认 transport 不能在这里关闭。
     }
 
     private HttpRequest withHeaders(HttpRequest request) {

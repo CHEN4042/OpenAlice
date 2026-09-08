@@ -3,9 +3,10 @@ package com.openalice.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
- * Minimal SSE event set: text_delta, done, error. The external API is
- * single-user and each stream belongs to one session, so neither userId nor
- * sessionId is repeated inside the event payload.
+ * 对外 SSE 事件的最小集合：{@code text_delta} / {@code done} / {@code error}。
+ *
+ * <p>外部 API 是单用户的，且每个流都属于某个会话，所以事件体里不重复
+ * userId / sessionId。</p>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ChatStreamEvent(

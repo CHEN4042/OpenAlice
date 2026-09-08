@@ -1,7 +1,7 @@
 # AGENTS.md · OpenAlice（A.L.I.C.E. 爱丽丝）
 
 > 本文件给所有在本仓库工作的 Codex / 协作者作为入口指引；运营细节、红线与交接进度以 `handoff.md`（仓库根目录）为准。
-> 当前阶段：**phase1-implementation / P1.5 语义整理 + ADR 10 业务包结构** —— SSE 流式与 Turn / Context / Session 编排链路已跑通；对话业务收敛到 `chat` 业务包。
+> 当前阶段：**phase1-implementation / P1.5 语义整理 + ADR 10 业务包结构** —— SSE 流式已接入 AgentScope ReAct Agent（含工具调用）；对话业务收敛到 `chat` 业务包。
 
 ## 目录结构
 
@@ -18,15 +18,16 @@ OpenAlice/
 │   │   ├── chat/                       # ★ 业务：对话（业务包，包内按类型整理）
 │   │   │   ├── service/                # ChatService · ContextAssembler · SessionCoordinator
 │   │   │   └── store/                  # ConversationStore · StoredMessage · memory/ 内存实现（将来 postgres/ 同级）
-│   │   ├── agent/
+│   │   ├── agent/                      # 内核：一次 agent 执行（AgentExecutor → Flux<AgentEvent>）
+│   │   │   ├── AgentExecutor.java      # 执行端口：stream(AgentRequest)（取代原 AgentRuntime）
+│   │   │   ├── AgentScopeReActAgent.java  # 默认实现：AgentScope ReAct 引擎（推理→工具→观察）
 │   │   │   ├── AgentRequest.java       # 显式 agent 输入：userId/sessionId + 最近上下文 + system prompt
-│   │   │   ├── AgentEvent.java         # sealed event
-│   │   │   ├── TextDeltaEvent.java · DoneEvent.java · ErrorEvent.java
-│   │   │   ├── runtime/                # AgentRuntime / AgentScope 适配器 / factory / properties
-│   │   │   └── llm/                    # LlmProvider / factory / mock / HTTP transport
+│   │   │   ├── AgentEvent.java         # sealed event（TextDeltaEvent / DoneEvent / ErrorEvent）
+│   │   │   └── tool/                   # AgentToolkit（集中注册）· CurrentTimeTool 示例工具
+│   │   ├── llm/                        # 模型接入：LlmProvider · LlmModelFactory · LlmSettings · ConfiguredHttpTransport
 │   │   ├── controller/                 # ChatController / HealthController / 异常处理
 │   │   ├── dto/                        # ChatRequest / ChatStreamEvent / MessageView
-│   │   └── config/                     # Spring @Configuration：组装存储与 agent
+│   │   └── config/                     # Spring @Configuration：组装存储、llm 与 agent
 │   ├── test/java/com/openalice/        # 测试镜像 main 的包结构
 │   └── main/resources/application.yml
 ├── web/                  # 前端占位，不进入 Maven
@@ -57,10 +58,10 @@ OpenAlice/
 - Java 21，**单 Maven 模块**，根 `pom.xml` 即 Spring Boot 应用（`io.openalice:openalice`）。
 - AgentScope Java 2.0.2 是预选底座；Spring Boot 3.5.16 仅作 Web 壳。
 - 不引入 Spring AI / Spring AI Alibaba。
-- 包依赖单向：`model ← chat.store`、`model ← agent`、`chat.service → model + chat.store + agent`、`controller → chat.service + dto`、`config` 组装 chat.store 与 agent.runtime。
+- 包依赖单向：`model ← chat.store`、`model ← agent`、`agent → model + llm + agent.tool`、`chat.service → model + chat.store + agent`、`controller → chat.service + dto`、`config` 组装 chat.store + llm + agent。
 - 包结构遵循 ADR 10：默认留在本地、跨业务共享才上提 `model/`；不建全局 `enums/`、不提前建空业务包。
 - `ConversationStore` 是业务会话历史唯一真相源；AgentScope state store 只是运行态 scratch，每次调用前清空。
-- `ChatService` 负责单 turn 编排与消息持久化；`ContextAssembler` 负责显式上下文；`AgentRuntime` 只执行模型调用；`ChatController` 只做 HTTP/SSE 翻译。
+- `ChatService` 负责单 turn 编排与消息持久化；`ContextAssembler` 负责显式上下文；`AgentExecutor`（默认 `AgentScopeReActAgent`）只执行一次 agent 调用并产出事件流；`ChatController` 只做 HTTP/SSE 翻译。
 - API 面向单用户：外部请求不携带 `userId`，服务端固定默认用户（`ChatService` 私有常量）；消息只含 role/content，归属与时间戳落在 `chat.store.StoredMessage`，存储行保留 `userId` 供未来认证。
 - `web/` 不进入 Maven Reactor。
 - 语音、learning、插件、多 Agent 只保留架构位置，不提前创建空模块/空包。
@@ -70,7 +71,7 @@ OpenAlice/
 - 遵循 Spring 官方单模块建议与 Alibaba P3C / Google Java Style 中不冲突的部分。
 - `model` 只放纯 POJO 与值对象，不允许出现框架注解或持久层依赖。
 - `controller` 只做 HTTP/SSE 翻译，业务写在 `chat.service`；换存储实现只动 `config`（组合根）。
-- 测试分层：`model` 纯单元测试；`chat.store.memory` 存储测试；`chat.service` 用 fake `AgentRuntime` 测编排；`agent` 用默认 mock 模型测 runtime；`controller` 做 SpringBoot 集成测试。
+- 测试分层：`model` 纯单元测试；`chat.store.memory` 存储测试；`chat.service` 用 fake `AgentExecutor` 测编排；`agent` 用假 Model 测 `AgentScopeReActAgent`；`controller` 做 SpringBoot 集成测试。
 - Agent 测试必须覆盖不同 session 的上下文隔离。
 - 公共 API 与核心端口变更需同步更新 ADR / handoff / 本文件目录树 /《代码学习导览》。
 

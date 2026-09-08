@@ -2,7 +2,7 @@ package com.openalice.dto;
 
 import java.time.Instant;
 
-/** One stored message as returned by the history API. */
+/** 历史接口返回的单条消息视图。 */
 public record MessageView(
         String id,
         String role,

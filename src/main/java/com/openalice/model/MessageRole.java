@@ -1,6 +1,6 @@
 package com.openalice.model;
 
-/** Speaker of a {@link ChatMessage}. */
+/** 一条 {@link ChatMessage} 的发言者。 */
 public enum MessageRole {
     USER("user"),
     ASSISTANT("assistant"),
@@ -12,7 +12,7 @@ public enum MessageRole {
         this.wireValue = wireValue;
     }
 
-    /** Lower-case transport / display value, e.g. {@code "user"}. */
+    /** 小写形式的传输 / 展示值，例如 {@code "user"}。 */
     public String wireValue() {
         return wireValue;
     }

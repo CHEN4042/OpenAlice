@@ -12,6 +12,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+/**
+ * 全局异常翻译：把非法入参等错误统一转成客户端能理解的结构。
+ *
+ * <p>对 SSE 请求返回 {@code event:error} 流，对普通 JSON 请求返回
+ * {@code 400 + {"error": ...}}。更完整的错误码体系后续再补。</p>
+ */
 @RestControllerAdvice
 public class ApiExceptionHandler {
 

@@ -1,19 +1,18 @@
-package com.openalice.agent.runtime;
+package com.openalice.agent;
 
-import com.openalice.agent.AgentRequest;
-import com.openalice.agent.DoneEvent;
-import com.openalice.agent.ErrorEvent;
-import com.openalice.agent.TextDeltaEvent;
-import com.openalice.agent.llm.LlmModelFactory;
+import com.openalice.agent.tool.AgentToolkit;
+import com.openalice.llm.LlmModelFactory;
+import com.openalice.llm.LlmSettings;
 import com.openalice.model.ChatMessage;
 import com.openalice.model.MessageRole;
+import io.agentscope.core.ReActAgent;
 import io.agentscope.core.agent.RuntimeContext;
 import io.agentscope.core.event.AgentResultEvent;
 import io.agentscope.core.event.TextBlockDeltaEvent;
 import io.agentscope.core.message.Msg;
 import io.agentscope.core.message.MsgRole;
+import io.agentscope.core.model.Model;
 import io.agentscope.core.state.InMemoryAgentStateStore;
-import io.agentscope.harness.agent.HarnessAgent;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,50 +20,64 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
- * AgentScope adapter.
+ * 基于 AgentScope ReAct 引擎的应用 Agent 实现（默认且唯一的 {@link AgentExecutor}）。
  *
- * <p>The adapter receives an already-assembled {@link AgentRequest}. It clears
- * AgentScope's per-session scratch state and passes the explicit business
- * context, preventing double history accumulation.</p>
+ * <p>实现消费已组装好的 {@link AgentRequest}：每次调用前先清空 AgentScope 在该会话的
+ * 进程内暂存状态（避免业务历史与框架记忆叠加），再以显式上下文驱动 ReActAgent——模型在
+ * “推理 → 调用工具 → 观察结果”的循环里迭代，直到给出最终回答或达到最大迭代次数。
+ * ReAct 循环本身由 AgentScope 框架提供，这里只负责装配与事件翻译。</p>
+ *
+ * <p>由组合根（{@code com.openalice.config.OpenAliceConfiguration}）用外部配置构造；
+ * 包内另提供注入 {@link Model} 的构造重载，供测试用假模型验证事件映射，避免依赖真实
+ * 网络与 api-key。</p>
  */
-final class AgentScopeAgentRuntime implements AgentRuntime {
+public final class AgentScopeReActAgent implements AgentExecutor {
 
-    private final HarnessAgent agent;
+    /** ReAct 循环最大迭代次数：给“思考 + 工具调用”留足轮次后收敛。 */
+    private static final int MAX_ITERATIONS = 8;
+
+    private final ReActAgent agent;
     private final Duration timeout;
 
-    AgentScopeAgentRuntime(AgentRuntimeProperties properties) {
-        Objects.requireNonNull(properties, "properties must not be null");
-        this.timeout = properties.timeout();
-        this.agent = HarnessAgent.builder()
-                .name(properties.agentName())
-                .description(properties.description())
-                .sysPrompt(properties.systemPrompt())
-                .model(LlmModelFactory.create(properties))
+    /** 生产构造：由组合根把外部配置（agent 行为 + LLM 接线）解析成引擎。 */
+    public AgentScopeReActAgent(
+            String agentName,
+            String description,
+            String systemPrompt,
+            Duration timeout,
+            LlmSettings llmSettings
+    ) {
+        this(agentName, description, systemPrompt, timeout, LlmModelFactory.create(llmSettings));
+    }
+
+    /** 测试构造：直接注入假 {@link Model}，跳过网络与 api-key。 */
+    AgentScopeReActAgent(
+            String agentName,
+            String description,
+            String systemPrompt,
+            Duration timeout,
+            Model model
+    ) {
+        Objects.requireNonNull(agentName, "agentName must not be null");
+        Objects.requireNonNull(description, "description must not be null");
+        Objects.requireNonNull(systemPrompt, "systemPrompt must not be null");
+        Objects.requireNonNull(timeout, "timeout must not be null");
+        this.timeout = timeout;
+        this.agent = ReActAgent.builder()
+                .name(agentName)
+                .description(description)
+                .sysPrompt(systemPrompt)
+                .model(model)
+                .toolkit(AgentToolkit.create())
                 .stateStore(new InMemoryAgentStateStore())
-                .workspace(properties.workspace())
-                .maxIters(1)
-                .enableAgentTracingLog(false)
-                .disableFilesystemTools()
-                .disableShellTool()
-                .disableMemoryTools()
-                .disableMemoryHooks()
-                .disableWorkspaceContext()
-                .disableAtPathExpansion()
-                .disableSubagents()
-                .disableDynamicSubagents()
-                .disableDynamicSkills()
-                .disableDefaultWorkspaceSkills()
-                .disableToolsConfig()
-                .disableCompaction()
-                .disableToolResultEviction()
+                .maxIters(MAX_ITERATIONS)
                 .build();
     }
 
     @Override
-    public Flux<com.openalice.agent.AgentEvent> stream(AgentRequest request) {
+    public Flux<AgentEvent> stream(AgentRequest request) {
         validate(request);
         RuntimeContext context = RuntimeContext.builder()
                 .userId(request.userId())
@@ -77,7 +90,7 @@ final class AgentScopeAgentRuntime implements AgentRuntime {
             AtomicReference<String> finalReply = new AtomicReference<>();
             StringBuilder streamedReply = new StringBuilder();
 
-            Flux<com.openalice.agent.AgentEvent> deltas = agent
+            Flux<AgentEvent> deltas = agent
                     .streamEvents(toAgentMessages(request), context)
                     .handle((event, sink) -> {
                         if (event instanceof TextBlockDeltaEvent textEvent
@@ -142,6 +155,6 @@ final class AgentScopeAgentRuntime implements AgentRuntime {
 
     private static String safeErrorMessage(Throwable error) {
         String message = error.getMessage();
-        return message == null || message.isBlank() ? "agent runtime failed" : message;
+        return message == null || message.isBlank() ? "agent execution failed" : message;
     }
 }
