@@ -1,10 +1,10 @@
-package com.openalice.service;
+package com.openalice.chat.service;
 
 import com.openalice.agent.AgentRequest;
 import com.openalice.agent.runtime.AgentRuntimeProperties;
 import com.openalice.model.ChatMessage;
 import com.openalice.model.ConversationTurn;
-import com.openalice.repository.ConversationStore;
+import com.openalice.chat.store.ConversationStore;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

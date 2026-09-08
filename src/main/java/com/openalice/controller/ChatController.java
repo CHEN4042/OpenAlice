@@ -7,7 +7,7 @@ import com.openalice.agent.TextDeltaEvent;
 import com.openalice.dto.ChatRequest;
 import com.openalice.dto.ChatStreamEvent;
 import com.openalice.dto.MessageView;
-import com.openalice.service.ChatService;
+import com.openalice.chat.service.ChatService;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

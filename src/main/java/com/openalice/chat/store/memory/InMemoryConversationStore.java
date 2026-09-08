@@ -1,4 +1,4 @@
-package com.openalice.repository.memory;
+package com.openalice.chat.store.memory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.openalice.model.ChatMessage;
 import com.openalice.model.SessionId;
 import com.openalice.model.UserId;
-import com.openalice.repository.ConversationStore;
+import com.openalice.chat.store.ConversationStore;
 
 public final class InMemoryConversationStore implements ConversationStore {
 

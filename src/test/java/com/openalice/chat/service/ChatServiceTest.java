@@ -1,4 +1,4 @@
-package com.openalice.service;
+package com.openalice.chat.service;
 
 import com.openalice.agent.AgentEvent;
 import com.openalice.agent.AgentRequest;
@@ -15,8 +15,8 @@ import com.openalice.model.ConversationTurn;
 import com.openalice.model.MessageRole;
 import com.openalice.model.SessionId;
 import com.openalice.model.UserId;
-import com.openalice.repository.ConversationStore;
-import com.openalice.repository.memory.InMemoryConversationStore;
+import com.openalice.chat.store.ConversationStore;
+import com.openalice.chat.store.memory.InMemoryConversationStore;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.Test;

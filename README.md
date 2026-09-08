@@ -34,16 +34,15 @@ OpenAlice/
 ├── pom.xml                         # 单模块应用工程
 ├── src/main/java/com/openalice/
 │   ├── OpenAliceApplication.java   # 启动类（Spring 组合根）
-│   ├── model/                      # 消息、会话、用户、Turn 等纯模型
-│   ├── repository/
-│   │   ├── ConversationStore.java  # 会话存储接口
-│   │   └── memory/                 # 内存实现；未来 postgres/ 放同级
+│   ├── model/                      # 共享模型：消息、会话、用户、Turn 等
+│   ├── chat/                       # ★ 业务：对话（业务包，内部按类型整理）
+│   │   ├── service/                # ChatService · ContextAssembler · SessionCoordinator
+│   │   └── store/                  # ConversationStore · memory/ 内存实现
 │   ├── agent/
 │   │   ├── AgentRequest.java       # 显式上下文输入
 │   │   ├── AgentEvent.java         # TextDelta / Done / Error 事件
 │   │   ├── runtime/                # AgentRuntime + AgentScope 适配器
 │   │   └── llm/                    # 双 provider 模型接入
-│   ├── service/                    # ChatService · ContextAssembler · SessionCoordinator
 │   ├── controller/                 # HTTP/SSE 翻译
 │   ├── dto/                        # API 出入参
 │   └── config/                     # Spring 组合根
@@ -134,6 +133,7 @@ curl http://localhost:8080/api/v1/sessions/default/messages
 | :--- | :--- |
 | [docs/index.md](docs/index.md) | 文档总索引 |
 | [handoff.md](handoff.md) | 会话交接 |
-| [docs/decisions/09-p15-semantic-and-package-structure.md](docs/decisions/09-p15-semantic-and-package-structure.md) | 当前架构决议 |
+| [docs/decisions/10-package-layout-evolution-rules.md](docs/decisions/10-package-layout-evolution-rules.md) | 当前包结构与演进规则（ADR 10） |
+| [docs/decisions/09-p15-semantic-and-package-structure.md](docs/decisions/09-p15-semantic-and-package-structure.md) | P1.5 语义决议（顶层布局已被 ADR 10 修订） |
 | [docs/decisions/07-p1-base-decisions.md](docs/decisions/07-p1-base-decisions.md) | P1 底座决策 |
 | [docs/CONTEXT.md](docs/CONTEXT.md) | 术语速查 |

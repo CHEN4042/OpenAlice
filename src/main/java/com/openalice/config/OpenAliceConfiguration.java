@@ -3,8 +3,8 @@ package com.openalice.config;
 import com.openalice.agent.runtime.AgentRuntime;
 import com.openalice.agent.runtime.AgentRuntimeFactory;
 import com.openalice.agent.runtime.AgentRuntimeProperties;
-import com.openalice.repository.ConversationStore;
-import com.openalice.repository.memory.InMemoryConversationStore;
+import com.openalice.chat.store.ConversationStore;
+import com.openalice.chat.store.memory.InMemoryConversationStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

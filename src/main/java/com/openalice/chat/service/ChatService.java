@@ -1,4 +1,4 @@
-package com.openalice.service;
+package com.openalice.chat.service;
 
 import com.openalice.agent.AgentEvent;
 import com.openalice.agent.AgentRequest;
@@ -13,7 +13,7 @@ import com.openalice.model.ChatMessage;
 import com.openalice.model.ConversationTurn;
 import com.openalice.model.SessionId;
 import com.openalice.model.UserId;
-import com.openalice.repository.ConversationStore;
+import com.openalice.chat.store.ConversationStore;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;

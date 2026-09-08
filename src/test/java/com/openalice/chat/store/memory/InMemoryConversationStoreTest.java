@@ -1,9 +1,9 @@
-package com.openalice.repository.memory;
+package com.openalice.chat.store.memory;
 
 import com.openalice.model.ChatMessage;
 import com.openalice.model.SessionId;
 import com.openalice.model.UserId;
-import com.openalice.repository.ConversationStore;
+import com.openalice.chat.store.ConversationStore;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;

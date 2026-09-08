@@ -1,12 +1,12 @@
-package com.openalice.service;
+package com.openalice.chat.service;
 
 import com.openalice.agent.AgentRequest;
 import com.openalice.agent.runtime.AgentRuntimeProperties;
 import com.openalice.model.ChatMessage;
 import com.openalice.model.SessionId;
 import com.openalice.model.UserId;
-import com.openalice.repository.ConversationStore;
-import com.openalice.repository.memory.InMemoryConversationStore;
+import com.openalice.chat.store.ConversationStore;
+import com.openalice.chat.store.memory.InMemoryConversationStore;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

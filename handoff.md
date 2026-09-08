@@ -9,57 +9,41 @@
 | :--- | :--- |
 | 日期 | 2026-09-08 |
 | 项目 | OpenAlice（A.L.I.C.E. 爱丽丝） |
-| 阶段 | P1.5（语义重构 + 物理结构整理）已完成编码与文档同步，待用户 review |
+| 阶段 | P1.5（语义重构）已提交；**ADR 10 业务包结构**（本会话）编码与文档同步完成，待用户 review |
 | 分支 | `main` |
-| 当前架构 | 单 Maven 模块；Java 根包 `com.openalice`；分层为 `model / repository / agent(runtime|llm) / service / controller / dto / config`（ADR 09，修订 ADR 08） |
-| Git 状态 | P1 SSE 实现与本轮 P1.5 重构均未 commit；旧路径显示删除、新 `com/` 路径未跟踪，属正常移动状态，待 `git add -A` 后可识别 rename |
-| 验证 | 2026-09-08 全量测试通过：22 tests / 0 failures / 0 errors（本机 Java 17 临时覆盖 release；仓库目标仍是 Java 21） |
+| HEAD | `276c9e5 refactor(architecture): 完成 P1.5 语义与包结构整理`（P1.5 已 commit） |
+| 当前架构 | 单 Maven 模块；根包 `com.openalice`；顶层 `model / agent(runtime\|llm) / chat(service\|store) / controller / dto / config`（ADR 10，修订 ADR 09 顶层布局） |
+| Git 状态 | 工作区含 ADR 10 迁移与文档改动，**未 commit**；`git mv` 已保留 rename 配对，review 确认后 `git add -A` 即可 |
+| 验证 | 2026-09-08 `mvn clean test`（本机 **Java 21.0.8**）全绿：22 tests / 0 failures / 0 errors |
 
-## 1. 用户最新确认（P1.5）
+> 注：旧 handoff 写「P1.5 未 commit」「本机只有 Java 17」已过时——P1.5 在 `276c9e5` 已提交；当前环境为 Java 21，可跑标准测试，无需 release 覆盖与 Byte Buddy agent 参数。
 
-1. 在已确认的 P1.5 语义方案上继续，允许直接修改代码。
-2. 物理结构同步优化：Java 根包改为 `com.openalice`，目录/文件按职责重新归位。
-3. 参考本地 Jarvis 的优点，但不照搬：
-   - Controller 薄、Service 编排；
-   - 用户身份由服务端 / 上下文处理，不散落在请求协议；
-   - Agent 调用前显式组装上下文。
-4. 保持单 Maven 模块，不引入 Spring AI / Spring AI Alibaba。
-5. 本轮不迁移到 PostgreSQL；M1 存储持久化另起任务。
-6. Git 红线：不 commit、不 push；等待用户 review 与明确指示。
+## 1. 用户最新确认（ADR 10）
 
-## 2. 当前架构
+1. 包结构偏好确认：不是「类型优先 vs 业务优先」二选一，而是**两级组织**——顶层按业务/内核/共享分，业务包内再按类型整理（喜欢本地 Jarvis `pet/enums` 的形态）。
+2. 反对全局 `enums/` 大杂烩：默认留在本地，**被逼无奈（跨业务共享）才上提**。
+3. 允许直接改代码：起草 ADR 10 并同步落地物理结构。
+4. Git 红线不变：不 commit、不 push；等待用户 review 与明确指示。
+
+## 2. 当前架构（ADR 10 落地）
 
 ```text
 OpenAlice/
 ├── pom.xml                      # 单模块 Spring Boot 应用，目标 Java 21
 ├── src/main/java/com/openalice/
 │   ├── OpenAliceApplication.java
-│   ├── model/
-│   │   ├── ChatMessage.java
-│   │   ├── UserId.java
-│   │   ├── SessionId.java
-│   │   ├── MessageRole.java
-│   │   ├── ConversationTurn.java
-│   │   └── TurnStatus.java
-│   ├── repository/
-│   │   ├── ConversationStore.java
-│   │   └── memory/InMemoryConversationStore.java
-│   ├── agent/
-│   │   ├── AgentRequest.java
-│   │   ├── AgentEvent.java
-│   │   ├── TextDeltaEvent.java
-│   │   ├── DoneEvent.java
-│   │   ├── ErrorEvent.java
-│   │   ├── runtime/
-│   │   └── llm/
-│   ├── service/
-│   │   ├── ChatService.java
-│   │   ├── ContextAssembler.java
-│   │   └── SessionCoordinator.java
-│   ├── controller/
-│   ├── dto/
-│   └── config/
-├── src/test/java/com/openalice/  # 测试镜像新包结构
+│   ├── model/                   # 共享词汇（跨 chat / agent 上提）：ChatMessage · UserId · SessionId · MessageRole · ConversationTurn · TurnStatus
+│   ├── agent/                   # 内核：AI 调用
+│   │   ├── AgentRequest.java · AgentEvent.java · TextDeltaEvent · DoneEvent · ErrorEvent
+│   │   ├── runtime/             # AgentRuntime(端口) · AgentScopeAgentRuntime(适配器) · Factory · Properties · ChatResult
+│   │   └── llm/                 # LlmProvider · LlmModelFactory · DeterministicChatModel · ConfiguredHttpTransport
+│   ├── chat/                    # ★ 业务：对话（ADR 10 业务包，内部按类型整理）
+│   │   ├── service/             # ChatService · ContextAssembler · SessionCoordinator
+│   │   └── store/               # ConversationStore · memory/InMemoryConversationStore
+│   ├── controller/              # HTTP/SSE 翻译
+│   ├── dto/                     # API 出入参
+│   └── config/                  # 组合根：OpenAliceConfiguration
+├── src/test/java/com/openalice/  # 测试镜像 main 包结构
 ├── src/main/resources/application.yml
 ├── docs/
 ├── web/
@@ -69,115 +53,38 @@ OpenAlice/
 依赖方向：
 
 ```text
-model ← repository
+model ← chat.store
 model ← agent
-service → model + repository + agent
-controller → service
-config 组装 repository + agent
+chat.service → model + chat.store + agent
+controller → chat.service
+config 组装 chat.store + agent.runtime
 ```
 
-核心边界：
+核心边界（语义与 ADR 09 一致）：
 
-- `model`：纯 POJO / 值对象，无框架与持久层依赖；
-- `repository`：会话消息存储接口与实现；未来 PG 实现放 `repository.postgres`；
+- `model`：纯 POJO / 值对象，无框架与持久层依赖；被 chat 业务与 agent 内核共用，故上提共享；
+- `chat.service`：Turn 生命周期、上下文组装、持久化与 session 并发控制；`chat.store`：会话历史唯一真相源（端口 + 内存实现）；
 - `agent`：不读取 `ConversationStore`，只消费 `AgentRequest`、产出 `AgentEvent`；
-- `service`：Turn 生命周期、上下文组装、持久化与 session 并发控制；
-- `controller`：只做 HTTP / SSE 翻译；
-- `config`：唯一组合根。
+- `controller`：只做 HTTP / SSE 翻译；`config`：唯一组合根；
+- 未来 `memory` / `persona` 等新业务按 ADR 10 §4 同级新建业务包（内部同样 service/store 组织），不提前建空包。
 
-## 3. 本轮 P1.5 改动
+## 3. 本轮改动（ADR 10）
 
 ### 3.1 物理结构
 
-- Java 根包：`openalice` → `com.openalice`，测试同步镜像。
-- `MemoryPort` → `ConversationStore`。
-- `InMemoryMemoryPort` → `repository.memory.InMemoryConversationStore`。
-- `MessageRole` 移入 `model`。
-- `LlmProvider` 移入 `agent.llm`。
-- 删除顶层 `enums/`，避免杂项包。
-- Maven 依赖未新增，`pom.xml` 仅保持既有依赖与 Java 21 目标。
+- `src/main/java/com/openalice/service/` → `chat/service/`（ChatService · ContextAssembler · SessionCoordinator）；
+- `src/main/java/com/openalice/repository/` → `chat/store/`（ConversationStore · memory/InMemoryConversationStore）；
+- `model/`、`agent/`、`controller/`、`dto/`、`config/` 位置不变，但职责重新定性：`model` = 共享词汇（上提区）；`agent` = 内核；`controller/dto` = 入站适配；
+- 测试镜像同步：`src/test/java/com/openalice/{service,repository}` → `chat/{service,store}`；
+- 纯物理移动 + import 改写，**无行为 / API / 端点变更**。
 
-### 3.2 Turn 生命周期
+### 3.2 新增决策文档
 
-新增：
-
-- `com.openalice.model.ConversationTurn`
-- `com.openalice.model.TurnStatus`
-
-状态：
-
-```text
-RECEIVED → RUNNING → COMPLETED
-                   → FAILED
-RECEIVED/RUNNING → CANCELLED
-```
-
-当前 Turn 是进程内生命周期对象，未持久化；未来若需要审计，再扩展 `ConversationStore`，不提前加死接口。
-
-### 3.3 单用户 API
-
-```text
-POST /api/v1/chat
-{"sessionId":"default","message":"你好"}
-
-GET /api/v1/sessions/{sessionId}/messages
-```
-
-- HTTP 请求 / 响应不暴露 `userId`；
-- 服务端固定 `UserId.DEFAULT`；
-- `ChatMessage.userId` 字段保留，为未来认证上下文注入预留；
-- `ChatRequest` / `ChatStreamEvent` / `MessageView` 外部字段已同步去除 userId。
-
-### 3.4 ContextAssembler
-
-新增 `com.openalice.service.ContextAssembler`：
-
-- 从 `ConversationStore` 读取最近 N 条业务历史；
-- 校验当前 USER 消息一定在上下文中；
-- 携带 system prompt；
-- 生成不可变 `AgentRequest`；
-- 配置项：`openalice.agent.context-window-size`，默认 20。
-
-### 3.5 AgentRequest / AgentEvent
-
-新增：
-
-- `com.openalice.agent.AgentRequest`
-- `com.openalice.agent.AgentEvent`
-- `com.openalice.agent.TextDeltaEvent`
-- `com.openalice.agent.DoneEvent`
-- `com.openalice.agent.ErrorEvent`
-
-`AgentRuntime` 接口：
-
-```java
-Flux<AgentEvent> stream(AgentRequest request);
-```
-
-`AgentScopeAgentRuntime` 每次：
-
-1. 根据Turn 构建 `RuntimeContext`；
-2. `agent.clearContext(context)`；
-3. 将 `AgentRequest.conversationContext` 转成 AgentScope messages；
-4. 调用 `agent.streamEvents(messages, context)`；
-5. 输出 `TextDeltaEvent / DoneEvent / ErrorEvent`。
-
-注意：AgentScope 2.0.2 不允许 hook 将 SYSTEM message 注入 input messages；system prompt 仍通过 `HarnessAgent.builder().sysPrompt(...)` 设置。业务历史唯一真相源是 `ConversationStore`，AgentScope state 只是运行态 scratch。
-
-### 3.6 SessionCoordinator
-
-新增 `com.openalice.service.SessionCoordinator`：
-
-- 同一 `sessionId` 的完整 turn 串行执行；
-- 不同 `sessionId` 可并行；
-- 串行范围覆盖 USER append、history 读取、AgentRequest 组装、Agent 调用、ASSISTANT append、Turn 状态转换；
-- 使用 per-session `Semaphore(1)` 与 `Flux.usingWhen`，完成 / 错误 / 取消都会释放。
-
-当前不为 semaphore map 做复杂清理，避免小规模单用户场景下引入竞态；未来 session 数量显著增大时再评估安全清理。
+- `docs/decisions/10-package-layout-evolution-rules.md`：4 条包结构规则（判归属 / 顶层按角色 / 包内按类型 / 业务间不串门）+ 演进触发器（第一个非 chat 业务包、第二个入站协议、顶层目录 ~10 个时才动结构）。
 
 ## 4. 测试状态
 
-2026-09-08 验证结果：
+2026-09-08（Java 21.0.8）验证结果：
 
 ```text
 22 tests passed
@@ -185,48 +92,29 @@ Flux<AgentEvent> stream(AgentRequest request);
 0 errors
 ```
 
-测试分布：
+测试分布（包路径随迁移更新）：
 
 ```text
-model: 4
-repository.memory: 4
+model: 4            （ChatMessageTest 2 + ConversationTurnTest 2）
+chat.store.memory: 4
+chat.service: 8      （ChatServiceTest 5 + ContextAssemblerTest 1 + SessionCoordinatorTest 2）
 agent.runtime: 3
-service: 8
 controller: 3
 ```
 
-新增 / 更新测试：
-
-- `com.openalice.model.ConversationTurnTest`
-- `com.openalice.repository.memory.InMemoryConversationStoreTest`
-- `com.openalice.service.ContextAssemblerTest`
-- `com.openalice.service.SessionCoordinatorTest`
-- `com.openalice.service.ChatServiceTest`
-- `com.openalice.agent.runtime.AgentScopeAgentRuntimeTest`
-- `com.openalice.controller.ChatControllerTest`
-- `com.openalice.model.ChatMessageTest`
-
-验证说明：
-
-- 当前机器只有 Java 17，因此测试时临时使用 `-Dmaven.compiler.release=17`；
-- Mockito 在该 JDK 组合下需显式挂 Byte Buddy agent；
-- 仓库目标仍是 Java 21，需在 Java 21 环境复跑标准 `mvn clean test`；
-- 真实进程 SSE 冒烟未执行；测试已覆盖 MockMvc async dispatch 下的完整 `text_delta → done` 链路。
-
 ## 5. 文档状态
 
-已同步：
+本会话已同步：
 
-- `docs/decisions/09-p15-semantic-and-package-structure.md`
-- `docs/CONTEXT.md`
-- `docs/index.md`
-- `docs/代码学习导览 v0.1.md`（内容 v0.5）
-- `README.md`
-- `AGENTS.md`
-- `handoff.md`
-- `src/main/resources/application.yml`
+- `docs/decisions/10-package-layout-evolution-rules.md`（新增）
+- `AGENTS.md`（目录树、依赖方向、ADR 权威层级、开发规范）
+- `docs/index.md`（ADR 10 行、ADR 09 状态修订、整理记录）
+- `docs/CONTEXT.md`（顶层包分层、ContextAssembler / ConversationStore 路径）
+- `README.md`（架构树、文档导航）
+- `docs/代码学习导览 v0.1.md`（升 v0.6：目录树、依赖、文件路径、测试地图、变更记录）
+- `handoff.md`（本文件）
 
-旧历史 ADR / 需求书中保留当时的 `MemoryPort`、旧包路径和旧 API 表述，这是历史记录，不需要整体改写；当前有效架构以 ADR 09 与本文件为准。
+旧历史 ADR / 需求书保留当时的 `repository`、`service`、旧包路径表述，这是历史记录，不需要改写。
 
 ## 6. 红线与约定
 
@@ -241,27 +129,23 @@ controller: 3
 
 ## 7. 下一步
 
-1. 用户 review 当前 diff；
-2. review 确认后执行 `git add -A`，让旧路径删除 + 新路径新增被识别为 rename；
-3. 用户明确指示后本地 commit（建议 message 见下）；
-4. 在 Java 21 环境复跑标准 `mvn clean test`；
-5. 如需真实验证，启动进程并用 `curl -N` 冒烟 SSE；
-6. 下一个架构任务：M1 PostgreSQL `session_message` 持久化；
-7. M1 后做 persona 首启初始化。
+1. 用户 review 当前 diff（ADR 10 物理迁移 + 文档）；
+2. review 确认后执行 `git add -A`（`git mv` 已保留 rename 配对），再按用户指示本地 commit（建议 message 见下）；
+3. 架构演进按 ADR 10 §4 触发器进行：第一个非 chat 业务（memory / persona）立项时，同级新建业务包并保持内部 service/store 组织；
+4. 下一个功能任务：M1 PostgreSQL `session_message` 持久化（落 `chat.store.postgres`）；
+5. M1 后做 persona 首启初始化。
 
 ### 建议 commit message
 
 ```text
-refactor(architecture): 完成 P1.5 语义与包结构整理
+refactor(architecture): 落地 ADR 10 业务包自治结构
 
-- Java 根包迁移至 com.openalice，测试镜像同步
-- MemoryPort 重命名为 ConversationStore，实现迁移至 repository.memory
-- 引入 ConversationTurn / TurnStatus 与显式 Turn 生命周期
-- HTTP API 移除 userId，服务端固定单用户身份
-- 新增 ContextAssembler，Agent 调用前显式组装上下文
-- AgentRuntime 改为 Flux<AgentEvent>，Controller 仅负责 SSE 翻译
-- 新增 SessionCoordinator，同 session 串行、不同 session 并行
-- 同步 ADR 09、README、AGENTS、CONTEXT、学习导览与测试
+- 新增 ADR 10：业务包自治 + 包内按类型整理 + 共享才上提 + 演进触发规则
+- repository/ → chat/store/，service/ → chat/service/，测试镜像同步
+- model 定位为跨 chat/agent 共享词汇；agent 定位为内核
+- 纯物理移动 + import 改写，无行为/API 变更
+- 同步 AGENTS / README / CONTEXT / docs/index / 学习导览 v0.6 / handoff
+- mvn clean test（Java 21）：22 tests 全绿
 ```
 
 ---

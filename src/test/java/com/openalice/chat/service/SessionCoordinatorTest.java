@@ -1,4 +1,4 @@
-package com.openalice.service;
+package com.openalice.chat.service;
 
 import com.openalice.model.SessionId;
 import java.time.Duration;

@@ -1,4 +1,4 @@
-package com.openalice.repository;
+package com.openalice.chat.store;
 
 import com.openalice.model.ChatMessage;
 import com.openalice.model.SessionId;
