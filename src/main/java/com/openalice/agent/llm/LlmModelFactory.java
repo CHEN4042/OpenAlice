@@ -3,14 +3,15 @@ package com.openalice.agent.llm;
 import io.agentscope.core.model.Model;
 import io.agentscope.extensions.model.openai.OpenAIChatModel;
 import com.openalice.agent.runtime.AgentRuntimeProperties;
-import com.openalice.agent.llm.LlmProvider;
 
 /**
  * Builds the {@link Model} backing the agent runtime from configuration.
  *
- * <p>Provider selection: an explicit {@code OPENALICE_LLM_PROVIDER} wins; otherwise the
- * default ({@code auto}) prefers AgentRouter, then DeepSeek, then the deterministic mock.
- * API keys are read from environment variables at build time and are never stored.</p>
+ * <p>Provider selection: an explicit {@code llm.provider} wins; otherwise the default
+ * ({@code auto}) prefers AgentRouter, then DeepSeek, then the deterministic mock.
+ * The API key is taken from {@link AgentRuntimeProperties#llmApiKey()} (bound from the
+ * git-ignored {@code application-local.yml}) or, as a fallback, from the provider's
+ * environment variable. Keys are never written to the committed configuration.</p>
  */
 public final class LlmModelFactory {
 
@@ -18,7 +19,7 @@ public final class LlmModelFactory {
     }
 
     public static Model create(AgentRuntimeProperties properties) {
-        LlmProvider provider = resolve(properties.llmProvider());
+        LlmProvider provider = resolve(properties);
         return switch (provider) {
             case MOCK -> new DeterministicChatModel(properties.replyPrefix());
             case DEEPSEEK, AGENTROUTER -> openAiChatModel(provider, properties);
@@ -26,31 +27,35 @@ public final class LlmModelFactory {
         };
     }
 
-    private static LlmProvider resolve(String configured) {
-        LlmProvider requested = LlmProvider.parse(configured);
+    private static LlmProvider resolve(AgentRuntimeProperties properties) {
+        LlmProvider requested = LlmProvider.parse(properties.llmProvider());
         if (requested != LlmProvider.AUTO) {
             return requested;
         }
-        if (hasEnv(LlmProvider.AGENTROUTER.apiKeyEnv())) {
+        if (hasApiKey(properties, LlmProvider.AGENTROUTER)) {
             return LlmProvider.AGENTROUTER;
         }
-        if (hasEnv(LlmProvider.DEEPSEEK.apiKeyEnv())) {
+        if (hasApiKey(properties, LlmProvider.DEEPSEEK)) {
             return LlmProvider.DEEPSEEK;
         }
         return LlmProvider.MOCK;
     }
 
-    private static boolean hasEnv(String name) {
-        String value = System.getenv(name);
-        return value != null && !value.isBlank();
+    private static boolean hasApiKey(AgentRuntimeProperties properties, LlmProvider provider) {
+        return apiKey(properties, provider) != null;
+    }
+
+    private static String apiKey(AgentRuntimeProperties properties, LlmProvider provider) {
+        return firstNonBlank(properties.llmApiKey(), System.getenv(provider.apiKeyEnv()));
     }
 
     private static Model openAiChatModel(LlmProvider provider, AgentRuntimeProperties properties) {
-        String apiKey = System.getenv(provider.apiKeyEnv());
-        if (apiKey == null || apiKey.isBlank()) {
+        String apiKey = apiKey(properties, provider);
+        if (apiKey == null) {
             throw new IllegalStateException(
-                    "LLM provider '" + provider.configValue() + "' selected but environment variable "
-                            + provider.apiKeyEnv() + " is not set"
+                    "LLM provider '" + provider.configValue() + "' selected but no API key configured: "
+                            + "set openalice.llm.api-key in application-local.yml "
+                            + "or the environment variable " + provider.apiKeyEnv()
             );
         }
         String baseUrl = firstNonBlank(properties.llmBaseUrl(), provider.defaultBaseUrl());

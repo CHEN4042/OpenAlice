@@ -4,19 +4,12 @@ import com.openalice.agent.AgentEvent;
 import com.openalice.agent.AgentRequest;
 import com.openalice.agent.DoneEvent;
 import com.openalice.agent.ErrorEvent;
-import com.openalice.agent.TextDeltaEvent;
 import com.openalice.agent.runtime.AgentRuntime;
-import com.openalice.dto.ChatRequest;
-import com.openalice.dto.ChatResponse;
-import com.openalice.dto.MessageView;
-import com.openalice.model.ChatMessage;
-import com.openalice.model.ConversationTurn;
-import com.openalice.model.SessionId;
-import com.openalice.model.UserId;
 import com.openalice.chat.store.ConversationStore;
+import com.openalice.chat.store.StoredMessage;
+import com.openalice.dto.ChatRequest;
+import com.openalice.dto.MessageView;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -25,11 +18,14 @@ import reactor.core.publisher.Mono;
  * Chat orchestration for one turn.
  *
  * <p>The complete turn runs under SessionCoordinator: USER append, history
- * assembly, agent call, ASSISTANT append, and lifecycle transition are serialized
- * for the same session. The controller only translates AgentEvents to SSE.</p>
+ * assembly, agent call and ASSISTANT append are serialized for the same session.
+ * The controller only translates AgentEvents to SSE.</p>
  */
 @Service
 public class ChatService {
+
+    /** Single-user API default; the storage layer keeps it per row for future auth. */
+    private static final String DEFAULT_USER_ID = "openalice-user";
 
     private static final int HISTORY_LIMIT = 100;
 
@@ -52,71 +48,44 @@ public class ChatService {
 
     public Flux<AgentEvent> stream(ChatRequest request) {
         requireRequest(request);
-        SessionId sessionId = SessionId.of(request.sessionId());
-        ChatMessage userMessage = ChatMessage.user(UserId.DEFAULT, sessionId, request.message());
-        ConversationTurn receivedTurn = ConversationTurn.received(userMessage);
+        String sessionId = requireSessionId(request.sessionId());
+        StoredMessage userMessage = StoredMessage.user(DEFAULT_USER_ID, sessionId, request.message());
 
         return sessionCoordinator.serialize(sessionId, Flux.defer(() -> {
             conversationStore.append(userMessage);
-            ConversationTurn runningTurn = receivedTurn.running();
-            AgentRequest agentRequest = contextAssembler.assemble(runningTurn, userMessage);
-            AtomicReference<ConversationTurn> currentTurn = new AtomicReference<>(runningTurn);
+            AgentRequest agentRequest = contextAssembler.assemble(DEFAULT_USER_ID, sessionId);
 
             return agentRuntime.stream(agentRequest)
                     .concatMap(event -> {
-                        if (event instanceof TextDeltaEvent) {
-                            return Flux.just(event);
-                        }
                         if (event instanceof DoneEvent doneEvent) {
-                            ChatMessage assistantMessage = ChatMessage.assistant(
-                                    UserId.DEFAULT,
+                            conversationStore.append(StoredMessage.assistant(
+                                    DEFAULT_USER_ID,
                                     sessionId,
                                     doneEvent.reply()
-                            );
-                            conversationStore.append(assistantMessage);
-                            currentTurn.set(currentTurn.get().completed(assistantMessage.id()));
-                            return Flux.just(event);
+                            ));
                         }
-                        if (event instanceof ErrorEvent errorEvent) {
-                            currentTurn.set(currentTurn.get().failed(errorEvent.error()));
-                            return Flux.just(event);
-                        }
-                        return Flux.error(new IllegalStateException("unsupported agent event"));
+                        return Flux.just(event);
                     })
-                    .onErrorResume(error -> {
-                        String message = safeErrorMessage(error);
-                        currentTurn.set(currentTurn.get().failed(message));
-                        return Flux.just(new ErrorEvent(message));
-                    });
+                    .onErrorResume(error ->
+                            Flux.just(new ErrorEvent(safeErrorMessage(error))));
         }));
     }
 
-    /** Blocking convenience method; the HTTP API currently uses SSE only. */
-    public ChatResponse chat(ChatRequest request) {
-        List<AgentEvent> events = stream(request).collectList().block();
-        String reply = events == null ? null : events.stream()
-                .filter(DoneEvent.class::isInstance)
-                .map(DoneEvent.class::cast)
-                .map(DoneEvent::reply)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("chat did not complete"));
-        return new ChatResponse(request.sessionId(), reply);
-    }
-
     public List<MessageView> history(String sessionId) {
-        SessionId parsedSessionId = SessionId.of(sessionId);
-        List<ChatMessage> messages = sessionCoordinator.serialize(
+        String parsedSessionId = requireSessionId(sessionId);
+        List<StoredMessage> stored = sessionCoordinator.serialize(
                         parsedSessionId,
-                        Mono.fromCallable(() -> conversationStore.history(
-                                UserId.DEFAULT,
-                                parsedSessionId,
-                                HISTORY_LIMIT
-                        ))
+                        Mono.fromCallable(() -> conversationStore.history(parsedSessionId, HISTORY_LIMIT))
                 )
                 .single()
                 .block();
-        return Objects.requireNonNullElse(messages, List.<ChatMessage>of()).stream()
-                .map(MessageView::from)
+        return (stored == null ? List.<StoredMessage>of() : stored).stream()
+                .map(message -> new MessageView(
+                        message.id(),
+                        message.role().wireValue(),
+                        message.content(),
+                        message.createdAt()
+                ))
                 .toList();
     }
 
@@ -126,6 +95,11 @@ public class ChatService {
         }
         requireText(request.sessionId(), "sessionId");
         requireText(request.message(), "message");
+    }
+
+    private static String requireSessionId(String value) {
+        requireText(value, "sessionId");
+        return value.trim();
     }
 
     private static String safeErrorMessage(Throwable error) {

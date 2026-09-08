@@ -38,11 +38,11 @@ public class ChatController {
     @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public Flux<ServerSentEvent<ChatStreamEvent>> chat(@RequestBody ChatRequest request) {
-        String sessionId = request.sessionId();
         return chatService.stream(request)
+                .map(ChatController::toStreamEvent)
                 .map(event -> ServerSentEvent.<ChatStreamEvent>builder()
-                        .event(eventName(event))
-                        .data(toStreamEvent(sessionId, event))
+                        .event(event.type())
+                        .data(event)
                         .build());
     }
 
@@ -51,29 +51,11 @@ public class ChatController {
         return chatService.history(sessionId);
     }
 
-    private static ChatStreamEvent toStreamEvent(String sessionId, AgentEvent event) {
-        if (event instanceof TextDeltaEvent deltaEvent) {
-            return ChatStreamEvent.textDelta(sessionId, deltaEvent.delta());
-        }
-        if (event instanceof DoneEvent doneEvent) {
-            return ChatStreamEvent.done(sessionId, doneEvent.reply());
-        }
-        if (event instanceof ErrorEvent errorEvent) {
-            return ChatStreamEvent.error(sessionId, errorEvent.error());
-        }
-        throw new IllegalArgumentException("unsupported agent event");
-    }
-
-    private static String eventName(AgentEvent event) {
-        if (event instanceof TextDeltaEvent) {
-            return "text_delta";
-        }
-        if (event instanceof DoneEvent) {
-            return "done";
-        }
-        if (event instanceof ErrorEvent) {
-            return "error";
-        }
-        throw new IllegalArgumentException("unsupported agent event");
+    private static ChatStreamEvent toStreamEvent(AgentEvent event) {
+        return switch (event) {
+            case TextDeltaEvent deltaEvent -> ChatStreamEvent.textDelta(deltaEvent.delta());
+            case DoneEvent doneEvent -> ChatStreamEvent.done(doneEvent.reply());
+            case ErrorEvent errorEvent -> ChatStreamEvent.error(errorEvent.error());
+        };
     }
 }

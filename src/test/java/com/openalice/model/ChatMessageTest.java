@@ -8,18 +8,25 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 class ChatMessageTest {
 
     @Test
-    void shouldCreateUserMessage() {
-        var message = ChatMessage.user(UserId.of("u"), SessionId.of("s"), "hello");
+    void shouldExposeRoleAndContent() {
+        var userMessage = ChatMessage.user("hello");
+        var assistantMessage = ChatMessage.assistant("hi");
 
-        assertThat(message.id()).isNotBlank();
-        assertThat(message.role()).isEqualTo(MessageRole.USER);
-        assertThat(message.content()).isEqualTo("hello");
-        assertThat(message.timestamp()).isNotNull();
+        assertThat(userMessage.role()).isEqualTo(MessageRole.USER);
+        assertThat(userMessage.content()).isEqualTo("hello");
+        assertThat(assistantMessage.role()).isEqualTo(MessageRole.ASSISTANT);
+        assertThat(assistantMessage.content()).isEqualTo("hi");
     }
 
     @Test
-    void shouldRejectBlankUserId() {
+    void shouldRejectBlankContent() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> UserId.of(" "));
+                .isThrownBy(() -> ChatMessage.user(" "));
+    }
+
+    @Test
+    void shouldRejectNullRole() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> new ChatMessage(null, "hello"));
     }
 }

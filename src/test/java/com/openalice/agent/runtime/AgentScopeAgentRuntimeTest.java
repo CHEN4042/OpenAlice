@@ -5,9 +5,6 @@ import com.openalice.agent.AgentRequest;
 import com.openalice.agent.DoneEvent;
 import com.openalice.agent.TextDeltaEvent;
 import com.openalice.model.ChatMessage;
-import com.openalice.model.ConversationTurn;
-import com.openalice.model.SessionId;
-import com.openalice.model.UserId;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,9 +16,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class AgentScopeAgentRuntimeTest {
 
+    private static final String USER_ID = "user-1";
+
     @Test
     void shouldStreamAgentEventsViaDeterministicModelByDefault() {
-        try (AgentRuntime runtime = AgentRuntimeFactory.create()) {
+        try (AgentRuntime runtime = AgentRuntimeFactory.create(AgentRuntimePropertiesFixture.mock())) {
             List<AgentEvent> events = runtime.stream(request("stream", "你好"))
                     .collectList()
                     .block();
@@ -42,38 +41,39 @@ class AgentScopeAgentRuntimeTest {
     }
 
     @Test
-    void shouldExposeBlockingChatConvenienceMethod() {
-        try (AgentRuntime runtime = AgentRuntimeFactory.create()) {
-            ChatResult result = runtime.chat(request("session", "你好"));
-
-            assertThat(result.userId()).isEqualTo(UserId.DEFAULT);
-            assertThat(result.sessionId()).isEqualTo(SessionId.of("session"));
-            assertThat(result.reply()).isEqualTo("收到：你好");
-        }
-    }
-
-    @Test
-    void shouldHandleConcurrentSessions() throws Exception {
-        try (AgentRuntime runtime = AgentRuntimeFactory.create()) {
+    void shouldKeepSessionsIsolatedUnderConcurrency() throws Exception {
+        try (AgentRuntime runtime = AgentRuntimeFactory.create(AgentRuntimePropertiesFixture.mock())) {
             ExecutorService executor = Executors.newFixedThreadPool(2);
             try {
-                Future<ChatResult> alpha = executor.submit(() -> runtime.chat(request("alpha", "Alpha")));
-                Future<ChatResult> beta = executor.submit(() -> runtime.chat(request("beta", "Beta")));
-                assertThat(alpha.get(10, TimeUnit.SECONDS).reply()).isEqualTo("收到：Alpha");
-                assertThat(beta.get(10, TimeUnit.SECONDS).reply()).isEqualTo("收到：Beta");
+                Future<List<AgentEvent>> alpha = executor.submit(
+                        () -> runtime.stream(request("alpha", "Alpha")).collectList().block()
+                );
+                Future<List<AgentEvent>> beta = executor.submit(
+                        () -> runtime.stream(request("beta", "Beta")).collectList().block()
+                );
+                assertThat(replyOf(alpha.get(10, TimeUnit.SECONDS))).isEqualTo("收到：Alpha");
+                assertThat(replyOf(beta.get(10, TimeUnit.SECONDS))).isEqualTo("收到：Beta");
             } finally {
                 executor.shutdownNow();
             }
         }
     }
 
+    private static String replyOf(List<AgentEvent> events) {
+        return events.stream()
+                .filter(DoneEvent.class::isInstance)
+                .map(DoneEvent.class::cast)
+                .map(DoneEvent::reply)
+                .findFirst()
+                .orElseThrow();
+    }
+
     private static AgentRequest request(String sessionId, String message) {
-        ChatMessage userMessage = ChatMessage.user(
-                UserId.DEFAULT,
-                SessionId.of(sessionId),
-                message
+        return new AgentRequest(
+                USER_ID,
+                sessionId,
+                List.of(ChatMessage.user(message)),
+                "test system prompt"
         );
-        ConversationTurn turn = ConversationTurn.received(userMessage);
-        return new AgentRequest(turn, List.of(userMessage), "test system prompt");
     }
 }

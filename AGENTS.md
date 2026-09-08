@@ -14,12 +14,12 @@ OpenAlice/
 ├── src/
 │   ├── main/java/com/openalice/
 │   │   ├── OpenAliceApplication.java   # 启动类（组合根 = Spring 容器）
-│   │   ├── model/                      # ChatMessage / UserId / SessionId / ConversationTurn / TurnStatus / MessageRole
+│   │   ├── model/                      # 共享词汇：ChatMessage / MessageRole（纯 LLM 消息，无存储字段）
 │   │   ├── chat/                       # ★ 业务：对话（业务包，包内按类型整理）
 │   │   │   ├── service/                # ChatService · ContextAssembler · SessionCoordinator
-│   │   │   └── store/                  # ConversationStore 接口 · memory/ 内存实现（将来 postgres/ 同级）
+│   │   │   └── store/                  # ConversationStore · StoredMessage · memory/ 内存实现（将来 postgres/ 同级）
 │   │   ├── agent/
-│   │   │   ├── AgentRequest.java       # 显式 agent 输入：Turn + 最近上下文 + system prompt
+│   │   │   ├── AgentRequest.java       # 显式 agent 输入：userId/sessionId + 最近上下文 + system prompt
 │   │   │   ├── AgentEvent.java         # sealed event
 │   │   │   ├── TextDeltaEvent.java · DoneEvent.java · ErrorEvent.java
 │   │   │   ├── runtime/                # AgentRuntime / AgentScope 适配器 / factory / properties
@@ -42,7 +42,7 @@ OpenAlice/
 
 1. `handoff.md`
 2. `docs/index.md`
-3. 按任务需要挑读：ADR 10（当前包结构与演进规则）、ADR 09（P1.5 语义）、ADR 07（P1 底座决策）、`docs/CONTEXT.md`
+3. 按任务需要挑读：ADR 10（当前包结构与演进规则）、ADR 13（ChatMessage 职责拆分）、ADR 09（P1.5 语义）、ADR 07（P1 底座决策）、`docs/CONTEXT.md`
 
 ## 文档权威层级
 
@@ -60,8 +60,8 @@ OpenAlice/
 - 包依赖单向：`model ← chat.store`、`model ← agent`、`chat.service → model + chat.store + agent`、`controller → chat.service + dto`、`config` 组装 chat.store 与 agent.runtime。
 - 包结构遵循 ADR 10：默认留在本地、跨业务共享才上提 `model/`；不建全局 `enums/`、不提前建空业务包。
 - `ConversationStore` 是业务会话历史唯一真相源；AgentScope state store 只是运行态 scratch，每次调用前清空。
-- `ChatService` 负责 Turn 生命周期与消息持久化；`ContextAssembler` 负责显式上下文；`AgentRuntime` 只执行模型调用；`ChatController` 只做 HTTP/SSE 翻译。
-- API 面向单用户：外部请求不携带 `userId`，服务端固定 `UserId.DEFAULT`；存储层保留 `userId` 字段。
+- `ChatService` 负责单 turn 编排与消息持久化；`ContextAssembler` 负责显式上下文；`AgentRuntime` 只执行模型调用；`ChatController` 只做 HTTP/SSE 翻译。
+- API 面向单用户：外部请求不携带 `userId`，服务端固定默认用户（`ChatService` 私有常量）；消息只含 role/content，归属与时间戳落在 `chat.store.StoredMessage`，存储行保留 `userId` 供未来认证。
 - `web/` 不进入 Maven Reactor。
 - 语音、learning、插件、多 Agent 只保留架构位置，不提前创建空模块/空包。
 

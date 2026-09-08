@@ -34,12 +34,12 @@ OpenAlice/
 ├── pom.xml                         # 单模块应用工程
 ├── src/main/java/com/openalice/
 │   ├── OpenAliceApplication.java   # 启动类（Spring 组合根）
-│   ├── model/                      # 共享模型：消息、会话、用户、Turn 等
+│   ├── model/                      # 共享词汇：ChatMessage / MessageRole（纯 LLM 消息）
 │   ├── chat/                       # ★ 业务：对话（业务包，内部按类型整理）
 │   │   ├── service/                # ChatService · ContextAssembler · SessionCoordinator
-│   │   └── store/                  # ConversationStore · memory/ 内存实现
+│   │   └── store/                  # ConversationStore · StoredMessage · memory/ 内存实现
 │   ├── agent/
-│   │   ├── AgentRequest.java       # 显式上下文输入
+│   │   ├── AgentRequest.java       # 显式输入：userId/sessionId + 上下文
 │   │   ├── AgentEvent.java         # TextDelta / Done / Error 事件
 │   │   ├── runtime/                # AgentRuntime + AgentScope 适配器
 │   │   └── llm/                    # 双 provider 模型接入
@@ -72,28 +72,32 @@ mvn package
 mvn spring-boot:run
 ```
 
-### LLM 接入（环境变量）
+### LLM 接入（配置文件）
 
 未配置任何 key 时自动回落到确定性 mock（回复形如 `收到：你好`）；配置后走真实模型。
 
-| 变量 | 说明 | 默认 |
-| :--- | :--- | :--- |
-| `OPENALICE_LLM_PROVIDER` | `auto` / `mock` / `deepseek` / `agentrouter` | `auto`：中转 → DeepSeek → mock |
-| `OPENALICE_AGENTROUTER_API_KEY` | AgentRouter 中转站 key（优先） | — |
-| `OPENALICE_DEEPSEEK_API_KEY` | DeepSeek 官方 key（兜底） | — |
-| `OPENALICE_LLM_MODEL` | 模型名覆盖 | `deepseek-v4-flash` |
-| `OPENALICE_LLM_BASE_URL` | API Base URL 覆盖 | provider 默认值 |
-| `OPENALICE_LLM_PROXY` | HTTP 代理 `host:port` | 不代理 |
-| `OPENALICE_SYSTEM_PROMPT` | 系统提示词覆盖 | Alice 默认提示词 |
+公共默认值写在 `src/main/resources/application.yml`（**不含 key**），相关键：
 
-示例：
+| 键 | 说明 | 默认 |
+| :--- | :--- | :--- |
+| `openalice.agent.system-prompt` | 系统提示词 | Alice 默认提示词 |
+| `openalice.agent.context-window-size` | 携带的历史消息条数 | `20` |
+| `openalice.llm.provider` | `auto` / `mock` / `deepseek` / `agentrouter` | `auto`：中转 → DeepSeek → mock |
+| `openalice.llm.model` | 模型名覆盖 | provider 默认 |
+| `openalice.llm.base-url` | API Base URL 覆盖 | provider 默认 |
+| `openalice.llm.proxy` | HTTP 代理 `host:port` | 不代理 |
+| `openalice.llm.api-key` | **真实 key——绝不提交** | 仅 local / env |
+
+**本机真实 key 放 gitignored 的 `application-local.yml`**（仓库已提供模板），然后以 `local` profile 启动：
 
 ```bash
-OPENALICE_LLM_PROVIDER=agentrouter \
-OPENALICE_AGENTROUTER_API_KEY=... \
-OPENALICE_LLM_PROXY=127.0.0.1:7897 \
-mvn spring-boot:run
+# 1) 编辑 src/main/resources/application-local.yml，把 api-key 换成你的真实 key（建议同时显式指定 provider）
+# 2) 启动时激活 local profile：
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+# IDEA：Run Configuration → Active profiles 填 local（见下）
 ```
+
+环境变量仍可作为兜底覆盖（Spring 会把 `OPENALICE_LLM_PROVIDER` 映射到 `openalice.llm.provider`，key 变量 `OPENALICE_DEEPSEEK_API_KEY` / `OPENALICE_AGENTROUTER_API_KEY` 依旧生效），但不是主路径。
 
 ## API
 

@@ -1,37 +1,31 @@
 package com.openalice.model;
 
-import java.time.Instant;
-import com.openalice.model.MessageRole;
 import java.util.Objects;
-import java.util.UUID;
 
-public record ChatMessage(
-        String id,
-        MessageRole role,
-        String content,
-        UserId userId,
-        SessionId sessionId,
-        Instant timestamp
-) {
+/**
+ * One dialogue message shared by chat and agent: who says it ({@link MessageRole})
+ * and what is said ({@code content}). Nothing else — id, ownership and timestamps
+ * belong to the stored record in {@code com.openalice.chat.store.StoredMessage}.
+ */
+public record ChatMessage(MessageRole role, String content) {
+
     public ChatMessage {
-        id = normalize(id);
         role = Objects.requireNonNull(role, "role must not be null");
-        content = Objects.requireNonNull(content, "content must not be null");
-        userId = UserId.require(userId);
-        sessionId = SessionId.require(sessionId);
-        timestamp = timestamp == null ? Instant.now() : timestamp;
+        content = requireNotBlank(content, "content");
     }
 
-    public static ChatMessage user(UserId userId, SessionId sessionId, String content) {
-        return new ChatMessage(null, MessageRole.USER, content, userId, sessionId, null);
+    public static ChatMessage user(String content) {
+        return new ChatMessage(MessageRole.USER, content);
     }
 
-    public static ChatMessage assistant(UserId userId, SessionId sessionId, String content) {
-        return new ChatMessage(null, MessageRole.ASSISTANT, content, userId, sessionId, null);
+    public static ChatMessage assistant(String content) {
+        return new ChatMessage(MessageRole.ASSISTANT, content);
     }
 
-    private static String normalize(String id) {
-        return id == null || id.isBlank() ? UUID.randomUUID().toString() : id;
+    private static String requireNotBlank(String value, String field) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(field + " must not be blank");
+        }
+        return value;
     }
 }
-

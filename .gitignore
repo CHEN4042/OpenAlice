@@ -35,3 +35,7 @@ out/
 # JVM crash logs
 hs_err_pid*
 replay_pid*
+
+# Local private overrides — never commit
+application-local.yml
+application-local-*.yml

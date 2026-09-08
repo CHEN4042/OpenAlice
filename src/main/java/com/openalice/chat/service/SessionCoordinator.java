@@ -1,6 +1,5 @@
 package com.openalice.chat.service;
 
-import com.openalice.model.SessionId;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,13 +18,13 @@ import reactor.core.scheduler.Schedulers;
 @Service
 public class SessionCoordinator {
 
-    private final Map<SessionId, Semaphore> sessions = new ConcurrentHashMap<>();
+    private final Map<String, Semaphore> sessions = new ConcurrentHashMap<>();
 
-    public <T> Flux<T> serialize(SessionId sessionId, Mono<T> action) {
+    public <T> Flux<T> serialize(String sessionId, Mono<T> action) {
         return serialize(sessionId, action.flux());
     }
 
-    public <T> Flux<T> serialize(SessionId sessionId, Publisher<T> action) {
+    public <T> Flux<T> serialize(String sessionId, Publisher<T> action) {
         Objects.requireNonNull(sessionId, "sessionId must not be null");
         Objects.requireNonNull(action, "action must not be null");
         Semaphore semaphore = sessions.computeIfAbsent(sessionId, key -> new Semaphore(1));

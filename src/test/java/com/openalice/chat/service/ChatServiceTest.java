@@ -6,17 +6,14 @@ import com.openalice.agent.DoneEvent;
 import com.openalice.agent.ErrorEvent;
 import com.openalice.agent.TextDeltaEvent;
 import com.openalice.agent.runtime.AgentRuntime;
-import com.openalice.agent.runtime.AgentRuntimeProperties;
+import com.openalice.agent.runtime.AgentRuntimePropertiesFixture;
+import com.openalice.chat.store.ConversationStore;
+import com.openalice.chat.store.StoredMessage;
+import com.openalice.chat.store.memory.InMemoryConversationStore;
 import com.openalice.dto.ChatRequest;
-import com.openalice.dto.ChatResponse;
 import com.openalice.dto.MessageView;
 import com.openalice.model.ChatMessage;
-import com.openalice.model.ConversationTurn;
 import com.openalice.model.MessageRole;
-import com.openalice.model.SessionId;
-import com.openalice.model.UserId;
-import com.openalice.chat.store.ConversationStore;
-import com.openalice.chat.store.memory.InMemoryConversationStore;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.Test;
@@ -55,9 +52,13 @@ class ChatServiceTest {
         return new ChatService(
                 runtime,
                 store,
-                new ContextAssembler(store, AgentRuntimeProperties.defaults(), contextWindowSize),
+                new ContextAssembler(store, AgentRuntimePropertiesFixture.mock(), contextWindowSize),
                 new SessionCoordinator()
         );
+    }
+
+    private static List<AgentEvent> complete(ChatService service, ChatRequest request) {
+        return service.stream(request).collectList().block();
     }
 
     @Test
@@ -65,38 +66,36 @@ class ChatServiceTest {
         ConversationStore store = new InMemoryConversationStore();
         ChatService service = service(new RecordingAgentRuntime(), store, 20);
 
-        ChatResponse response = service.chat(new ChatRequest("session", "你好"));
+        complete(service, new ChatRequest("session", "你好"));
 
-        assertThat(response.sessionId()).isEqualTo("session");
-        assertThat(response.reply()).isEqualTo("收到：你好");
-        assertThat(store.history(UserId.DEFAULT, SessionId.of("session"), 10))
-                .extracting(ChatMessage::role)
+        assertThat(store.history("session", 10))
+                .extracting(StoredMessage::role)
                 .containsExactly(MessageRole.USER, MessageRole.ASSISTANT);
+        assertThat(store.history("session", 10))
+                .extracting(StoredMessage::content)
+                .containsExactly("你好", "收到：你好");
     }
 
     @Test
     void shouldAssembleExplicitContextBeforeAgentCall() {
         ConversationStore store = new InMemoryConversationStore();
-        SessionId sessionId = SessionId.of("session");
-        store.append(ChatMessage.user(UserId.DEFAULT, sessionId, "历史问题"));
-        store.append(ChatMessage.assistant(UserId.DEFAULT, sessionId, "历史回答"));
+        String sessionId = "session";
+        store.append(StoredMessage.user("user-1", sessionId, "历史问题"));
+        store.append(StoredMessage.assistant("user-1", sessionId, "历史回答"));
         RecordingAgentRuntime runtime = new RecordingAgentRuntime();
         ChatService service = service(runtime, store, 20);
 
-        List<AgentEvent> events = service.stream(new ChatRequest("session", "新问题"))
-                .collectList()
-                .block();
+        complete(service, new ChatRequest("session", "新问题"));
 
-        assertThat(events).extracting(event -> event.getClass().getSimpleName())
-                .containsExactly("TextDeltaEvent", "TextDeltaEvent", "DoneEvent");
         AgentRequest request = runtime.requests.get(0);
-        assertThat(request.turn().status()).isEqualTo(com.openalice.model.TurnStatus.RUNNING);
-        assertThat(request.systemPrompt()).isEqualTo(AgentRuntimeProperties.defaults().systemPrompt());
+        assertThat(request.userId()).isNotBlank();
+        assertThat(request.sessionId()).isEqualTo("session");
+        assertThat(request.systemPrompt()).isEqualTo(AgentRuntimePropertiesFixture.SYSTEM_PROMPT);
         assertThat(request.conversationContext())
                 .extracting(ChatMessage::content)
                 .containsExactly("历史问题", "历史回答", "新问题");
-        assertThat(store.history(UserId.DEFAULT, sessionId, 10))
-                .extracting(ChatMessage::content)
+        assertThat(store.history(sessionId, 10))
+                .extracting(StoredMessage::content)
                 .containsExactly("历史问题", "历史回答", "新问题", "收到：新问题");
     }
 
@@ -106,9 +105,7 @@ class ChatServiceTest {
         AgentRuntime failingRuntime = request -> Flux.error(new IllegalStateException("provider unavailable"));
         ChatService service = service(failingRuntime, store, 20);
 
-        List<AgentEvent> events = service.stream(new ChatRequest("session", "hi"))
-                .collectList()
-                .block();
+        List<AgentEvent> events = complete(service, new ChatRequest("session", "hi"));
 
         assertThat(events).singleElement().isInstanceOf(ErrorEvent.class);
         assertThat(((ErrorEvent) events.get(0)).error()).isEqualTo("provider unavailable");
@@ -118,11 +115,12 @@ class ChatServiceTest {
     void shouldExposeHistoryAsMessageViews() {
         ConversationStore store = new InMemoryConversationStore();
         ChatService service = service(new RecordingAgentRuntime(), store, 20);
-        service.chat(new ChatRequest("session", "hi"));
+        complete(service, new ChatRequest("session", "hi"));
 
         List<MessageView> views = service.history("session");
         assertThat(views).hasSize(2);
         assertThat(views.get(0).role()).isEqualTo("user");
+        assertThat(views.get(1).role()).isEqualTo("assistant");
         assertThat(views.get(1).content()).isEqualTo("收到：hi");
     }
 
@@ -135,6 +133,6 @@ class ChatServiceTest {
         );
 
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> service.chat(new ChatRequest("session", " ")));
+                .isThrownBy(() -> service.stream(new ChatRequest("session", " ")));
     }
 }

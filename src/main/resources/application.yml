@@ -7,4 +7,18 @@ server:
 
 openalice:
   agent:
+    name: Alice
+    description: OpenAlice baseline agent
+    system-prompt: "You are Alice, a warm and attentive AI companion."
+    reply-prefix: "收到："
+    timeout: 60s
+    workspace: ${java.io.tmpdir}/openalice-agentscope-workspace
     context-window-size: 20
+  llm:
+    # 本机真实配置（含 api-key）请写在 gitignored 的 application-local.yml，
+    # 启动时加 --spring.profiles.active=local 启用；此处只放公共安全默认值。
+    provider: auto          # auto | mock | deepseek | agentrouter
+    # model:                # 留空 = provider 默认模型
+    # base-url:             # 留空 = provider 默认地址
+    # proxy:                # 留空 = 不走代理；示例 127.0.0.1:7897
+    # api-key:              # 绝不提交！放 application-local.yml 或环境变量

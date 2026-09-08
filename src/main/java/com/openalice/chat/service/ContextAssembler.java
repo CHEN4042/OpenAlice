@@ -2,9 +2,10 @@ package com.openalice.chat.service;
 
 import com.openalice.agent.AgentRequest;
 import com.openalice.agent.runtime.AgentRuntimeProperties;
-import com.openalice.model.ChatMessage;
-import com.openalice.model.ConversationTurn;
 import com.openalice.chat.store.ConversationStore;
+import com.openalice.chat.store.StoredMessage;
+import com.openalice.model.ChatMessage;
+import com.openalice.model.MessageRole;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,9 @@ import org.springframework.stereotype.Service;
  * Builds the explicit agent input from the conversation store.
  *
  * <p>This keeps history assembly out of the controller and out of the AgentScope
- * adapter. The store remains the source of truth for business history.</p>
+ * adapter. The store remains the source of truth for business history. The caller
+ * runs inside {@link SessionCoordinator}, so the newest stored message is the USER
+ * message that was just appended.</p>
  */
 @Service
 public class ContextAssembler {
@@ -35,18 +38,12 @@ public class ContextAssembler {
         }
     }
 
-    public AgentRequest assemble(ConversationTurn turn, ChatMessage userMessage) {
-        if (turn == null || userMessage == null || !turn.userMessageId().equals(userMessage.id())) {
-            throw new IllegalArgumentException("turn and userMessage must describe the same turn");
-        }
-        List<ChatMessage> context = conversationStore.history(
-                turn.userId(),
-                turn.sessionId(),
-                contextWindowSize
-        );
-        if (context.stream().noneMatch(message -> message.id().equals(userMessage.id()))) {
+    public AgentRequest assemble(String userId, String sessionId) {
+        List<StoredMessage> stored = conversationStore.history(sessionId, contextWindowSize);
+        if (stored.isEmpty() || stored.get(stored.size() - 1).role() != MessageRole.USER) {
             throw new IllegalStateException("current USER message is not present in conversation context");
         }
-        return new AgentRequest(turn, context, systemPrompt);
+        List<ChatMessage> context = stored.stream().map(StoredMessage::message).toList();
+        return new AgentRequest(userId, sessionId, context, systemPrompt);
     }
 }

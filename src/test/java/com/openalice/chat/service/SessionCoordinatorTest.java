@@ -1,6 +1,5 @@
 package com.openalice.chat.service;
 
-import com.openalice.model.SessionId;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -32,13 +31,13 @@ class SessionCoordinatorTest {
         CountDownLatch bothStarted = new CountDownLatch(2);
 
         Flux<String> first = coordinator.serialize(
-                SessionId.of("a"),
+                "a",
                 Mono.fromRunnable(() -> awaitParallel(bothStarted))
                         .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
                         .thenReturn("a")
         );
         Flux<String> second = coordinator.serialize(
-                SessionId.of("b"),
+                "b",
                 Mono.fromRunnable(() -> awaitParallel(bothStarted))
                         .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
                         .thenReturn("b")
@@ -58,7 +57,7 @@ class SessionCoordinatorTest {
             AtomicInteger maxActive
     ) {
         return coordinator.serialize(
-                SessionId.of(sessionId),
+                sessionId,
                 Mono.fromCallable(() -> {
                     int current = active.incrementAndGet();
                     maxActive.accumulateAndGet(current, Math::max);

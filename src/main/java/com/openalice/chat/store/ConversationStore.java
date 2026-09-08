@@ -1,19 +1,18 @@
 package com.openalice.chat.store;
 
-import com.openalice.model.ChatMessage;
-import com.openalice.model.SessionId;
-import com.openalice.model.UserId;
 import java.util.List;
 
 /**
  * Conversation persistence boundary.
  *
  * <p>The store is the source of truth for business conversation history. The
- * AgentScope state store is only runtime scratch state and is cleared before
- * each call.</p>
+ * AgentScope state store is only runtime scratch state and is cleared before each
+ * call. The API is single-user, so history is keyed by {@code sessionId}; the
+ * stored record still carries {@code userId} for future authentication.</p>
  */
 public interface ConversationStore {
-    void append(ChatMessage message);
 
-    List<ChatMessage> history(UserId userId, SessionId sessionId, int limit);
+    void append(StoredMessage message);
+
+    List<StoredMessage> history(String sessionId, int limit);
 }

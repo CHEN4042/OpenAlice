@@ -1,28 +1,23 @@
 package com.openalice.chat.store.memory;
 
+import com.openalice.chat.store.ConversationStore;
+import com.openalice.chat.store.StoredMessage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import com.openalice.model.ChatMessage;
-import com.openalice.model.SessionId;
-import com.openalice.model.UserId;
-import com.openalice.chat.store.ConversationStore;
 
 public final class InMemoryConversationStore implements ConversationStore {
 
-    private record SessionKey(UserId userId, SessionId sessionId) {
-    }
-
-    private final Map<SessionKey, List<ChatMessage>> sessions = new ConcurrentHashMap<>();
+    private final Map<String, List<StoredMessage>> sessions = new ConcurrentHashMap<>();
 
     @Override
-    public void append(ChatMessage message) {
+    public void append(StoredMessage message) {
         if (message == null) {
             throw new IllegalArgumentException("message must not be null");
         }
-        List<ChatMessage> messages = sessions.computeIfAbsent(
-                new SessionKey(message.userId(), message.sessionId()),
+        List<StoredMessage> messages = sessions.computeIfAbsent(
+                message.sessionId(),
                 key -> new ArrayList<>()
         );
         synchronized (messages) {
@@ -31,18 +26,22 @@ public final class InMemoryConversationStore implements ConversationStore {
     }
 
     @Override
-    public List<ChatMessage> history(UserId userId, SessionId sessionId, int limit) {
-        UserId.require(userId);
-        SessionId.require(sessionId);
+    public List<StoredMessage> history(String sessionId, int limit) {
+        requireNotBlank(sessionId, "sessionId");
         if (limit <= 0) {
             return List.of();
         }
-
-        List<ChatMessage> messages = sessions.getOrDefault(new SessionKey(userId, sessionId), List.of());
+        List<StoredMessage> messages = sessions.getOrDefault(sessionId, List.of());
         synchronized (messages) {
             int fromIndex = Math.max(0, messages.size() - limit);
             return List.copyOf(messages.subList(fromIndex, messages.size()));
         }
     }
-}
 
+    private static String requireNotBlank(String value, String field) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(field + " must not be blank");
+        }
+        return value;
+    }
+}

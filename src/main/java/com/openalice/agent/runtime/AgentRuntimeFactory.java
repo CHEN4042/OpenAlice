@@ -9,10 +9,6 @@ public final class AgentRuntimeFactory {
     private AgentRuntimeFactory() {
     }
 
-    public static AgentRuntime create() {
-        return create(AgentRuntimeProperties.defaults());
-    }
-
     public static AgentRuntime create(AgentRuntimeProperties properties) {
         return new AgentScopeAgentRuntime(properties);
     }

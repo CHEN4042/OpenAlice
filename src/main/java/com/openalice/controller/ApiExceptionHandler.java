@@ -38,7 +38,7 @@ public class ApiExceptionHandler {
 
     private String formatSseError(IllegalArgumentException exception) {
         try {
-            String json = objectMapper.writeValueAsString(ChatStreamEvent.error(null, exception.getMessage()));
+            String json = objectMapper.writeValueAsString(ChatStreamEvent.error(exception.getMessage()));
             return "event:error\ndata:" + json + "\n\n";
         } catch (JsonProcessingException serializationError) {
             return "event:error\ndata:{\"type\":\"error\",\"error\":\"invalid request\"}\n\n";

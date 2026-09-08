@@ -35,6 +35,9 @@
 | 06 | [Phase 1 根目录四模块布局](./decisions/06-phase1-root-module-layout.md) | 取消 `service/`，四个 Maven 模块直接放根目录（**顶层布局已被 ADR 08 修订**） | ✅ 已被 ADR 08 修订顶层布局 |
 | 08 | [单模块收敛决议](./decisions/08-single-module-convergence.md) | 四模块收敛为单模块 + service 编排；根包与目录细节已被 ADR 09 修订 | 🟡 历史有效 |
 | 10 | [业务包自治与演进触发规则](./decisions/10-package-layout-evolution-rules.md) | **当前包结构决议**：业务包（chat/service·store）+ 内核（agent）+ 共享 model；包内按类型整理；共享才上提；演进触发规则 | ✅ 当前有效 |
+| 11 | [LLM 配置落 yml + local profile](./decisions/11-llm-configuration-local-profile.md) | LLM 配置默认值进 application.yml；本机真实 key 走 gitignored `application-local.yml`；`config.OpenAliceSettings` 绑定 | ✅ 当前有效 |
+| 12 | [UserId/SessionId 降为 String 字段](./decisions/12-user-session-id-as-string.md) | 删除独立值对象，id 直接 String 字段；已被 ADR 13 进一步收敛（归属下沉 `StoredMessage`） | 🟡 已被 ADR 13 修订消息层细节 |
+| 13 | [ChatMessage 职责拆分与冗余清理](./decisions/13-chat-message-responsibility-split.md) | **当前消息模型决议**：`ChatMessage` 只留 role/content；归属/时间戳下沉 `chat.store.StoredMessage`；删 Turn 状态机 / blocking 便利层 / 重复 DTO | ✅ 当前有效 |
 | 09 | [P1.5 语义重构与包结构整理](./decisions/09-p15-semantic-and-package-structure.md) | `com.openalice` 根包、ConversationStore、Turn、AgentRequest/AgentEvent、ContextAssembler、SessionCoordinator、单用户 API | 🟡 语义仍有效；顶层布局已被 ADR 10 修订 |
 | 07 | [P1 底座技术决策](./decisions/07-p1-base-decisions.md) | v1.5 五项拍板：砍 Redis / 真实双 provider / /chat SSE / 单用户 + persona / Phase 坐标 P1–P4；修订 ADR 01 M1-Redis 前提、ADR 06 Java 与 P1 范围 | ✅ 当前有效 |
 
@@ -42,7 +45,7 @@
 
 1. `handoff.md`
 2. 本索引
-3. ADR 10（当前包结构与演进规则）/ ADR 09（P1.5 语义）/ ADR 07（P1 底座决策）
+3. ADR 10（当前包结构）/ ADR 13（当前消息模型）/ ADR 11（当前配置：yml + local profile）/ ADR 09（P1.5 语义）/ ADR 07（P1 底座决策）
 4. ADR 05 中仍有效的开发规范与测试策略
 5. 按任务需要选读其他文档
 6. 想读懂代码 / 边做边学：读《代码学习导览 v0.1》并按其 §8 更新学习追踪表
@@ -56,6 +59,9 @@
 
 ## 整理记录
 
+- 2026-09-08：新增 **ADR 13**——`ChatMessage` 收敛为纯 LLM 消息（role/content）；新增 `chat.store.StoredMessage` 承载 id/归属/时间戳；`ConversationStore.history` 按 sessionId 收口；删除 `ConversationTurn`/`TurnStatus`（进程内零消费状态机，ADR 09 §4.2 不提前加死接口）、`ChatService.chat()`/`AgentRuntime.chat()` blocking 与 `ChatResponse`/`ChatResult`、`ChatStreamEvent.sessionId` 冗余字段；controller 双 if-else 收敛为 switch；`DEFAULT_USER_ID` 下沉 `ChatService` 私有。
+- 2026-09-08：新增 **ADR 12**——删除 `UserId` / `SessionId` 值对象，`ChatMessage` / `ConversationTurn` 直接 `String userId / sessionId` 字段（Jarvis 直观风格），`UserId.DEFAULT` → `ChatMessage.DEFAULT_USER_ID`，校验内聚构造器；测试与 AGENTS / README / CONTEXT / 学习导览 / handoff 同步；22 tests 全绿（Java 21）。
+- 2026-09-08：新增 **ADR 11**——LLM 配置默认值移入 `application.yml`，本机真实 key 走 gitignored `application-local.yml`（`local` profile）；`AgentRuntimeProperties` 收敛为纯配置容器 + 新增 `config.OpenAliceSettings` 绑定；README / CONTEXT / handoff 同步；22 tests 全绿（Java 21）。
 - 2026-09-08：新增 **ADR 10**——业务包自治 + 包内按类型整理 + 演进触发规则；`repository/` → `chat/store/`、`service/` → `chat/service/`；AGENTS.md / README / CONTEXT / 学习导览 / handoff 同步；22 tests 全绿（Java 21）。
 - 2026-09-07：新增 **ADR 09**——根包改为 `com.openalice`，`port + memory` 收敛为 `repository`，新增 Turn / ConversationStore / AgentRequest / AgentEvent / ContextAssembler / SessionCoordinator，并改为单用户 API。
 - 2026-09-07：新增 **ADR 08**——四 Maven 模块收敛为单模块（根 `pom.xml` 即应用），顶层包分层 `model/port/memory/agent/service/controller/dto/config`；新增 `ChatService` 编排层与 `OpenAliceConfiguration` 组合根；删除 0 引用占位；AGENTS.md / README / handoff / 学习导览同步。

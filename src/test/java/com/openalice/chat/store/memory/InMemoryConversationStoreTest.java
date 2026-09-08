@@ -1,9 +1,7 @@
 package com.openalice.chat.store.memory;
 
-import com.openalice.model.ChatMessage;
-import com.openalice.model.SessionId;
-import com.openalice.model.UserId;
 import com.openalice.chat.store.ConversationStore;
+import com.openalice.chat.store.StoredMessage;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -16,47 +14,46 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 
 class InMemoryConversationStoreTest {
 
+    private static final String USER_ID = "user-1";
+
     @Test
     void shouldKeepSessionsIsolated() {
         ConversationStore store = new InMemoryConversationStore();
-        var userId = UserId.DEFAULT;
-        store.append(ChatMessage.user(userId, SessionId.of("a"), "Alpha"));
-        store.append(ChatMessage.user(userId, SessionId.of("b"), "Beta"));
+        store.append(StoredMessage.user(USER_ID, "a", "Alpha"));
+        store.append(StoredMessage.user(USER_ID, "b", "Beta"));
 
-        assertThat(store.history(userId, SessionId.of("a"), 10))
-                .extracting(ChatMessage::content)
+        assertThat(store.history("a", 10))
+                .extracting(StoredMessage::content)
                 .containsExactly("Alpha");
-        assertThat(store.history(userId, SessionId.of("b"), 10))
-                .extracting(ChatMessage::content)
+        assertThat(store.history("b", 10))
+                .extracting(StoredMessage::content)
                 .containsExactly("Beta");
     }
 
     @Test
     void shouldReturnLimitedTailAndImmutableCopy() {
         ConversationStore store = new InMemoryConversationStore();
-        var userId = UserId.DEFAULT;
-        var sessionId = SessionId.of("session");
-        store.append(ChatMessage.user(userId, sessionId, "1"));
-        store.append(ChatMessage.user(userId, sessionId, "2"));
-        store.append(ChatMessage.user(userId, sessionId, "3"));
+        String sessionId = "session";
+        store.append(StoredMessage.user(USER_ID, sessionId, "1"));
+        store.append(StoredMessage.user(USER_ID, sessionId, "2"));
+        store.append(StoredMessage.user(USER_ID, sessionId, "3"));
 
-        List<ChatMessage> history = store.history(userId, sessionId, 2);
-        assertThat(history).extracting(ChatMessage::content).containsExactly("2", "3");
+        List<StoredMessage> history = store.history(sessionId, 2);
+        assertThat(history).extracting(StoredMessage::content).containsExactly("2", "3");
 
         org.junit.jupiter.api.Assertions.assertThrows(
                 UnsupportedOperationException.class,
-                () -> history.add(ChatMessage.user(userId, sessionId, "4"))
+                () -> history.add(StoredMessage.user(USER_ID, sessionId, "4"))
         );
     }
 
     @Test
     void shouldAppendConcurrentlyToSameSession() throws Exception {
         ConversationStore store = new InMemoryConversationStore();
-        var userId = UserId.DEFAULT;
-        var sessionId = SessionId.of("session");
+        String sessionId = "session";
         List<Callable<Void>> tasks = IntStream.range(0, 128)
                 .mapToObj(index -> (Callable<Void>) () -> {
-                    store.append(ChatMessage.user(userId, sessionId, "message-" + index));
+                    store.append(StoredMessage.user(USER_ID, sessionId, "message-" + index));
                     return null;
                 })
                 .toList();
@@ -68,7 +65,7 @@ class InMemoryConversationStoreTest {
             executor.shutdownNow();
         }
 
-        assertThat(store.history(userId, sessionId, 128)).hasSize(128);
+        assertThat(store.history(sessionId, 128)).hasSize(128);
     }
 
     @Test

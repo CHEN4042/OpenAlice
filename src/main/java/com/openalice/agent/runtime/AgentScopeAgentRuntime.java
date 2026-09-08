@@ -67,8 +67,8 @@ final class AgentScopeAgentRuntime implements AgentRuntime {
     public Flux<com.openalice.agent.AgentEvent> stream(AgentRequest request) {
         validate(request);
         RuntimeContext context = RuntimeContext.builder()
-                .userId(request.turn().userId().value())
-                .sessionId(request.turn().sessionId().value())
+                .userId(request.userId())
+                .sessionId(request.sessionId())
                 .build();
 
         return Flux.defer(() -> {
@@ -110,7 +110,7 @@ final class AgentScopeAgentRuntime implements AgentRuntime {
         List<Msg> messages = new ArrayList<>();
         for (ChatMessage message : request.conversationContext()) {
             messages.add(Msg.builder()
-                    .name(message.role().name().toLowerCase())
+                    .name(message.role().wireValue())
                     .role(toAgentRole(message.role()))
                     .textContent(message.content())
                     .build());
