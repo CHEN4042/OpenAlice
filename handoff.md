@@ -12,7 +12,7 @@
 | 阶段 | P1 后端可运行；上一功能 HEAD `3dd3d47` = **Agent 执行层整理（方案 A）**；本轮完成 **BMAD Forge 产品 idea 压力测试**，结论为 `HARDENED`，属于 docs-only 会话 |
 | 分支 | `main` |
 | 当前架构 | 单 Maven 模块；根包 `com.openalice`；顶层 `model / agent / llm / chat(service\|store) / controller / dto / config`；`runtime/` 与 `agent.llm` 已拆除 |
-| Git 状态 | 本提交包含 Forge 产物 + handoff 更新；提交后本地 `main` 领先 `origin/main` 1 个提交，**等待用户手动 push**；`application-local.yml` 已 gitignore 且含本机真实 key，**绝不提交 / 不 cat / 不打印** |
+| Git 状态 | Forge 产物与 handoff 已提交为 `37bab82` 并 push 到 `origin/main`；本次状态修正提交随后 push；`application-local.yml` 已 gitignore 且含本机真实 key，**绝不提交 / 不 cat / 不打印** |
 | 验证 | 本轮未改代码，未跑 Maven；上一轮 `mvn -q test-compile` 通过（Java 21），全量测试仍未跑 |
 | 下一里程碑 | 先把 Forge 结论收敛为项目产品层 spec，再进入 M1 PostgreSQL 持久化 |
 
@@ -149,7 +149,7 @@ ChatController          # HTTP/SSE 翻译，不写业务
 
 ## 6. 下一步
 
-1. **用户手动 push**：本提交完成后，本地 `main` 领先 `origin/main` 1 个提交；仓库红线要求 Codex 不执行 `git push`。
+1. **Git 同步已完成**：Forge 产物与 handoff 已 push；后续 commit 仍按仓库约定等待用户明确指示再提交/推送。
 2. **把 Forge 结论转成项目自有产品层文档（当前最高优先）**：以 `forged-idea.md` 为输入，形成 vision / roadmap / 第一份 SPEC，补齐“为什么做、先做哪个、如何验收”。
 3. **统一人格契约**：修正需求书、人格资产与 `application.yml` 的冲突；当前通用 `warm and attentive` 与已锁定的天童爱丽丝行为核心不一致。人格卡、OpenHanako 参考、训练/数据集暂缓。
 4. **补 ADR 14 + `docs/index.md` 变更记录 + 重写《代码学习导览》§2~§7**。
