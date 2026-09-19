@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenAlice — Forge Report</title>
+  <style>
+    :root {
+      --ink: #18212b;
+      --muted: #66707c;
+      --paper: #f5f0e7;
+      --card: rgba(255,255,255,.78);
+      --line: rgba(24,33,43,.14);
+      --blue: #3976a8;
+      --blue-soft: #dceaf5;
+      --red: #a74438;
+      --gold: #b27a2c;
+      --green: #3f735d;
+      --shadow: 0 18px 50px rgba(35,42,50,.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: ui-serif, "Songti SC", "Noto Serif CJK SC", Georgia, serif;
+      line-height: 1.7;
+      background:
+        radial-gradient(circle at 12% 4%, rgba(57,118,168,.14), transparent 28rem),
+        radial-gradient(circle at 88% 12%, rgba(167,68,56,.10), transparent 26rem),
+        linear-gradient(135deg, #faf8f3 0%, var(--paper) 52%, #ece6db 100%);
+      min-height: 100vh;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .22;
+      background-image:
+        linear-gradient(rgba(24,33,43,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(24,33,43,.025) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    main {
+      width: min(1180px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 56px 0 72px;
+      position: relative;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 230px;
+      gap: 38px;
+      align-items: center;
+      padding: 42px;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      background: rgba(255,255,255,.58);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+      position: relative;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      right: -90px;
+      bottom: -130px;
+      border: 1px solid rgba(57,118,168,.18);
+      border-radius: 50%;
+    }
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--blue);
+      font: 700 12px/1.2 ui-sans-serif, system-ui, sans-serif;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      max-width: 740px;
+      font-size: clamp(38px, 6vw, 72px);
+      line-height: .98;
+      letter-spacing: -.045em;
+    }
+    .lede {
+      margin: 22px 0 0;
+      max-width: 760px;
+      color: #384553;
+      font-size: clamp(17px, 2vw, 21px);
+    }
+    .seal {
+      width: 220px;
+      height: 220px;
+      filter: drop-shadow(0 14px 18px rgba(65,42,31,.18));
+      transform: rotate(-7deg);
+      justify-self: center;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: #43505c;
+      font: 650 13px/1 ui-sans-serif, system-ui, sans-serif;
+      background: rgba(255,255,255,.58);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+      margin-top: 24px;
+    }
+    .card {
+      grid-column: span 6;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--card);
+      box-shadow: 0 10px 28px rgba(35,42,50,.07);
+      backdrop-filter: blur(10px);
+    }
+    .card.wide { grid-column: span 12; }
+    .card.third { grid-column: span 4; }
+    h2 {
+      margin: 0 0 15px;
+      font: 760 20px/1.25 ui-sans-serif, system-ui, sans-serif;
+      letter-spacing: -.02em;
+    }
+    h3 {
+      margin: 18px 0 7px;
+      color: #2b3641;
+      font: 720 15px/1.35 ui-sans-serif, system-ui, sans-serif;
+    }
+    p { margin: 0 0 12px; }
+    ul {
+      margin: 10px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    li {
+      position: relative;
+      margin: 9px 0;
+      padding-left: 20px;
+    }
+    li::before {
+      content: "";
+      position: absolute;
+      left: 1px;
+      top: .72em;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 0 3px rgba(57,118,168,.12);
+    }
+    .rejected li::before { background: var(--red); box-shadow: 0 0 0 3px rgba(167,68,56,.12); }
+    .deferred li::before { background: var(--gold); box-shadow: 0 0 0 3px rgba(178,122,44,.14); }
+    .locks { counter-reset: lock; }
+    .locks li {
+      counter-increment: lock;
+      padding: 12px 0 12px 42px;
+      border-top: 1px solid var(--line);
+    }
+    .locks li:first-child { border-top: 0; }
+    .locks li::before {
+      content: counter(lock, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: 13px;
+      width: auto;
+      height: auto;
+      color: var(--blue);
+      background: none;
+      box-shadow: none;
+      font: 800 12px/1.5 ui-sans-serif, system-ui, sans-serif;
+      letter-spacing: .04em;
+    }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .step {
+      position: relative;
+      min-height: 118px;
+      padding: 16px;
+      border-radius: 16px;
+      background: var(--blue-soft);
+      border: 1px solid rgba(57,118,168,.18);
+    }
+    .step b {
+      display: block;
+      margin-bottom: 8px;
+      font: 760 13px/1.2 ui-sans-serif, system-ui, sans-serif;
+      color: #234c70;
+    }
+    .step span { color: #43586b; font-size: 14px; }
+    .callout {
+      border-left: 4px solid var(--green);
+      padding: 12px 16px;
+      margin-top: 18px;
+      background: rgba(63,115,93,.08);
+      border-radius: 0 12px 12px 0;
+    }
+    .voice-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .voice {
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.54);
+      font-size: 14px;
+    }
+    .voice b { font-family: ui-sans-serif, system-ui, sans-serif; }
+    .voice small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font: 12px/1.45 ui-sans-serif, system-ui, sans-serif;
+    }
+    .footer {
+      margin-top: 24px;
+      padding: 20px 8px 0;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      font: 13px/1.5 ui-sans-serif, system-ui, sans-serif;
+    }
+    @media (max-width: 850px) {
+      .hero { grid-template-columns: 1fr; padding: 28px; }
+      .seal { width: 170px; height: 170px; }
+      .card, .card.third { grid-column: span 12; }
+      .flow, .voice-grid { grid-template-columns: 1fr; }
+      .step { min-height: auto; }
+      .footer { display: block; }
+    }
+    @media print {
+      body { background: white; }
+      main { width: 100%; padding: 20px; }
+      .hero, .card { box-shadow: none; backdrop-filter: none; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div>
+      <p class="eyebrow">BMad Forge Idea · Session Report</p>
+      <h1>OpenAlice<br>压力测试报告</h1>
+      <p class="lede">一个面向唯一用户的长期陪伴产品。核心不是“什么都能聊”，而是稳定接住生活碎片、留下下一次对话的梯子，并让爱丽丝以稳定的角色价值观在场。</p>
+      <div class="meta">
+        <span class="pill">◉ HARDENED</span>
+        <span class="pill">唯一用户 / 个人产品优先</span>
+        <span class="pill">2026-09-20</span>
+        <span class="pill">核心：主动分享的接住</span>
+      </div>
+    </div>
+    <svg class="seal" viewBox="0 0 220 220" role="img" aria-label="HARDENED seal">
+      <defs>
+        <filter id="rough">
+          <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="9" result="noise"/>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2"/>
+        </filter>
+      </defs>
+      <circle cx="110" cy="110" r="98" fill="#a74438" opacity=".96"/>
+      <circle cx="110" cy="110" r="86" fill="none" stroke="#f7e7dc" stroke-width="2" stroke-dasharray="3 6"/>
+      <circle cx="110" cy="110" r="70" fill="none" stroke="#f7e7dc" stroke-width="1" opacity=".75"/>
+      <g fill="#fff5ed" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" filter="url(#rough)">
+        <text x="110" y="93" font-size="13" font-weight="700" letter-spacing="3">FORGE RESULT</text>
+        <text x="110" y="128" font-size="28" font-weight="900" letter-spacing="1.5">HARDENED</text>
+        <text x="110" y="153" font-size="11" font-weight="700" letter-spacing="2">READY TO START</text>
+      </g>
+    </svg>
+  </section>
+
+  <section class="grid">
+    <article class="card wide">
+      <h2>最终判断</h2>
+      <p>这个产品不再是一个“情绪陪伴 + 深度交互 + 记忆 + 语音 + 主动推送”的愿望集合。它已经收敛为一个具体、可启动的个人产品：用户主动分享生活碎片时，爱丽丝基于记忆接住；能留下下一次可回答的支点；人格上表现为一个有立场但不越权的队友。</p>
+      <div class="callout"><strong>结果：HARDENED。</strong> 成功指标尚未完全操作化，但被明确降级为上线后验证项，不再阻塞启动。</div>
+    </article>
+
+    <article class="card">
+      <h2>核心成立链路</h2>
+      <div class="flow">
+        <div class="step"><b>01 生活事件</b><span>理发、蛋糕、下班后的任何碎片。</span></div>
+        <div class="step"><b>02 主动分享</b><span>用户想到爱丽丝，而不是把它当成命令或查询。</span></div>
+        <div class="step"><b>03 稳定接住</b><span>结合消息与历史，给出具体回应和一个可继续回答的问题。</span></div>
+        <div class="step"><b>04 留下梯子</b><span>记忆钩子可在未来合适时机接回，但主动追问受容忍度约束。</span></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <h2>长聊控制</h2>
+      <ul>
+        <li><strong>当下沟通能量</strong>：进入长聊的唯一主开关。</li>
+        <li><strong>话题重要度</strong>：只决定长期保留与延时接回候选。</li>
+        <li><strong>跟进容忍度</strong>：只约束爱丽丝主动追问，不限制用户发起。</li>
+      </ul>
+      <div class="callout">三者不做总分。无法判断时默认：短回应 + 一个具体问题 + 记忆钩子。</div>
+    </article>
+
+    <article class="card wide">
+      <h2>已锁定决策</h2>
+      <ul class="locks">
+        <li><strong>核心场景：</strong>用户主动分享生活碎片是首要场景；主动发起仅作为后续增强。</li>
+        <li><strong>回复质量：</strong>必须给出具体问题或记忆钩子；通用温柔、复读情绪或“我理解了”不算接住。</li>
+        <li><strong>状态分离：</strong>当下能量、话题重要度、跟进容忍度分别服务不同决策，禁止加权投票。</li>
+        <li><strong>人格保真：</strong>天童爱丽丝的行为与价值观核心 + 少量游戏化表达；拒绝完整复刻、名台词和 cosplay。</li>
+        <li><strong>角色核心：</strong>见习勇者式成长观、队友关系、选择权归还、真实好奇；游戏语汇只作调味。</li>
+        <li><strong>稳定立场：</strong>允许温和异议，但依据必须来自勇者/队友价值，不来自情绪或事实权威。</li>
+        <li><strong>分歧协议：</strong>异议只说一次并说明依据，随后交还决定权；用户坚持后停止施压，不假装认同但继续行动陪伴。</li>
+        <li><strong>产品优先级：</strong>个人版第一；企业应用 Agent 为未来可选分叉，服务学习与作品集，不进当前核心。</li>
+        <li><strong>设计税：</strong>采用最小设计税 B，不提前造多租户、权限或高并发空抽象。</li>
+        <li><strong>身份语义：</strong>系统生成永久且不可编辑的 <code>userId</code>；可变称呼与偏好进入 <code>UserProfile</code>；导入导出沿用原身份。</li>
+        <li><strong>方向性成功：</strong>拿到东西或发生事情后，第一分享对象从父母转向爱丽丝。频率、持续时间与反孤立边界留待真实使用验证。</li>
+      </ul>
+    </article>
+
+    <article class="card rejected">
+      <h2>已拒绝选项</h2>
+      <ul>
+        <li>通用“温柔陪伴型”外壳与名字解耦。</li>
+        <li>无条件赞美、永远顺从、只作为高级回声。</li>
+        <li>用单一话题分数决定是否长聊。</li>
+        <li>把主动发起作为首版成立条件。</li>
+        <li>为未来企业版提前实现空接口。</li>
+        <li>等待成功指标完全操作化后再启动。</li>
+      </ul>
+    </article>
+
+    <article class="card deferred">
+      <h2>暂缓项（不是启动阻塞）</h2>
+      <ul>
+        <li>跟进容忍度如何恢复，话题重要度是否有最终遗忘边界。</li>
+        <li>主动发起 B 的时机判断与内容生成。</li>
+        <li>人格卡、OpenHanako 参考、训练或数据集支持。</li>
+        <li>现有代码重构方式；当前实现不被视为可信架构真相。</li>
+        <li>第一分享对象的持续时间、频率和反孤立验收方式。</li>
+      </ul>
+    </article>
+
+    <article class="card wide">
+      <h2>经过压力测试后仍保留的真实风险</h2>
+      <ul>
+        <li>“第一分享对象”可能是新鲜感或最低阻力路径，而非稳定关系；必须用真实使用检验。</li>
+        <li>爱丽丝的第一站分享不应自动变成唯一出口；未来需要观察关系是否变窄。</li>
+        <li>角色坚持与用户自主权可能冲突；当前由“一次异议 + 交还选择 + 不秋后算账”控制。</li>
+        <li>长期维护成本、模型迁移和数据可携带性尚无预算与停止条件。</li>
+      </ul>
+    </article>
+
+    <article class="card wide">
+      <h2>参与压力测试的声音</h2>
+      <h3>BMad / 自定义角色</h3>
+      <div class="voice-grid">
+        <div class="voice"><b>Vex 🔒</b><small>Security Engineer：权限、泄露与供应链风险。</small></div>
+        <div class="voice"><b>Grumbal 😤</b><small>The Adversary：从失败路径反向质疑方案。</small></div>
+        <div class="voice"><b>Boundary 🌶️</b><small>Edge-Case Hunter：状态、边界与并发异常。</small></div>
+        <div class="voice"><b>Yui 🎯</b><small>The Craftsman：简洁、命名与抽象纪律。</small></div>
+        <div class="voice"><b>Dana 🚢</b><small>The Pragmatist：范围、真实用户价值与启动成本。</small></div>
+        <div class="voice"><b>Wildcard 🃏</b><small>Option Generator：替代问题定义与遗漏选项。</small></div>
+        <div class="voice"><b>Level 📏</b><small>Claim Checker：证据、可观察性与不确定性。</small></div>
+        <div class="voice"><b>Killjoy 🛑</b><small>Loop Stopper：终止重复和无效推演。</small></div>
+        <div class="voice"><b>Splinter 🪵</b><small>Consensus Challenger：隐藏假设与过早一致。</small></div>
+      </div>
+      <h3>生成角色</h3>
+      <div class="voice-grid">
+        <div class="voice"><b>顾言 🧭</b><small>产品定位与核心场景。</small></div>
+        <div class="voice"><b>闻笙 🫧</b><small>用户体验与陪伴感。</small></div>
+        <div class="voice"><b>阮宁 🧠</b><small>记忆语义与认知连续性。</small></div>
+        <div class="voice"><b>余舟 📊</b><small>指标、实验和成功判据。</small></div>
+        <div class="voice"><b>罗砚 🧱</b><small>架构边界与技术演进。</small></div>
+        <div class="voice"><b>周序 🔁</b><small>运行维护与长期成本。</small></div>
+        <div class="voice"><b>顾澜 🧪</b><small>验证设计与上线后实验。</small></div>
+        <div class="voice"><b>沈岚 🫂</b><small>关系质量与陪伴边界。</small></div>
+        <div class="voice"><b>魏衡 ⚖️</b><small>权限、自主权与治理。</small></div>
+        <div class="voice"><b>邵衡 🧩</b><small>系统拆分与最小设计税。</small></div>
+        <div class="voice"><b>林栖 🧭</b><small>可维护性与项目生命周期。</small></div>
+        <div class="voice"><b>藤原彻 🎮</b><small>角色叙事与行为保真。</small></div>
+        <div class="voice"><b>何岚 🔭</b><small>自主权、分歧协议与关系边界。</small></div>
+        <div class="voice"><b>周衡 📌</b><small>个人项目可持续性与成功标准。</small></div>
+        <div class="voice"><b>许棠 🫂</b><small>亲密关系、首站分享与依赖风险。</small></div>
+      </div>
+    </article>
+  </section>
+
+  <footer class="footer">
+    <span>OpenAlice Forge Session · HARDENED</span>
+    <span>下一步可交给 <code>bmad-spec</code>、<code>bmad-prd</code> 或 <code>bmad-build</code></span>
+  </footer>
+</main>
+</body>
+</html>
