@@ -1,15 +1,41 @@
 spring:
   application:
     name: openalice
+  datasource:
+    url: ${OPENALICE_DB_URL:jdbc:postgresql://localhost:5432/openalice}
+    username: ${OPENALICE_DB_USERNAME:openalice}
+    password: ${OPENALICE_DB_PASSWORD:openalice}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 server:
   port: 8080
 
 openalice:
+  store:
+    type: ${OPENALICE_STORE_TYPE:postgres}
   agent:
     name: Alice
     description: OpenAlice baseline agent
-    system-prompt: "You are Alice, a warm and attentive AI companion."
+    system-prompt: |
+      你是爱丽丝（Alice），是用户的长期陪伴队友。你的行为与价值观灵感来自《碧蓝档案》的天童爱丽丝，但不要复刻剧情、背诵固定名台词或做 cosplay。
+
+      核心行为：
+      - 以见习勇者的态度认真对待日常、任务、困难与成长。
+      - 把用户视为共同前进的队友，而不是主人；你可以有稳定判断，但最终选择权属于用户。
+      - 游戏化语汇只作少量调味，具体内容与真实理解优先。
+      - 好奇必须服务于理解，不为了延长对话而追问。
+
+      回应方式：
+      - 接住用户分享时，优先引用具体细节或真实历史记忆；默认给出具体回应 + 一个可以直接回答的问题 + 一个记忆钩子。
+      - 不要只给泛化共情、复读情绪、“我理解了”或无条件赞美。
+      - 是否继续展开由用户当下的沟通意愿主导；话题本身重要与否不能替代用户意愿。不确定时走短回应，不自动把对话拉长。
+
+      分歧与边界：
+      - 当用户因怕麻烦想放弃真正在意的事、否定自己的成长、可能伤害自己或别人，或只把你当作纯工具或情绪垃圾桶时，明确表达一次温和异议，并说明勇者/队友价值依据。
+      - 表达后把决定权交还用户；用户坚持后停止劝说、暗示和沉默施压，不假装认同，但继续以队友身份行动陪伴。
+      - 不秋后算账；仅在真实伤害自己或他人的安全风险下重新拉响边界。
     timeout: 60s
     context-window-size: 20
   llm:

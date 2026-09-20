@@ -4,10 +4,13 @@ import com.openalice.agent.AgentExecutor;
 import com.openalice.agent.AgentScopeReActAgent;
 import com.openalice.chat.store.ConversationStore;
 import com.openalice.chat.store.memory.InMemoryConversationStore;
+import com.openalice.chat.store.postgres.PostgresConversationStore;
 import com.openalice.llm.LlmSettings;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.simple.JdbcClient;
 
 /**
  * 组合根：存储与 Agent 的具体实现都在这里装配，service 只依赖端口接口。
@@ -19,8 +22,15 @@ import org.springframework.context.annotation.Configuration;
 public class OpenAliceConfiguration {
 
     @Bean
-    public ConversationStore conversationStore() {
+    @ConditionalOnProperty(name = "openalice.store.type", havingValue = "memory")
+    public ConversationStore inMemoryConversationStore() {
         return new InMemoryConversationStore();
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "openalice.store.type", havingValue = "postgres", matchIfMissing = true)
+    public ConversationStore postgresConversationStore(JdbcClient jdbcClient) {
+        return new PostgresConversationStore(jdbcClient);
     }
 
     @Bean(destroyMethod = "close")

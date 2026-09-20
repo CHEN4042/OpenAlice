@@ -10,7 +10,7 @@ import java.util.Objects;
 public record ChatMessage(MessageRole role, String content) {
 
     public ChatMessage {
-        role = Objects.requireNonNull(role, "role must not be null");
+        role = requireRole(role);
         content = requireNotBlank(content, "content");
     }
 
@@ -20,6 +20,13 @@ public record ChatMessage(MessageRole role, String content) {
 
     public static ChatMessage assistant(String content) {
         return new ChatMessage(MessageRole.ASSISTANT, content);
+    }
+
+    private static MessageRole requireRole(MessageRole role) {
+        if (role == null) {
+            throw new IllegalArgumentException("role must not be null");
+        }
+        return role;
     }
 
     private static String requireNotBlank(String value, String field) {

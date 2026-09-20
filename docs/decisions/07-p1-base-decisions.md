@@ -7,10 +7,12 @@
 | 修订 | 修订 ADR 01「M1 Redis」前提表述；修订 ADR 06 §2.11（Java 17 → 21）与 §3（P1 范围）；同步《项目需求说明书》v1.5 /《记忆架构设计 v0.4》 |
 | 阶段 | P1（会说真话 · 底座） |
 
+> **后续修订（2026-09-20）**：第 4 项中的「P1 首次启动引导生成 `persona/` 文件」已由 ADR 14 修订为“结构化 system prompt 先行，独立 persona 资产后置”。单用户、稳定 `userId` 与其他四项决策不变。
+
 ## 1. 决策（用户拍板）
 
 1. **砍 Redis**：基础设施收敛为「唯一外部存储 = PostgreSQL（pgvector）」。
-   - M1 会话消息经 `core.MemoryPort` 实时落 PG `session_message`；
+   - M1 会话消息经 `chat.store.ConversationStore` 实时落 PG `session_message`；默认实现为 `PostgresConversationStore`；
    - AgentScope 运行态（AgentState）单实例保持**进程内**（沿用 `InMemoryAgentStateStore`），不做 Redis 化；
    - Redis 仅预留（`openalice:` 前缀），未来需要缓存 / 跨实例恢复时再按需引入。
 2. **真实 LLM 双 provider**：**中转站（OpenAI 兼容，优先）+ DeepSeek 官方 API（兜底）**；同协议仅 base_url / key / model 不同，故障自动切换；密钥走 `OPENALICE_*` 环境变量，不落盘、不入 Git；移除 Ollama 本地开发轨。
@@ -23,7 +25,7 @@
 - **ADR 01**：其"记忆 M1–M3 自研（Redis/PG/pgvector）"中的 **M1-Redis** 部分被本决议修订——M1 改走 PG `session_message` + 进程内 AgentState；"选 AgentScope Java 2.0"结论本身不受影响。
 - **ADR 06**：
   - §2.11「Java 目标版本为 17」→ **21（LTS）**（2026-09-07 已随工程升级）；
-  - §3「Phase 1 不接真实 LLM API、不做持久化」已过时：P1（底座）范围扩展为真实双 provider 接入 + `/chat` SSE 流式 + M1 会话消息 PG 持久化 + 单用户 persona/ 初始化；已跑通的 in-memory 骨架（`DeterministicChatModel` / `InMemoryMemoryPort`）降级为过渡实现。
+  - §3「Phase 1 不接真实 LLM API、不做持久化」已过时：P1（底座）范围扩展为真实双 provider 接入 + `/chat` SSE 流式 + M1 会话消息 PG 持久化 + 单用户结构化角色 prompt；旧 mock 链路已删除，`InMemoryConversationStore` 仅作测试 / 显式降级实现。
 
 ## 3. 参考
 

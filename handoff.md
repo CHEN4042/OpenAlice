@@ -9,14 +9,14 @@
 | :--- | :--- |
 | 日期 | 2026-09-20 |
 | 项目 | OpenAlice（A.L.I.C.E. 爱丽丝） |
-| 阶段 | P1 后端可运行；上一功能 HEAD `3dd3d47` = **Agent 执行层整理（方案 A）**；本轮完成 **BMAD Forge 产品 idea 压力测试**，结论为 `HARDENED`，属于 docs-only 会话 |
+| 阶段 | P1 后端可运行；上一功能 HEAD `7e445bc`；本轮完成 **BMAD SPEC + ADR 14 + M1 PostgreSQL 持久化 + Alice 角色 prompt**，已由本轮 commit 收口 |
 | 分支 | `main` |
 | 当前架构 | 单 Maven 模块；根包 `com.openalice`；顶层 `model / agent / llm / chat(service\|store) / controller / dto / config`；`runtime/` 与 `agent.llm` 已拆除 |
-| Git 状态 | Forge 产物与 handoff 已提交为 `37bab82` 并 push 到 `origin/main`；本次状态修正提交随后 push；`application-local.yml` 已 gitignore 且含本机真实 key，**绝不提交 / 不 cat / 不打印** |
-| 验证 | 本轮未改代码，未跑 Maven；上一轮 `mvn -q test-compile` 通过（Java 21），全量测试仍未跑 |
-| 下一里程碑 | 先把 Forge 结论收敛为项目产品层 spec，再进入 M1 PostgreSQL 持久化 |
+| Git 状态 | 本轮基于 `7e445bc`；SPEC / ADR 14 / M1 工作区改动已由当前 commit 收口；`application-local.yml` 已 gitignore 且含本机真实 key，**绝不提交 / 不 cat / 不打印** |
+| 验证 | `mvn -q clean test` 已通过（Java 21，2026-09-20 22:54）；`PostgresConversationStoreTest` 以 H2 PostgreSQL 模式覆盖跨实例恢复、会话隔离与最近 N 条顺序；本机无 Docker，尚未跑真实 PostgreSQL 冒烟 |
+| 下一里程碑 | 用真实 PostgreSQL 验收启动、迁移和重启恢复；之后进入 `UserProfile` 等产品能力 |
 
-## 1. 本轮内容：OpenAlice 产品 idea 压力测试（docs-only）
+## 1. Forge 结论（已完成）
 
 ### 1.1 结果与产物
 
@@ -46,8 +46,18 @@
 
 ### 1.4 对现有材料的直接影响
 
-- 需求书 §0.4 把碧蓝档案爱丽丝列为主灵感，但 §5.1 仍是通用“温柔陪伴型”；`application.yml` 当前也只有 `warm and attentive AI companion`。三者需要在后续产品/人格 spec 中统一。
-- 本轮未修改需求书、AGENTS、源码或配置；先保留 Forge 结论作为产品层输入，等下一轮专门收敛成项目自己的 spec。
+- Forge 当时发现：需求书 §0.4 把碧蓝档案爱丽丝列为主灵感，但 §5.1 仍是通用“温柔陪伴型”；`application.yml` 也只有 `warm and attentive AI companion`。该冲突后续已由 SPEC + ADR 14 统一。
+- Forge 会话本身只改产品层记录；后续同一工作区继续完成了 SPEC、人格契约和 M1 实现。
+
+### 1.5 后续收口：SPEC、ADR 14 与 M1 首个实施切片（当前工作区）
+
+- `_bmad-output/specs/spec-openalice/SPEC.md`：把 `HARDENED` 结论收敛为 CAP-1–CAP-5、约束、非目标与方向性成功信号；
+- `persona-contract.md` / `conversation-policy.md`：分别承载人格核心、四类异议与三信号动作规则，避免把长细则塞回 SPEC kernel；
+- `docs/decisions/14-persona-contract-first.md`：首版人格用结构化 system prompt 落地，独立 `persona/` 资产、初始化向导、训练与数据集后置；
+- M1 PostgreSQL：新增 `PostgresConversationStore`、Flyway `V1__create_session_message.sql`、Spring JDBC/Flyway/PostgreSQL 依赖、`compose.yaml` 与 `application-local.yml.example`；默认存储为 PostgreSQL，内存实现只保留测试/显式降级；
+- 文档同步：需求书升至 v1.5.1，README / CONTEXT / 记忆设计 / 代码学习导览 / `docs/index.md` 已同步；
+- Git：本轮改动已由当前 commit 收口。
+- 未完成：真实 PostgreSQL 启动冒烟（本机没有 Docker）；`UserProfile`、CAP-5 算法和人格行为自动验收尚未实现。
 
 ## 2. 上一轮内容（已合入 `3dd3d47`）
 
@@ -88,6 +98,7 @@
 
 ```text
 OpenAlice/
+├── compose.yaml                 # 本地 PostgreSQL（pgvector 镜像）
 ├── pom.xml                      # 单模块 Spring Boot 应用，目标 Java 21
 ├── src/main/java/com/openalice/
 │   ├── OpenAliceApplication.java
@@ -101,12 +112,14 @@ OpenAlice/
 │   ├── llm/                     # 模型接入（顶层，不依赖 Spring）：LlmProvider · LlmModelFactory · LlmSettings · ConfiguredHttpTransport
 │   ├── chat/                    # ★ 业务：对话（ADR 10 业务包）
 │   │   ├── service/             # ChatService(DEFAULT_USER_ID) · ContextAssembler · SessionCoordinator
-│   │   └── store/               # ConversationStore · StoredMessage · memory/InMemoryConversationStore
+│   │   └── store/               # ConversationStore · StoredMessage · memory/ · postgres/PostgresConversationStore
 │   ├── controller/              # ChatController · HealthController · ApiExceptionHandler
 │   ├── dto/                     # ChatRequest(sessionId+message) · ChatStreamEvent · MessageView
 │   └── config/                  # 组合根：OpenAliceConfiguration + OpenAliceSettings（绑定 openalice.*）
-├── src/test/java/com/openalice/  # 镜像 main：AgentScopeReActAgentTest · ChatServiceTest · ContextAssemblerTest · SessionCoordinatorTest · InMemoryConversationStoreTest · ChatControllerTest · ChatMessageTest
-└── resources/application.yml    # 公共安全默认值；本机 key 在 gitignored application-local.yml
+├── src/test/java/com/openalice/  # 镜像 main；含 InMemoryConversationStoreTest · PostgresConversationStoreTest · ChatControllerTest
+└── resources/
+    ├── application.yml          # 公共安全默认值；本机 key 在 gitignored application-local.yml
+    └── db/migration/            # Flyway V1__create_session_message.sql
 ```
 
 职责链（一次 `/api/v1/chat`）：
@@ -134,9 +147,12 @@ ChatController          # HTTP/SSE 翻译，不写业务
 ### 4.2 本轮新增
 
 - `_bmad-output/forge/openalice-product-idea/`：Forge 会话记录、极简 `forged-idea.md` 与自包含 HTML 报告；
-- `handoff.md`：刷新当前快照并记录产品压力测试结论。
-- **仍未新增项目级产品文档**：`forged-idea.md` 是 Forge 产物，不等同于正式 vision / roadmap / SPEC；下一轮应先做项目自有产品层文档，再继续代码里程碑。
-- **未新增 ADR**：上一轮结构整理仍应在下轮补 **ADR 14「Agent 执行层命名与结构整理」**（记录 AgentExecutor / AgentScopeReActAgent / llm 顶包 / tool/ / mock 移除），并同步 `docs/index.md` 变更记录。
+- `_bmad-output/specs/spec-openalice/`：5 项 capability、2 个 companion 与 `.memlog.md`；
+- `docs/decisions/14-persona-contract-first.md`：当前人格实现决议，并修订 ADR 07 中的 persona 初始化时点；
+- `PostgresConversationStore` + Flyway 迁移 + `compose.yaml` + local profile 模板：M1 首个真实持久化切片；
+- `application.yml`：结构化 Alice 角色 prompt；测试里的通用人格常量改为中性测试值；
+- 需求书、README、CONTEXT、记忆设计、代码学习导览、`docs/index.md` 与 `handoff.md` 同步。
+- **待处理**：真实 PostgreSQL 冒烟、人格行为真实对话验收、CAP-4 `UserProfile` 与 CAP-5 算法均未完成。
 
 ## 5. 红线与约定
 
@@ -149,21 +165,50 @@ ChatController          # HTTP/SSE 翻译，不写业务
 
 ## 6. 下一步
 
-1. **Git 同步已完成**：Forge 产物与 handoff 已 push；后续 commit 仍按仓库约定等待用户明确指示再提交/推送。
-2. **把 Forge 结论转成项目自有产品层文档（当前最高优先）**：以 `forged-idea.md` 为输入，形成 vision / roadmap / 第一份 SPEC，补齐“为什么做、先做哪个、如何验收”。
-3. **统一人格契约**：修正需求书、人格资产与 `application.yml` 的冲突；当前通用 `warm and attentive` 与已锁定的天童爱丽丝行为核心不一致。人格卡、OpenHanako 参考、训练/数据集暂缓。
-4. **补 ADR 14 + `docs/index.md` 变更记录 + 重写《代码学习导览》§2~§7**。
-5. **再进入 M1 PostgreSQL** `session_message` 持久化（按 `StoredMessage` 建模：id/user_id/session_id/role/content/created_at，落 `chat.store.postgres`）。
-6. 可讨论项：AgentScope 官方同 (user,session) 串行语义 vs 自研 `SessionCoordinator` 是否有重叠（暂未深究）；第一分享对象成功指标留待真实使用验证。
+1. **真实 PostgreSQL 冒烟（当前代码验收门槛）**：在具备 Docker / PostgreSQL 的机器上执行 `docker compose up -d postgres`，启动应用，确认 Flyway 创建 `session_message`；发一轮消息、重启应用并读取同一 session 历史。
+2. **CAP-4 最小身份实现**：把 `ChatService` 私有默认用户提升为本地配置读取的便利函数，保持 API 不暴露 `userId`；新增可修改 `UserProfile`，不要提前造 provider / DI 层。
+3. **CAP-1 / CAP-3 行为验收**：用理发、蛋糕、自我否定和坚持决定等真实场景对话，检查回复是否具体且留梯子、人格是否稳定、异议是否只说一次并交还决定权；先人工验证，不急于搭建自动评测。
+4. **CAP-5 后置算法**：话题重要度衰减、跟进容忍度恢复和主动接回触发规则继续标记为论文 / 实验议题，不用临时分数硬编码。
+5. 可讨论项：AgentScope 官方同 (user,session) 串行语义 vs 自研 `SessionCoordinator` 是否有重叠（暂未深究）；第一分享对象成功指标留待真实使用验证。
 
-### 6.1 开发流程工具（本机环境，非仓库状态）
+### 6.1 开发流程工具：BMAD-METHOD 与换机恢复
 
-用户已在本机 Codex 安装 **BMAD-METHOD** 插件（`bmad-method` + `bmad-toolbox`，29 个 skill），用于补齐「产品澄清 → 需求 → 架构 → 实施」角色化流程。注意：
+本项目用 BMAD 补齐「产品澄清 → 需求 → 架构 → 实施」角色化流程；技术决策史仍以 `docs/decisions/` 的 ADR 为准。当前已验证环境：
 
-- 走的是**本地冻结副本** `~/.codex/marketplaces/bmad-plugins`（git 直连超时，手动 clone），**不会自动更新**；
-- 安装版本为预发布 `6.13.0-next`（稳定版为 v6.12.0），如需收紧需手动换版；
-- skill 仅在**会话启动时加载**，装完需新开 task 才可见；
-- BMAD 会倾向生成它自己的 `docs/prd.md` / `docs/architecture.md` 体系。**不要直接覆盖现有 ADR 体系**——ADR 是技术决策史，BMAD 只用于补产品层。
+- Codex 插件：`bmad-method@bmad`、`bmad-toolbox@bmad`，均已安装并启用；
+- 版本：`6.13.0-next`；
+- marketplace 名：`bmad`；
+- 本地 marketplace 源：`~/.codex/marketplaces/bmad-plugins`，已 checkout 到冻结 commit `d009608292d8a2ea4df846de7dca2f0d78a9e22d`（`feat(release): build method and toolbox from BMAD-METHOD`，2026-09-05）；
+- 依赖：`uv` 可用（BMAD skill 的脚本通过 `uv run` 启动）。
+
+换电脑后按以下顺序恢复。要复现当前环境，先 clone 并固定 commit，再安装插件：
+
+```bash
+mkdir -p "${CODEX_HOME:-$HOME/.codex}/marketplaces"
+git clone https://github.com/bmad-code-org/bmad-plugins.git "${CODEX_HOME:-$HOME/.codex}/marketplaces/bmad-plugins"
+git -C "${CODEX_HOME:-$HOME/.codex}/marketplaces/bmad-plugins" checkout d009608292d8a2ea4df846de7dca2f0d78a9e22d
+codex plugin marketplace add "${CODEX_HOME:-$HOME/.codex}/marketplaces/bmad-plugins"
+codex plugin add bmad-method@bmad
+codex plugin add bmad-toolbox@bmad
+codex plugin list
+```
+
+若只跟随 upstream，可改用官方远程安装（不保证复现当前 commit）：
+
+```bash
+codex plugin marketplace add bmad-code-org/bmad-plugins
+codex plugin add bmad-method@bmad
+codex plugin add bmad-toolbox@bmad
+```
+
+恢复注意事项：
+
+- skill 只在 Codex task 启动时加载；安装后要新开 task；
+- 当前仓库只使用 BMAD 管理产品层，不直接采纳其 `docs/prd.md` / `docs/architecture.md` 布局，避免覆盖现有 ADR；
+- 当前项目尚未生成 `_bmad/`；执行下游 BMAD skill 前，在新 task 中先运行 `bmad setup`（或等价调用）初始化项目脚本与配置。若只想保留 `_bmad-output/` 产物而不同步项目内 BMAD runtime，则不把 `_bmad/` 纳入仓库，并在恢复后按该选择执行；
+- 已执行 `bmad-forge-idea`：产物在 `_bmad-output/forge/openalice-product-idea/`，结论 `HARDENED`；
+- 已执行 `bmad-spec`：以 `forged-idea.md` 为输入生成 `_bmad-output/specs/spec-openalice/`（5 项 capability + 2 companions），随后工作区继续落地 ADR 14 与 M1；
+- 下一计划流程：不再继续补产品澄清；先做真实 PostgreSQL 冒烟，再按 SPEC 进入 CAP-4 或其他实施切片。
 
 ---
 **End of Handoff** — 下一位接手者先读本文件，再动手。

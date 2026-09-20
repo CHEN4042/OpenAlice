@@ -12,14 +12,15 @@
 | [handoff.md](../handoff.md) | 会话交接：当前进度 / 红线 / 下一步 | 每次开工必读 |
 | [README.md](../README.md) | 项目门面：定位、架构、构建运行 | 首次了解项目时 |
 | [AGENTS.md](../AGENTS.md) | 仓库协作与工程规则 | 开发前必读 |
+| [_bmad-output/specs/spec-openalice/SPEC.md](../_bmad-output/specs/spec-openalice/SPEC.md) | 当前产品实施契约：5 项 capability / 人格契约 / 三信号策略 / 验收信号 | 产品行为、人格或范围有争议时必读 |
 
 ### docs/ 归档
 
 | 文档 | 概括 | 何时读 |
 | :-- | :-- | :-- |
-| [项目需求说明书 v1.2](./项目需求说明书%20v1.2.md) | 核心规格 v1.5：命名体系 / P1–P4 阶段坐标 / 记忆 / 里程碑；P1 底座五项决策（砍 Redis、真实双 provider、/chat SSE 流式、单用户 + persona、Phase 坐标）已拍板 | 动需求、命名、里程碑前必读；架构以 ADR 07 / 08 为准 |
+| [项目需求说明书 v1.2](./项目需求说明书%20v1.2.md) | 核心规格 v1.5.1：命名体系 / P1–P4 阶段坐标 / 记忆 / 里程碑；角色契约已统一，首版 persona 资产后置 | 动需求、命名、里程碑前必读；架构以 ADR 07 / 08 为准 |
 | [CONTEXT.md](./CONTEXT.md) | 共享语言与术语速查 | 术语、编号拿不准时随手查 |
-| [记忆架构设计 v0.4](./记忆架构设计%20v0.4.md) | 记忆系统总体设计：M1–M3 / A1 会话归档 / 写入读取管线 / Jarvis 对照；v0.4 起 M1 去 Redis 化（PG `session_message` + 进程内 AgentState），同步需求书 v1.5 | 动记忆、画像、长期记忆前必读 |
+| [记忆架构设计 v0.4.1](./记忆架构设计%20v0.4.md) | 记忆系统总体设计：M1–M3 / A1 会话归档 / 写入读取管线 / Jarvis 对照；v0.4 起 M1 去 Redis 化（PG `session_message` + 进程内 AgentState），v0.4.1 同步结构化角色 prompt 与 persona 资产后置 | 动记忆、画像、长期记忆前必读 |
 | [代码学习导览 v0.1](./代码学习导览%20v0.1.md) | 代码学习地图：模块全景 + `POST /chat` 主线链路 + 真实双 provider 专题 + 学习追踪表；**随代码维护** | 想读懂代码 / 边做边学时必读 |
 | [decisions/](./decisions/) | 技术决策记录（ADR） | 技术选型 / 架构结论以它为准 |
 
@@ -38,8 +39,9 @@
 | 11 | [LLM 配置落 yml + local profile](./decisions/11-llm-configuration-local-profile.md) | LLM 配置默认值进 application.yml；本机真实 key 走 gitignored `application-local.yml`；`config.OpenAliceSettings` 绑定 | ✅ 当前有效 |
 | 12 | [UserId/SessionId 降为 String 字段](./decisions/12-user-session-id-as-string.md) | 删除独立值对象，id 直接 String 字段；已被 ADR 13 进一步收敛（归属下沉 `StoredMessage`） | 🟡 已被 ADR 13 修订消息层细节 |
 | 13 | [ChatMessage 职责拆分与冗余清理](./decisions/13-chat-message-responsibility-split.md) | **当前消息模型决议**：`ChatMessage` 只留 role/content；归属/时间戳下沉 `chat.store.StoredMessage`；删 Turn 状态机 / blocking 便利层 / 重复 DTO | ✅ 当前有效 |
+| 14 | [人格契约先行，persona/ 资产加载后置](./decisions/14-persona-contract-first.md) | **当前人格实现决议**：行为契约进入结构化 system prompt；独立 persona 文件、初始化向导、训练后置；修订 ADR 07 的 persona/ 时点 | ✅ 当前有效 |
 | 09 | [P1.5 语义重构与包结构整理](./decisions/09-p15-semantic-and-package-structure.md) | `com.openalice` 根包、ConversationStore、Turn、AgentRequest/AgentEvent、ContextAssembler、SessionCoordinator、单用户 API | 🟡 语义仍有效；顶层布局已被 ADR 10 修订 |
-| 07 | [P1 底座技术决策](./decisions/07-p1-base-decisions.md) | v1.5 五项拍板：砍 Redis / 真实双 provider / /chat SSE / 单用户 + persona / Phase 坐标 P1–P4；修订 ADR 01 M1-Redis 前提、ADR 06 Java 与 P1 范围 | ✅ 当前有效 |
+| 07 | [P1 底座技术决策](./decisions/07-p1-base-decisions.md) | v1.5 五项拍板：砍 Redis / 真实双 provider / /chat SSE / 单用户身份 / Phase 坐标 P1–P4；persona/ 时点已由 ADR 14 修订 | 🟡 persona/ 部分被 ADR 14 修订 |
 
 ## 建议阅读顺序
 
@@ -59,6 +61,7 @@
 
 ## 整理记录
 
+- 2026-09-20：新增 `_bmad-output/specs/spec-openalice/`——Forge 的 `HARDENED` 结论收敛为 5 项 capability、人格契约与三信号策略；新增 **ADR 14**，首版 Alice 角色契约落入 `application.yml` system prompt，独立 `persona/` 后置；M1 落地 `PostgresConversationStore` + Flyway `session_message`，默认 PostgreSQL 存储；需求书升至 v1.5.1，README / CONTEXT / 记忆设计 / 索引同步。
 - 2026-09-08：新增 **ADR 13**——`ChatMessage` 收敛为纯 LLM 消息（role/content）；新增 `chat.store.StoredMessage` 承载 id/归属/时间戳；`ConversationStore.history` 按 sessionId 收口；删除 `ConversationTurn`/`TurnStatus`（进程内零消费状态机，ADR 09 §4.2 不提前加死接口）、`ChatService.chat()`/`AgentRuntime.chat()` blocking 与 `ChatResponse`/`ChatResult`、`ChatStreamEvent.sessionId` 冗余字段；controller 双 if-else 收敛为 switch；`DEFAULT_USER_ID` 下沉 `ChatService` 私有。
 - 2026-09-08：新增 **ADR 12**——删除 `UserId` / `SessionId` 值对象，`ChatMessage` / `ConversationTurn` 直接 `String userId / sessionId` 字段（Jarvis 直观风格），`UserId.DEFAULT` → `ChatMessage.DEFAULT_USER_ID`，校验内聚构造器；测试与 AGENTS / README / CONTEXT / 学习导览 / handoff 同步；22 tests 全绿（Java 21）。
 - 2026-09-08：新增 **ADR 11**——LLM 配置默认值移入 `application.yml`，本机真实 key 走 gitignored `application-local.yml`（`local` profile）；`AgentRuntimeProperties` 收敛为纯配置容器 + 新增 `config.OpenAliceSettings` 绑定；README / CONTEXT / handoff 同步；22 tests 全绿（Java 21）。

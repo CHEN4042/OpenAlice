@@ -14,7 +14,7 @@ class ContextAssemblerTest {
 
     private static final String USER_ID = "user-1";
     private static final String SESSION_ID = "session";
-    private static final String SYSTEM_PROMPT = "You are Alice, a warm and attentive AI companion.";
+    private static final String SYSTEM_PROMPT = "test system prompt";
 
     @Test
     void shouldReadRecentHistoryFromConversationStore() {

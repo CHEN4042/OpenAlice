@@ -1,0 +1,13 @@
+# 复制为 application-local.yml 后按本机情况修改；真实 key 不要提交。
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/openalice
+    username: openalice
+    password: openalice
+
+openalice:
+  store:
+    type: postgres
+  llm:
+    provider: deepseek
+    # api-key: your-api-key

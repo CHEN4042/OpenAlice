@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 
 class ChatServiceTest {
 
-    private static final String SYSTEM_PROMPT = "You are Alice, a warm and attentive AI companion.";
+    private static final String SYSTEM_PROMPT = "test system prompt";
 
     private static final class RecordingAgentExecutor implements AgentExecutor {
         private final List<AgentRequest> requests = new CopyOnWriteArrayList<>();

@@ -72,7 +72,7 @@ class AgentScopeReActAgentTest {
         return new AgentScopeReActAgent(
                 "Alice",
                 "OpenAlice test agent",
-                "You are Alice, a warm and attentive AI companion.",
+                "test system prompt",
                 Duration.ofSeconds(60),
                 model
         );

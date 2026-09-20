@@ -1,7 +1,7 @@
 # AGENTS.md · OpenAlice（A.L.I.C.E. 爱丽丝）
 
 > 本文件给所有在本仓库工作的 Codex / 协作者作为入口指引；运营细节、红线与交接进度以 `handoff.md`（仓库根目录）为准。
-> 当前阶段：**phase1-implementation / P1.5 语义整理 + ADR 10 业务包结构** —— SSE 流式已接入 AgentScope ReAct Agent（含工具调用）；对话业务收敛到 `chat` 业务包。
+> 当前阶段：**phase1-implementation / M1 PostgreSQL 会话持久化** —— P1.5 语义整理已收口；SSE 流式已接入 AgentScope ReAct Agent（含工具调用）；对话业务收敛到 `chat` 业务包，默认使用 PostgreSQL 存储。
 
 ## 目录结构
 
@@ -10,6 +10,7 @@ OpenAlice/
 ├── README.md
 ├── AGENTS.md
 ├── handoff.md
+├── compose.yaml            # 本地 PostgreSQL（pgvector 镜像）
 ├── pom.xml                 # 单模块 Spring Boot 应用工程（唯一可运行 jar）
 ├── src/
 │   ├── main/java/com/openalice/
@@ -17,7 +18,7 @@ OpenAlice/
 │   │   ├── model/                      # 共享词汇：ChatMessage / MessageRole（纯 LLM 消息，无存储字段）
 │   │   ├── chat/                       # ★ 业务：对话（业务包，包内按类型整理）
 │   │   │   ├── service/                # ChatService · ContextAssembler · SessionCoordinator
-│   │   │   └── store/                  # ConversationStore · StoredMessage · memory/ 内存实现（将来 postgres/ 同级）
+│   │   │   └── store/                  # ConversationStore · StoredMessage · memory/ 测试实现 · postgres/ 默认实现
 │   │   ├── agent/                      # 内核：一次 agent 执行（AgentExecutor → Flux<AgentEvent>）
 │   │   │   ├── AgentExecutor.java      # 执行端口：stream(AgentRequest)（取代原 AgentRuntime）
 │   │   │   ├── AgentScopeReActAgent.java  # 默认实现：AgentScope ReAct 引擎（推理→工具→观察）
@@ -29,7 +30,10 @@ OpenAlice/
 │   │   ├── dto/                        # ChatRequest / ChatStreamEvent / MessageView
 │   │   └── config/                     # Spring @Configuration：组装存储、llm 与 agent
 │   ├── test/java/com/openalice/        # 测试镜像 main 的包结构
-│   └── main/resources/application.yml
+│   └── main/resources/
+│       ├── application.yml
+│       ├── application-local.yml.example
+│       └── db/migration/V1__create_session_message.sql
 ├── web/                  # 前端占位，不进入 Maven
 └── docs/
     ├── index.md

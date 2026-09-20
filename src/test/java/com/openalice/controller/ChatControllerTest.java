@@ -104,7 +104,7 @@ class ChatControllerTest {
 
         @Bean
         public ContextAssembler contextAssembler(ConversationStore store) {
-            return new ContextAssembler(store, "You are Alice, a warm and attentive AI companion.", 20);
+            return new ContextAssembler(store, "test system prompt", 20);
         }
 
         @Bean
