@@ -1,106 +1,60 @@
 # AGENTS.md · OpenAlice（A.L.I.C.E. 爱丽丝）
 
-> 本文件给所有在本仓库工作的 Codex / 协作者作为入口指引；运营细节、红线与交接进度以 `handoff.md`（仓库根目录）为准。
-> 当前阶段：**phase1-implementation / M1 PostgreSQL 会话持久化** —— P1.5 语义整理已收口；SSE 流式已接入 AgentScope ReAct Agent（含工具调用）；对话业务收敛到 `chat` 业务包，默认使用 PostgreSQL 存储。
+> 当前阶段：**pre-rebuild architecture**。产品契约已冻结，现有代码与旧工程文档均不再是架构真相。
+> 开工先读 `handoff.md`，再读产品契约；架构 spine 生成后，以它作为唯一技术权威。
 
-## 目录结构
+## 当前权威顺序
 
-```text
-OpenAlice/
-├── README.md
-├── AGENTS.md
-├── handoff.md
-├── compose.yaml            # 本地 PostgreSQL（pgvector 镜像）
-├── pom.xml                 # 单模块 Spring Boot 应用工程（唯一可运行 jar）
-├── src/
-│   ├── main/java/com/openalice/
-│   │   ├── OpenAliceApplication.java   # 启动类（组合根 = Spring 容器）
-│   │   ├── model/                      # 共享词汇：ChatMessage / MessageRole（纯 LLM 消息，无存储字段）
-│   │   ├── chat/                       # ★ 业务：对话（业务包，包内按类型整理）
-│   │   │   ├── service/                # ChatService · ContextAssembler · SessionCoordinator
-│   │   │   └── store/                  # ConversationStore · StoredMessage · memory/ 测试实现 · postgres/ 默认实现
-│   │   ├── agent/                      # 内核：一次 agent 执行（AgentExecutor → Flux<AgentEvent>）
-│   │   │   ├── AgentExecutor.java      # 执行端口：stream(AgentRequest)（取代原 AgentRuntime）
-│   │   │   ├── AgentScopeReActAgent.java  # 默认实现：AgentScope ReAct 引擎（推理→工具→观察）
-│   │   │   ├── AgentRequest.java       # 显式 agent 输入：userId/sessionId + 最近上下文 + system prompt
-│   │   │   ├── AgentEvent.java         # sealed event（TextDeltaEvent / DoneEvent / ErrorEvent）
-│   │   │   └── tool/                   # AgentToolkit（集中注册）· CurrentTimeTool 示例工具
-│   │   ├── llm/                        # 模型接入：LlmProvider · LlmModelFactory · LlmSettings · ConfiguredHttpTransport
-│   │   ├── controller/                 # ChatController / HealthController / 异常处理
-│   │   ├── dto/                        # ChatRequest / ChatStreamEvent / MessageView
-│   │   └── config/                     # Spring @Configuration：组装存储、llm 与 agent
-│   ├── test/java/com/openalice/        # 测试镜像 main 的包结构
-│   └── main/resources/
-│       ├── application.yml
-│       ├── application-local.yml.example
-│       └── db/migration/V1__create_session_message.sql
-├── web/                  # 前端占位，不进入 Maven
-└── docs/
-    ├── index.md
-    ├── 项目需求说明书 v1.2.md
-    ├── CONTEXT.md
-    ├── 代码学习导览 v0.1.md
-    └── decisions/
-```
+1. `handoff.md`：当前状态、下一步与工作区约束。
+2. `_bmad-output/specs/spec-openalice/SPEC.md` 及其 `companions:`：产品行为契约。
+3. `_bmad-output/architecture/openalice/ARCHITECTURE-SPINE.md`：architecture 阶段完成后的技术权威。
+4. `.memlog.md`：只用于追溯决策过程，不是实施入口。
 
-## 阅读顺序（每次开工先读）
+`docs/archive/pre-rebuild-2026-09-20/` 仅保留历史。除非用户明确要求追溯旧决策，否则不得把它作为产品、架构、包结构或实现依据。
 
-1. `handoff.md`
-2. `docs/index.md`
-3. 按任务需要挑读：ADR 10（当前包结构与演进规则）、ADR 13（ChatMessage 职责拆分）、ADR 09（P1.5 语义）、ADR 07（P1 底座决策）、`docs/CONTEXT.md`
+## 当前状态
 
-## 文档权威层级
+- Forge 已完成，结论为 `HARDENED`；产品愿景不再重开。
+- 跨职能需求澄清（真实 John + 真实 Winston）已完成，John 的完整性审计结论为“足够进入下一阶段、无阻塞缺口”。
+- SPEC 已完成；下一步是 `bmad-architecture`，不是直接修改或扩展现有实现。
+- 用户已决定彻底重构。当前 `src/` 是 legacy reference，允许作为行为样例看，但不继承其包结构、接口、模型或“兼容义务”。
+- 在 architecture spine 定稿之前，不继续扩展现有代码，不根据归档 ADR 恢复旧结构。
+- BMAD 项目运行时已初始化在 `_bmad/`；换机恢复与流程见 `docs/bmad-workflow.md`。
 
-- 需求以《项目需求说明书》为核心参考；技术选型 / 架构结论以 `docs/decisions/` 最新决策为准。
-- **ADR 10 修订 ADR 09 的顶层布局**：业务包自治 + 包内按类型整理 + 演进触发规则；`repository/` → `chat/store/`、`service/` → `chat/service/`。
-- **ADR 09 修订 ADR 08**：根包改为 `com.openalice`，`port + memory` 收敛为 `repository`，并引入 Turn / AgentEvent / ContextAssembler / SessionCoordinator（语义结论仍有效）。
-- ADR 08 的“单 Maven 模块 + service 编排”核心结论仍有效；ADR 05 的边界精神、开发规范与测试策略仍有效。
-- 参考项目与需求书只作参考，不约束最终实现。
+## 不可丢失的产品红线
 
-## 当前工程规则
+- 身份优先级 **A 私人伙伴 > B Java/算法作品 > C 开源/可分享产品**；B/C 不得反噬 A。
+- 爱丽丝是现实关系的**补位**，不是替代；成为唯一倾诉对象是风险信号。
+- 面向唯一用户本人；首版核心是用户主动分享生活碎片，爱丽丝结合当前消息与历史记忆接住。首版只有**一条永久主对话**，不按话题拆会话。
+- 回复默认包含：具体回应 + 一个可回答的具体问题 + 记忆钩子；泛化共情不算接住。
+- 人格方向是可替换、按需加载的“AI 人格卡片”；首版只内置一张天童爱丽丝卡，以普通 prompt 加载，卡片管理与多人格切换后置。人格参考《碧蓝档案》天童爱丽丝的**行为与价值观核心 + 少量游戏化表达**；拒绝通用温柔外壳、无条件赞美、名台词复刻与 cosplay。
+- 人格核心与爱丽丝自身偏好稳定；“越来越懂用户”是记忆带来的变化，不是人格改变。
+- 首版允许且只允许一条真实搜索链路：自动判断是否搜索，失败先承认不确定，来源默认折叠、追问时才展示，搜索与记忆冲突时先披露再由用户裁决；通用工具平台仍禁用。
+- 混合消息先完成任务再简短回应分享；歧义分级：闲聊可先猜，事实/决定/敏感内容必须先问。
+- 三信号分离不是首版契约，长聊控制后置。首版记忆只要求**可靠持久化 + 最小召回**（重启后近期细节引用或按话题跨会话召回，任一成立）；召回不足时不得伪造记忆。具体记忆算法待论文与实验，不进入首版产品承诺。
+- 爱丽丝可以温和异议，但依据必须来自勇者/队友价值；异议只说一次，随后交还决定权并停止施压。
+- 图片、偏好自动更新/纠错/撤回不进首版验收。
+- 个人版优先；不为多租户、权限或高并发提前造空接口。
 
-- Java 21，**单 Maven 模块**，根 `pom.xml` 即 Spring Boot 应用（`io.openalice:openalice`）。
-- AgentScope Java 2.0.2 是预选底座；Spring Boot 3.5.16 仅作 Web 壳。
-- 不引入 Spring AI / Spring AI Alibaba。
-- 包依赖单向：`model ← chat.store`、`model ← agent`、`agent → model + llm + agent.tool`、`chat.service → model + chat.store + agent`、`controller → chat.service + dto`、`config` 组装 chat.store + llm + agent。
-- 包结构遵循 ADR 10：默认留在本地、跨业务共享才上提 `model/`；不建全局 `enums/`、不提前建空业务包。
-- `ConversationStore` 是业务会话历史唯一真相源；AgentScope state store 只是运行态 scratch，每次调用前清空。
-- `ChatService` 负责单 turn 编排与消息持久化；`ContextAssembler` 负责显式上下文；`AgentExecutor`（默认 `AgentScopeReActAgent`）只执行一次 agent 调用并产出事件流；`ChatController` 只做 HTTP/SSE 翻译。
-- API 面向单用户：外部请求不携带 `userId`，服务端固定默认用户（`ChatService` 私有常量）；消息只含 role/content，归属与时间戳落在 `chat.store.StoredMessage`，存储行保留 `userId` 供未来认证。
-- `web/` 不进入 Maven Reactor。
-- 语音、learning、插件、多 Agent 只保留架构位置，不提前创建空模块/空包。
+## 工作流（duoagent）
 
-## 开发规范
+- **Planner / Product agent**：BMAD 负责 Forge → SPEC → Architecture → Story breakdown。
+- **Builder agent**：architecture spine 定稿后，由独立实施 agent 只按 SPEC、spine 与 story context 写代码。
+- **Reviewer**：独立 review，不以 builder 的自述作为验证。
+- **Handoff**：每轮结束更新 `handoff.md`；稳定决策进入 SPEC 或 architecture spine，不把临时对话当契约。
 
-- 遵循 Spring 官方单模块建议与 Alibaba P3C / Google Java Style 中不冲突的部分。
-- `model` 只放纯 POJO 与值对象，不允许出现框架注解或持久层依赖。
-- `controller` 只做 HTTP/SSE 翻译，业务写在 `chat.service`；换存储实现只动 `config`（组合根）。
-- 测试分层：`model` 纯单元测试；`chat.store.memory` 存储测试；`chat.service` 用 fake `AgentExecutor` 测编排；`agent` 用假 Model 测 `AgentScopeReActAgent`；`controller` 做 SpringBoot 集成测试。
-- Agent 测试必须覆盖不同 session 的上下文隔离。
-- 公共 API 与核心端口变更需同步更新 ADR / handoff / 本文件目录树 /《代码学习导览》。
+## 开发纪律
 
-## 公开安全
+- Java 21；当前栈方向以 SPEC 为准，具体结构与边界由 architecture spine 决定。
+- 不要提前创建空模块、空接口、provider、多租户或高并发抽象。
+- 测试优先覆盖真实行为契约，而不是锁定 legacy 实现细节。
+- 公共 API、核心边界或产品契约变化时，同步更新权威文档与 `handoff.md`。
+- 仓库按 public 安全标准维护；禁止提交组织信息、个人邮箱、本机绝对路径、token、密钥、日志和构建产物。
+- `application-local.yml` 含真实 key，已 gitignore；**绝不提交、cat、打印或导出内容**。
 
-- 仓库按 public 安全标准维护。
-- 禁止提交组织名称、内部项目细节、个人邮箱、本机绝对路径、用户名、SSH 私钥、token。
-- 禁止提交 `.idea/`、`.DS_Store`、日志、构建产物。
+## Git
 
-## Git 协作规范
-
-- **commit：AI 负责本地提交**，但必须等用户明确指示或 review 确认后执行。
-- **push：一律由用户手动执行**。Codex 不执行 `git push`。
-- message 遵循 Conventional Commits：`<type>(<scope>): <中文 subject>`。
-
-## 常用命令
-
-```bash
-mvn clean test          # 全量测试（需 Java 21）
-mvn spring-boot:run     # 本地启动
-mvn package             # 打包可执行 jar
-```
-
-## 沟通
-
-- 中文沟通，技术名词可用英文。
-- 产品面向唯一用户本人；AI 自称爱丽丝 / Alice。
-- 不把 OpenAlice / A.L.I.C.E. 解释为字母递归人格。
+- commit 只在用户明确指示或 review 确认后执行。
+- push 一律由用户手动执行，Codex 不执行 `git push`。
+- Conventional Commits：`<type>(<scope>): <中文 subject>`。
+- 分支前缀默认 `codex/`，除非用户另有要求。
