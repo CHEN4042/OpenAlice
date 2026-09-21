@@ -1,0 +1,3 @@
+[workflow]
+spine_output_path = "{output_folder}/architecture"
+run_folder_pattern = "openalice"
