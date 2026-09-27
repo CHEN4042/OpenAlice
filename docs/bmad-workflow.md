@@ -26,16 +26,17 @@ codex plugin list
 
 ## 当前流程
 
-1. **Forge**：`bmad-forge-idea`，把半成品 idea 压力测试到可行动或可放弃。
-2. **SPEC**：`bmad-spec`，生成产品 kernel 和 companions。
-3. **Architecture**：`bmad-architecture`，生成技术 invariants 与 architecture spine。
-4. **Story / Build**：拆分 story 后由独立 builder 实施。
-5. **Review**：独立 reviewer 检查实际 diff 与契约。
-6. **Handoff**：刷新当前状态、证据和下一步。
+1. **Repository foundation**：建立根入口、文档地图、研究来源政策和轻量 handoff。
+2. **Reference cleanup**：把旧产品/工程材料放入 `temp/`；旧实现暂时保留为 baseline。
+3. **Product re-initialization**：重新澄清产品，并把当前定义写入 `docs/product/`。
+4. **Architecture re-initialization**：基于新产品定义研究并写入 `docs/architecture/`。
+5. **Engineering foundation**：按实际需要建立 Maven、CI、测试、evaluation、observability 和安全门禁。
+6. **Story / Build / Review**：只有上述基础完成后，才由独立 builder 实施并由 reviewer 验证。
+7. **Handoff**：刷新当前状态、证据和唯一下一步。
 
 ## 当前权威规则
 
-- 产品问题以 `_bmad-output/specs/spec-openalice/` 为准。
-- 技术问题以 `_bmad-output/architecture/openalice/ARCHITECTURE-SPINE.md` 为准。
-- `docs/archive/pre-rebuild-2026-09-20/` 只作历史追溯。
-- 旧 `docs/decisions/` 已归档，不作为当前 ADR 体系继续追加。
+- 当前产品/架构 authority 尚未建立；执行入口是 `docs/plans/active/repository-reinitialization.md`。
+- 产品重新澄清后，以 `docs/product/` 为准；架构重新设计后，以 `docs/architecture/` 为准。
+- `temp/product/` 和 `temp/engineering/` 只作 reference；不能直接恢复旧结论。
+- `_bmad-output/` 是 BMAD 运行时的生成区，不是长期项目知识的权威入口。
