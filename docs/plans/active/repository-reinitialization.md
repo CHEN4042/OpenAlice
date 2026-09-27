@@ -20,8 +20,9 @@
 
 - 把旧产品材料放入 `temp/product/`：旧需求、产品想法、人格/对话规则和产品级记忆要求。
 - 把旧工程材料放入 `temp/engineering/`：旧 architecture、ADR、工程研究、记忆架构、代码导览和技术上下文。
-- 不把旧业务实现搬入 `temp/` 只为保存；当前 `src/` 暂时保留为 legacy baseline。
-- 不删除 Git 历史，不在本阶段删除业务代码。
+- `temp/` 只保存参考文档与材料，不保存旧业务实现。
+- foundation 提交 `bd4618f` 推送后，从 active repository 删除 legacy `src/`、`web/`、`pom.xml` 和 `compose.yaml`；旧实现继续通过 Git 历史恢复。
+- cleanup 完成后直接进入 Product Re-initialization；在产品和架构重新初始化完成前不创建替代业务实现。
 
 ### Phase 3 — Product re-initialization
 

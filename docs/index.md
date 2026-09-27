@@ -22,6 +22,6 @@
 
 ## Reference 与历史
 
-`temp/product/` 和 `temp/engineering/` 保存本次重初始化前的材料，仅用于恢复想法、发现遗漏和追溯决策。它们不能直接决定新产品、包结构、数据库模型、依赖或框架选择。
+`temp/product/` 和 `temp/engineering/` 只保存本次重初始化前的参考文档与材料，用于恢复想法、发现遗漏和追溯决策。它们不包含 legacy implementation，也不能直接决定新产品、包结构、数据库模型、依赖或框架选择。
 
-当前 `src/` 也是 legacy reference，但不搬入 `temp/`；它暂时保留用于行为观察和可恢复的基线验证。完成产品与架构重初始化后，按活动计划决定清理。
+legacy implementation、旧 `web/`、`pom.xml` 和 `compose.yaml` 已从 active repository 移除。需要查看旧实现时，通过 Git 历史或已推送的 `bd4618f` 恢复；产品与架构重新初始化完成前，不创建替代业务实现。

@@ -11,8 +11,9 @@
 
 ## 当前边界
 
-- 不开始新的业务功能，不扩展当前 `src/`，不从旧 package、interface、database model 或 framework choice 推导新设计。
-- 当前 `src/`、`pom.xml`、`compose.yaml` 只是 legacy baseline；它们暂时保留用于行为参考和可恢复性验证。
+- 不开始新的业务功能，不创建替代 `src/`、Maven 文件或工程骨架，不从旧 package、interface、database model 或 framework choice 推导新设计。
+- legacy implementation、`pom.xml`、`compose.yaml` 和旧 `web/` 已从 active repository 移除；需要追溯时只通过 Git 历史或已推送的 `bd4618f` 查看。
+- `temp/` 只包含旧文档和研究材料，不包含可运行的旧实现。
 - 产品重新澄清完成前，不把 `temp/product/` 中的旧 SPEC、需求书、人格规则或 Forge 结果当成当前产品契约。
 - 架构重新设计完成前，不把 `temp/engineering/` 中的旧 spine、ADR、技术研究或代码导览当成工程决策。
 - 不为了“看起来完整”创建空模块、空接口、provider、multi-tenant 或高并发抽象。
