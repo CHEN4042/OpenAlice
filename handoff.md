@@ -9,7 +9,8 @@
 | 日期 | 2026-09-27 |
 | 阶段 | **Repository Re-initialization · cleanup complete; ready for Product Re-initialization** |
 | 分支 | `main` |
-| 已推送基础提交 | `bd4618f`（`main` / `origin/main` 的清理前基线） |
+| 当前 HEAD | `c3f5979` |
+| 已推送基础提交 | `bd4618f`（legacy cleanup 前的 foundation 基线） |
 | 当前 Git 状态 | legacy cleanup 已完成，并按用户指示提交、推送到 `main` |
 | 产品权威 | 尚未重新建立；旧 SPEC 已移入 `temp/product/` 作为 reference |
 | 架构权威 | 尚未建立；旧 spine 已移入 `temp/engineering/` 作为 reference |
@@ -19,7 +20,7 @@
 
 - 阅读并执行用户提供的 Repository Re-initialization 计划。
 - 建立新的根级 README、AGENTS、handoff 和 docs index。
-- 建立 `docs/product/`、`docs/architecture/`、`docs/plans/`、`docs/research/`、`docs/quality/` 与 `evals/` 目录。
+- 规划 `docs/product/`、`docs/architecture/`、`docs/plans/`、`docs/research/`、`docs/quality/` 与 `evals/` 作为未来知识和评测位置；空目录不会单独写入 Git，真实内容出现后再建立。
 - 增加研究来源政策 `docs/research/source-policy.md`。
 - 将旧产品材料移入 `temp/product/`，将旧架构、ADR、研究和代码导览移入 `temp/engineering/`。
 - 从 active repository 删除 `src/`、`web/`、`pom.xml` 和 `compose.yaml`；旧实现继续由 Git 历史保存。

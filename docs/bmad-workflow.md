@@ -27,7 +27,7 @@ codex plugin list
 ## 当前流程
 
 1. **Repository foundation**：建立根入口、文档地图、研究来源政策和轻量 handoff。
-2. **Reference cleanup**：把旧产品/工程材料放入 `temp/`；旧实现暂时保留为 baseline。
+2. **Reference cleanup**：把旧产品/工程材料放入 `temp/`；legacy implementation 已从 active repository 移除，仍可通过 Git 历史恢复。
 3. **Product re-initialization**：重新澄清产品，并把当前定义写入 `docs/product/`。
 4. **Architecture re-initialization**：基于新产品定义研究并写入 `docs/architecture/`。
 5. **Engineering foundation**：按实际需要建立 Maven、CI、测试、evaluation、observability 和安全门禁。

@@ -17,7 +17,6 @@ OpenAlice 正在进行 Repository Re-initialization。当前目标不是继续�
 
 ```text
 docs/       当前项目知识、计划、研究和质量文档
-evals/      未来的行为评测资产
 temp/       旧项目的临时参考文档与材料，完成重初始化后删除
 ```
 
