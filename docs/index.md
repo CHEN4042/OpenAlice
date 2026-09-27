@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-项目处于 Repository Re-initialization。当前没有已建立的产品或架构权威；请先阅读：
+项目处于 Repository Re-initialization。产品权威已经建立，架构权威尚未建立；请先阅读：
 
 1. [AGENTS.md](../AGENTS.md)
 2. [handoff.md](../handoff.md)
@@ -13,7 +13,7 @@
 
 | 目录 | 作用 | 当前状态 |
 | :-- | :-- | :-- |
-| `docs/product/` | 当前产品定义、验收和用户可观察契约 | 待 Phase 3 建立 |
+| `docs/product/` | 当前产品定义、验收和用户可观察契约 | [OpenAlice-产品规格说明.md](product/OpenAlice-产品规格说明.md)（当前产品权威） |
 | `docs/architecture/` | 当前架构 spine、边界和已接受决策 | 待 Phase 4 建立 |
 | `docs/plans/active/` | 当前执行计划 | 已建立 |
 | `docs/plans/completed/` | 已完成计划 | 暂无 |

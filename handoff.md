@@ -7,12 +7,11 @@
 | 项目 | 内容 |
 | :-- | :-- |
 | 日期 | 2026-09-27 |
-| 阶段 | **Repository Re-initialization · cleanup complete; ready for Product Re-initialization** |
+| 阶段 | **Repository Re-initialization · Product definition established; ready for Architecture Re-initialization** |
 | 分支 | `main` |
-| 当前 HEAD | `c3f5979` |
-| 已推送基础提交 | `bd4618f`（legacy cleanup 前的 foundation 基线） |
-| 当前 Git 状态 | legacy cleanup 已完成，并按用户指示提交、推送到 `main` |
-| 产品权威 | 尚未重新建立；旧 SPEC 已移入 `temp/product/` 作为 reference |
+| 已推送清理基线 | `c3f5979`（legacy cleanup 完成） |
+| 当前 Git 状态 | 仅包含本轮产品规格权威同步，未改业务实现 |
+| 产品权威 | [OpenAlice-产品规格说明.md](docs/product/OpenAlice-产品规格说明.md)；`temp/product/` 仅作 reference |
 | 架构权威 | 尚未建立；旧 spine 已移入 `temp/engineering/` 作为 reference |
 | legacy implementation | 已从 active repository 移除；可从 Git 历史或 `bd4618f` 恢复 |
 
@@ -27,6 +26,7 @@
 - 旧 Maven `target/` 构建缓存已移出仓库；它是 ignored 生成物，不属于提交内容。
 - `temp/` 只保存参考文档与材料，没有迁入旧业务实现。
 - 为避免不可恢复地删除真实 key，原本位于 legacy `src/` 下且被 gitignore 的 `application-local.yml` 已原样移到仓库根目录；内容未读取，仍不会进入 Git。
+- 已确认用户新增的产品规格为当前产品权威；旧 SPEC、Forge 和其他 `temp/product/` 材料不再覆盖本文。
 
 ## 验证证据
 
@@ -38,7 +38,7 @@
 
 ## 唯一下一步
 
-执行 Phase 3：基于 `temp/product/` 的 reference 重新进行产品澄清，并把当前产品定义建立在 `docs/product/`。未完成前，不开始架构定稿或业务重写。
+进入 Architecture Re-initialization：以当前 `docs/product/OpenAlice-产品规格说明.md` 为唯一产品输入，重新研究并建立 `docs/architecture/`。在架构完成前不开始业务实现。
 
 ## 禁止事项
 
