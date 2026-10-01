@@ -26,6 +26,7 @@
 
 - [2026-10-01 架构讨论阶段快照](research/2026-10-01-架构讨论阶段快照.md)
 - [2026-10-01 Agent 架构关键问题调研](research/2026-10-01-Agent架构关键问题调研.md)
+- [2026-10-01 Background / Task / Proactivity 第二轮调研](research/2026-10-01-Background-Task-Proactivity-第二轮调研.md)
 - [BMAD 与 Web ↔ Codex 工作流](bmad-workflow.md)
 
 ## Reference 与历史
