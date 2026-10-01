@@ -45,7 +45,7 @@ Durable Conversation 与 Prompt Context 分离：
 
 P1 不要求恢复崩溃前的 token 流。一次 execution 中断后，可以保留用户消息和失败 execution，让 assistant 消息缺失或标记为不完整；系统不能伪造已完成回复。数据库、Schema、长期保留与删除策略仍 **OPEN**。向量 Memory、遗忘策略和高级 consolidation 属于 **DEFERRED**。
 
-## 4. Conversation Application（CANDIDATE）
+## 4. Conversation Application（ACCEPTED）
 
 Conversation Application 是用户 interaction / turn 的产品级 orchestration owner，也是主 Conversation 时间线的唯一写入 owner：
 
@@ -151,7 +151,7 @@ execution completed ≠ interrupt the user ≠ character speaks
 
 | 分类 | 当前内容 |
 | :-- | :-- |
-| **ACCEPTED** | Alice 基础聊天产品闭环；一条长期主 Conversation；跨应用与机器重启持久化；OpenAlice 拥有产品语义，AgentScope 提供执行机制 |
+| **ACCEPTED** | Alice 基础聊天产品闭环；一条长期主 Conversation；跨应用与机器重启持久化；Conversation Application 是用户可见时间线唯一 owner；OpenAlice 拥有产品语义，AgentScope 提供执行机制 |
 | **CANDIDATE** | Conversation Application ownership；Character identity；Presence / Audience 四层模型；Context pipeline；轻量 execution coordination |
 | **NEEDS PROTOTYPE** | bare `ReActAgent` 与 Selective Harness 对比；取消、crash/restart、subagent completion |
 | **OPEN** | 存储与 Schema；execution 状态机；角色删除与记忆治理细节；首个 background feature |
@@ -161,7 +161,7 @@ execution completed ≠ interrupt the user ≠ character speaks
 
 User + Web review 需要明确：
 
-1. 是否接受 Conversation Application 作为主时间线唯一 owner。
+1. Conversation Application 的职责边界是否准确表达了主时间线唯一 owner 这一已接受约束。
 2. 是否接受 Character Presence / Audience 四层模型，尤其是 `@角色` 与私密 audience 的区别。
 3. 是否接受 Context Engine pipeline 与 OpenAlice / AgentScope ownership boundary。
 4. Technical Spike 的比较范围与通过标准是否足够约束后续实现。
