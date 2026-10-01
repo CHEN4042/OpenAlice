@@ -5,10 +5,11 @@
 ## 当前状态
 
 - 日期：2026-10-01。
-- 阶段：Architecture Re-initialization · checkpoint + independent research 完成。
-- 分支：`codex/architecture-research-20261001`；产品与研究文档已提交，用户于 2026-10-01 明确授权 Codex 推送本研究分支。
+- 阶段：Architecture Re-initialization · 最新 Architecture Q&A checkpoint 已保存。
+- 分支：`codex/architecture-research-20261001`；本轮继续沿用该 workstream，当前任务未授权 push。
 - 产品规格已最小修改：补入 Alice 为主要角色、Kei 等角色参与长期主对话、用户参与控制，以及 Character / Specialist 的区别；P1 仍仅 Alice 基础聊天。
-- **当前仍没有 architecture authority**；两份 dated note 均为 WORKING NOTE / NON-AUTHORITATIVE。
+- Conversation Application、Character / Persona、Context Engine 与 Agent Runtime 的逻辑职责边界进一步收敛；Background / Task / Proactivity 仍为 OPEN。
+- **当前仍没有 architecture authority**；dated notes 均为 WORKING NOTE / NON-AUTHORITATIVE。
 - 未新增业务实现、工程骨架或数据库决策；`temp/` 继续仅作 reference。
 
 ## 本轮文档
@@ -35,4 +36,4 @@
 
 ## 唯一下一步
 
-Web 从 GitHub review 本次 research 的真实文件与 diff，然后继续 Architecture Q&A；稳定决策形成后才写入 `docs/architecture/`。
+执行第二轮 independent research：Background / Task / Proactivity Architecture；保持研究非权威，完成后交给 Web + 用户综合判断。

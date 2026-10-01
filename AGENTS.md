@@ -38,9 +38,28 @@
 - 每轮结束更新 handoff，记录精确命令、结果、风险和唯一下一步。
 - 结构变化必须检查文件存在、仓库内部链接、Git 可恢复性和敏感文件；业务实现阶段再加入构建、测试、CI 和 evaluation 门禁。
 
-## 安全与 Git
+## Git 与 Codex 执行规范
+
+本节是仓库 Git / Codex 协作的规范来源；其他文档只引用，不复制完整规则。
+
+### Branch lifecycle 与命名
+
+- 新 prompt、研究轮次或模型变更不自动产生新分支。同一 coherent workstream / reviewable change set 持续复用当前分支。
+- 只有上一工作流已经 review 或完成，并开始真正独立的新工作流时，才创建新分支。不得仅为整理偏好而创建、重命名、切换、合并或删除分支。
+- Codex 未来创建的 task branch 使用 `codex/<type>/<short-topic>`；`<short-topic>` 使用 lowercase kebab-case，日期只有在具有语义时才加入。
+- 示例：`codex/research/background-task-proactivity`、`codex/docs/architecture-checkpoint`、`codex/feat/memory-persistence`、`codex/fix/context-assembly`、`codex/refactor/agent-runtime`、`codex/chore/repository-cleanup`。
+- 现有 `codex/architecture-research-20261001` 分支保留原名，不重命名。
+
+### Commit 与 push
+
+- Commit 使用 `<type>(<scope>): <imperative English summary>`；允许的 type 为 `feat`、`fix`、`refactor`、`test`、`docs`、`research`、`chore`、`build`、`ci`。
+- `research` 是 OpenAlice 对不建立产品或架构权威的证据/研究提交约定。例如：`docs(architecture): capture Q&A checkpoint`、`research(background): analyze task and proactivity architecture`。
+- 每个 commit 必须逻辑内聚；不得把无关的仓库清理、研究、架构决定和实现混在一起。
+- Codex 不从过去任务推断 commit 权限；只有当前任务明确授权或用户在当前任务确认后才 commit。
+- 默认不 push；只有当前用户指令明确授权才 push，过去授权不延续到未来任务。除非用户明确要求且已审查后果，否则不得 force-push。
+
+### Safety 与提交前检查
 
 - `application-local.yml` 及任何真实 key、token、日志、构建产物和本机绝对路径不得提交、打印或导出。
-- 修改前保留用户已有变更；不使用 destructive reset 或 checkout 覆盖工作。
-- commit 只在用户明确指示或 review 确认后执行；push 一律由用户执行。
-- 新分支默认使用 `codex/` 前缀；commit 遵循 Conventional Commits：`<type>(<scope>): <中文 subject>`。
+- 保留用户已有变更；不得为清理 working tree 而使用 destructive reset、checkout、rebase、branch deletion 或 history rewriting。
+- Commit 前检查 `git status --short`、`git diff` 和 `git diff --check`；commit 只能包含当前任务授权的文件。
