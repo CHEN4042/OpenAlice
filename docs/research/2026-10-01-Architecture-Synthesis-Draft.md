@@ -152,7 +152,7 @@ execution completed ≠ interrupt the user ≠ character speaks
 | 分类 | 当前内容 |
 | :-- | :-- |
 | **ACCEPTED** | Alice 基础聊天产品闭环；一条长期主 Conversation；跨应用与机器重启持久化；Conversation Application 是用户可见时间线唯一 owner；OpenAlice 拥有产品语义，AgentScope 提供执行机制 |
-| **CANDIDATE** | Conversation Application ownership；Character identity；Presence / Audience 四层模型；Context pipeline；轻量 execution coordination |
+| **CANDIDATE** | Character identity；Presence / Audience 四层模型；Context pipeline；轻量 execution coordination；background result-first chain |
 | **NEEDS PROTOTYPE** | bare `ReActAgent` 与 Selective Harness 对比；取消、crash/restart、subagent completion |
 | **OPEN** | 存储与 Schema；execution 状态机；角色删除与记忆治理细节；首个 background feature |
 | **DEFERRED** | Kei 实现、多角色 UI、高级 Memory、Background / Proactivity、通用任务基础设施、分布式部署 |
