@@ -36,7 +36,15 @@ codex plugin list
 
 ## 当前权威规则
 
-- 当前产品/架构 authority 尚未建立；执行入口是 `docs/plans/active/repository-reinitialization.md`。
+- 当前产品 authority 已建立于 `docs/product/OpenAlice-产品规格说明.md`；架构 authority 尚未建立。执行入口是 `docs/plans/active/repository-reinitialization.md`。
 - 产品重新澄清后，以 `docs/product/` 为准；架构重新设计后，以 `docs/architecture/` 为准。
 - `temp/product/` 和 `temp/engineering/` 只作 reference；不能直接恢复旧结论。
 - `_bmad-output/` 是 BMAD 运行时的生成区，不是长期项目知识的权威入口。
+
+## Web ↔ Codex Research Loop
+
+用户 + Web 负责产品/架构 Q&A、形成 candidate、决定研究问题和最终综合判断。Codex 读取当前 authority，做定向研究，阅读真实源码/仓库，验证实现可行性，并写 dated research note；不能擅自把 research 升级为 architecture authority。
+
+完成后的交接顺序：Codex 更新 handoff → 按仓库规则在用户授权或 review 确认后 Git commit → 用户 push → Web 从 GitHub 读取真实文件/diff → Web + 用户继续综合讨论 → 达成稳定决策后才写入 `docs/architecture/`。
+
+研究提供证据，Web / 用户的架构讨论负责最终 synthesis。候选快照和研究结论在正式接受前始终是 non-authoritative。

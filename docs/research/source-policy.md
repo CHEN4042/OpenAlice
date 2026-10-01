@@ -16,6 +16,21 @@
 
 涉及 OpenAI 产品时优先使用官方 OpenAI 文档；涉及安全、隐私、供应商行为或当前版本时必须检查时效性。
 
+## OpenAlice 对标项目调研顺序
+
+研究 OpenAlice 的架构、Agent、Memory、Prompt、Runtime 时，先检查核心产品对标：
+
+1. SillyTavern；
+2. OpenHanako / HanaAgent；
+3. OpenClaw；
+4. Hermes Agent。
+
+然后检查长期形态参考 HomeRail，同时主动寻找目标相近、但更成熟或采用度更高的项目。质量判断结合真实实现、测试、维护和使用证据，不以 star 数作为唯一标准；同名项目须先核对身份。
+
+接着扩展到成熟项目，例如 Agent Zero、OpenHands、Letta、LangGraph、Microsoft Agent Framework / AutoGen、CrewAI，以及其他发现的高质量项目。这些只是发现方向，不代表必须采用。
+
+最后检查相关原始论文、标准、学术研究及 benchmark / evaluation。以上是检查顺序，不改变既有来源等级；优先官方文档、仓库、源码、issue，记录时区分事实、推断与建议。
+
 ## 研究记录要求
 
 每份研究文档应记录：
