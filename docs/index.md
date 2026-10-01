@@ -14,7 +14,7 @@
 | 目录 | 作用 | 当前状态 |
 | :-- | :-- | :-- |
 | `docs/product/` | 当前产品定义、验收和用户可观察契约 | [OpenAlice-产品规格说明.md](product/OpenAlice-产品规格说明.md)（当前产品权威） |
-| `docs/architecture/` | 当前架构 spine、边界和已接受决策 | 待 Phase 4 建立 |
+| `docs/architecture/` | 当前架构 spine、边界和已接受决策 | 待 synthesis review 后建立 |
 | `docs/plans/active/` | 当前执行计划 | 已建立 |
 | `docs/plans/completed/` | 已完成计划 | 暂无 |
 | `docs/research/` | 有日期、可追溯、非权威的研究 | 已建立 |
@@ -24,6 +24,7 @@
 
 以下均为非权威研究输入，不构成已接受的架构决策：
 
+- **待 review：** [2026-10-01 Architecture Synthesis Draft](research/2026-10-01-Architecture-Synthesis-Draft.md)
 - [2026-10-01 架构讨论阶段快照](research/2026-10-01-架构讨论阶段快照.md)
 - [2026-10-01 Agent 架构关键问题调研](research/2026-10-01-Agent架构关键问题调研.md)
 - [2026-10-01 Background / Task / Proactivity 第二轮调研](research/2026-10-01-Background-Task-Proactivity-第二轮调研.md)
