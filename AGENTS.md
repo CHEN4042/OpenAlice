@@ -42,21 +42,28 @@
 
 本节是仓库 Git / Codex 协作的规范来源；其他文档只引用，不复制完整规则。
 
-### Branch lifecycle 与命名
+### 当前文档阶段
 
-- 新 prompt、研究轮次或模型变更不自动产生新分支。同一 coherent workstream / reviewable change set 持续复用当前分支。
-- 只有上一工作流已经 review 或完成，并开始真正独立的新工作流时，才创建新分支。不得仅为整理偏好而创建、重命名、切换、合并或删除分支。
-- Codex 未来创建的 task branch 使用 `codex/<type>/<short-topic>`；`<short-topic>` 使用 lowercase kebab-case，日期只有在具有语义时才加入。
-- 示例：`codex/research/background-task-proactivity`、`codex/docs/architecture-checkpoint`、`codex/feat/memory-persistence`、`codex/fix/context-assembly`、`codex/refactor/agent-runtime`、`codex/chore/repository-cleanup`。
-- 现有 `codex/architecture-research-20261001` 分支保留原名，不重命名。
+- Product definition、Architecture discussion、Research、Architecture synthesis 和纯文档仓库维护直接在 `main` 上进行；Git commit 提供历史与回滚。
+- 不因新 research question、prompt、model change、Architecture Q&A、Markdown 或 handoff 更新创建分支。
+- 直接提交文档不授予 Codex 产品或架构决策权。权威流程始终是：`Research → User + Web discussion → Candidate Decision → User acceptance → authoritative Product / Architecture document`。
+- Codex 不得把自己的 research 自动提升为 authority。
+
+### 未来实现 Cycle
+
+- 真实可执行实现开始后，使用 `openalice-YYYYMMDD` Cycle branch；无 `/`、无 `codex-` 前缀，默认不加 topic / feature suffix，日期表示计划 checkpoint / closing period。
+- 一个 Cycle 通常约 1–2 周；早期可含约 1–3 个相关目标，后期通常聚焦约 1–2 项有意义的能力。小幅延期不要求重命名。
+- Cycle 名称由 User + Web 决定；Codex 不自行创建、发明或重命名 Cycle branch。特殊 experiment branch 也必须由 User + Web 明确指示。
+- 已明确分配的 active Cycle 内，Codex 通常可 edit、validate、commit 并 push 当前 Cycle branch；默认不再创建 feature branch。
+- Cycle 以 small coherent commits 推进，可按需做中途 Web review；Cycle Review 后通过一个 PR 进入 `main`，完成 final checks / review 后使用 Merge Commit，并删除已完成 Cycle branch。
+- 实现阶段 Codex 不得直接 push 或 merge `main`。进入实现阶段后再为 `main` 配置 PR、review 与 checks 保护；本阶段不配置。
 
 ### Commit 与 push
 
-- Commit 使用 `<type>(<scope>): <imperative English summary>`；允许的 type 为 `feat`、`fix`、`refactor`、`test`、`docs`、`research`、`chore`、`build`、`ci`。
-- `research` 是 OpenAlice 对不建立产品或架构权威的证据/研究提交约定。例如：`docs(architecture): capture Q&A checkpoint`、`research(background): analyze task and proactivity architecture`。
+- Commit 使用 `<type>: <中文简短说明>`；常用 type 为 `feat`、`fix`、`docs`、`test`、`refactor`、`chore`，不要求 scope，不使用自定义 `research` type。
+- 有意义的 commit 用中文 body 说明重要变更；避免 `docs: update`、`docs: fix`、`docs: final` 等无信息历史。
 - 每个 commit 必须逻辑内聚；不得把无关的仓库清理、研究、架构决定和实现混在一起。
-- Codex 不从过去任务推断 commit 权限；只有当前任务明确授权或用户在当前任务确认后才 commit。
-- 默认不 push；只有当前用户指令明确授权才 push，过去授权不延续到未来任务。除非用户明确要求且已审查后果，否则不得 force-push。
+- Codex 不从过去任务推断 commit / push 权限；只有当前任务明确授权或用户在当前任务确认后才执行。除非用户明确要求且已审查后果，否则不得 force-push。
 
 ### Safety 与提交前检查
 

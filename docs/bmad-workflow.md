@@ -49,10 +49,10 @@ Git / Codex 执行规则以 [AGENTS.md](../AGENTS.md) 为规范来源。本流�
 2. Web 定义有边界的 research 或 implementation scope。
 3. Codex 读取仓库 authority 与当前 context，执行该有边界任务。
 4. Codex 记录研究证据或实现，并按要求刷新 handoff。
-5. Codex 只在当前任务明确授权时 commit。
-6. 只在当前用户指令明确授权时 push。
+5. 当前文档阶段在 `main` 上形成 coherent commits；实现阶段在 User + Web 指定的 Cycle branch 上工作。Commit / push 仍须当前任务授权。
+6. Codex 按当前授权 push 对应分支；实现阶段通过 Cycle Review 和单个 PR 进入 `main`。
 7. Web review 仓库中的真实文件与 diff。
 8. 用户 + Web 综合证据并接受或拒绝结论。
 9. 只有已接受的稳定决定才进入 `docs/product/` 或 `docs/architecture/` authority。
 
-Research note 不会自动成为 architecture authority。新 prompt 或模型变更（包括更换 GPT / Codex model）都不构成新建分支的理由；branch boundary 跟随 coherent workstream 与 review boundary。
+Research note 不会自动成为 architecture authority。文档阶段的新 prompt、研究问题或模型变更都不构成新建分支的理由；只有开始真实实现后才启用由 User + Web 命名的 `openalice-YYYYMMDD` Cycle branch。
