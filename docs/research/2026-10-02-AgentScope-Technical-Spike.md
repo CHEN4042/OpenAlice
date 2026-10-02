@@ -5,7 +5,7 @@
 > **基线：** `f1096f81888468297e4062a123d69a81850847dd`<br>
 > **分支：** `openalice-20261009`<br>
 > **固定版本：** Java 21、AgentScope Java `2.0.3`<br>
-> **目的：** 验证哪些 AgentScope runtime capability 可以复用，同时保持 OpenAlice 对 Conversation、Context、Memory 与 Execution 的所有权。本文是实验记录，不修改 [Architecture Spine](../architecture/ARCHITECTURE-SPINE.md)。
+> **目的：** 验证哪些 AgentScope runtime capability 可以复用，同时保持 OpenAlice 对 Conversation、Context、Memory 与 Execution 的所有权。本文继续作为非权威实验记录；经 review 接受的稳定结论已提升至 [Architecture Spine](../architecture/ARCHITECTURE-SPINE.md)。
 
 ## 1. Executive result
 
@@ -26,8 +26,9 @@ transcript、compaction、subagent、filesystem、shell、skills 等能力，Har
 
 ## 2. Reproduction
 
-Spike 位于 [`spikes/agentscope-runtime/`](../../spikes/agentscope-runtime/README.md)，不包含生产
-应用、根 Maven 工程、正式 Schema 或外部 LLM。
+完成时的可执行 Spike 位于 `spikes/agentscope-runtime/`，不包含生产应用、根 Maven 工程、
+正式 Schema 或外部 LLM。Cycle closing 后临时工程已从 current tree 删除；完整源码保存在 Git
+commit [`0d5fd47`](https://github.com/CHEN4042/OpenAlice/tree/0d5fd471c87d14ff9dea1eb0f38b4ef588ad6cd6/spikes/agentscope-runtime)。以下命令针对该 commit 的 checkout。
 
 ```bash
 cd spikes/agentscope-runtime
@@ -38,8 +39,9 @@ mvn test
 
 最终结果：`Tests run: 11, Failures: 0, Errors: 0, Skipped: 0`。
 
-Raw evidence 在执行后生成于 `spikes/agentscope-runtime/target/surefire-reports/`；`target/` 是
-ignored build output，不提交。可重复证据的长期位置是对应测试源码与本文观察记录。
+Raw evidence 在执行时生成于 `spikes/agentscope-runtime/target/surefire-reports/`；`target/` 是
+ignored build output，从未提交。可重复证据的长期位置是 commit `0d5fd47` 中的测试源码与本文
+观察记录。
 
 ## 3. Experiment A — Context and history ownership
 
@@ -97,7 +99,7 @@ AgentScope session while also reconstructing history is incompatible because it 
 
 ### Raw evidence location
 
-- [`ContextOwnershipSpikeTest.java`](../../spikes/agentscope-runtime/src/test/java/io/openalice/spike/ContextOwnershipSpikeTest.java)
+- Git `0d5fd47`：`spikes/agentscope-runtime/src/test/java/io/openalice/spike/ContextOwnershipSpikeTest.java`
 - Generated report: `target/surefire-reports/io.openalice.spike.ContextOwnershipSpikeTest.txt`
 
 ### Comparison
@@ -176,7 +178,7 @@ candidate results.
 
 ### Raw evidence location
 
-- [`CancellationSpikeTest.java`](../../spikes/agentscope-runtime/src/test/java/io/openalice/spike/CancellationSpikeTest.java)
+- Git `0d5fd47`：`spikes/agentscope-runtime/src/test/java/io/openalice/spike/CancellationSpikeTest.java`
 - Generated report: `target/surefire-reports/io.openalice.spike.CancellationSpikeTest.txt`
 
 ## 5. Experiment C — Hard process crash and restart
@@ -224,8 +226,8 @@ AgentScope session/state as product truth.
 
 ### Raw evidence location
 
-- [`CrashRestartSpikeTest.java`](../../spikes/agentscope-runtime/src/test/java/io/openalice/spike/CrashRestartSpikeTest.java)
-- [`CrashChildMain.java`](../../spikes/agentscope-runtime/src/test/java/io/openalice/spike/CrashChildMain.java)
+- Git `0d5fd47`：`spikes/agentscope-runtime/src/test/java/io/openalice/spike/CrashRestartSpikeTest.java`
+- Git `0d5fd47`：`spikes/agentscope-runtime/src/test/java/io/openalice/spike/CrashChildMain.java`
 - Generated report: `target/surefire-reports/io.openalice.spike.CrashRestartSpikeTest.txt`
 
 ## 6. Experiment D — Specialist/subagent completion
@@ -279,7 +281,7 @@ Specialist completion
 
 ### Raw evidence location
 
-- [`SubagentSpikeTest.java`](../../spikes/agentscope-runtime/src/test/java/io/openalice/spike/SubagentSpikeTest.java)
+- Git `0d5fd47`：`spikes/agentscope-runtime/src/test/java/io/openalice/spike/SubagentSpikeTest.java`
 - Generated report: `target/surefire-reports/io.openalice.spike.SubagentSpikeTest.txt`
 
 ## 7. Experiment E — Spring SSE disconnect adapter
@@ -336,7 +338,7 @@ couple browser disconnect to runtime cancellation.
 
 ### Raw evidence location
 
-- [`SseDisconnectSpikeTest.java`](../../spikes/agentscope-runtime/src/test/java/io/openalice/spike/SseDisconnectSpikeTest.java)
+- Git `0d5fd47`：`spikes/agentscope-runtime/src/test/java/io/openalice/spike/SseDisconnectSpikeTest.java`
 - Generated report: `target/surefire-reports/io.openalice.spike.SseDisconnectSpikeTest.txt`
 
 ## 8. Final decision matrix

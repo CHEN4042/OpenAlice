@@ -5,7 +5,7 @@
 > **范围：** 系统形态、产品语义所有权、P1 技术默认、验证门、延后项与迁移触发条件<br>
 > **不包含：** 物理数据库 Schema、package / Maven module 布局、具体 HTTP URL、ORM mapping、实现类或 prototype 结果<br>
 > **产品权威：** [OpenAlice 产品规格说明](../product/OpenAlice-产品规格说明.md)<br>
-> **研究证据：** [Architecture Synthesis Draft](../research/2026-10-01-Architecture-Synthesis-Draft.md)、[P1 Engineering Foundation 调研](../research/2026-10-02-P1-Engineering-Foundation-调研.md) 及 [docs/research/](../research/)
+> **研究证据：** [Architecture Synthesis Draft](../research/2026-10-01-Architecture-Synthesis-Draft.md)、[P1 Engineering Foundation 调研](../research/2026-10-02-P1-Engineering-Foundation-调研.md)、[AgentScope Technical Spike](../research/2026-10-02-AgentScope-Technical-Spike.md) 及 [docs/research/](../research/)
 
 本文是 OpenAlice 当前唯一的架构权威入口。实现、Schema、测试与后续决策必须服从本文；研究材料保留证据价值，但不能覆盖本文。
 
@@ -15,7 +15,7 @@
 
 - **Invariant**：跨实现必须保持的语义和所有权；框架便利不能改变它。
 - **P1 Default**：当前实现周期的默认技术选择；未来只能在触发条件出现并完成 review 后变更。
-- **NEEDS PROTOTYPE**：实现前必须用有边界实验验证的 runtime integration。
+- **NEEDS PROTOTYPE**：只有本文明确标记的未决集成才需先实验；当前 P1 Agent Runtime gate 已关闭。
 - **DEFERRED**：明确不进入 P1，不为其预建基础设施。
 
 稳定性层级为：
@@ -73,17 +73,40 @@ OpenAlice 拥有：
 Agent Runtime / AgentScope 可以提供：
 
 - model invocation 与 ReAct loop；
-- Tools、streaming、cancellation 与 execution events；
-- specialist / subagent execution；
-- 经 prototype 接受的 selected runtime state。
+- Tool execution、typed event streaming 与 best-effort interrupt；
+- 必要时通过 core `SubAgentTool` 提供 specialist / subagent execution；
+- 经实验接受、按 Execution 隔离的 runtime state。
 
 AgentScope session、AgentState、memory、context 或 compaction 不得静默成为 OpenAlice product truth。OpenAlice 必须能在替换 runtime mechanism 后保留产品身份、Conversation、Memory meaning 与 durable lifecycle。
+
+### P1 Agent Runtime Default
+
+```text
+P1 Agent Runtime Default
+=
+Bare AgentScope ReActAgent
+behind an OpenAlice-owned Agent Runtime adapter
+```
+
+“Bare” 指直接使用 AgentScope core `ReActAgent`，不是另一个 AgentScope class。OpenAlice adapter 负责 Context reconstruction / admission、durable lifecycle、cancellation product fact、late-result acceptance、Timeline commit 与 crash/restart reconciliation；`ReActAgent` 只提供可替换 runtime mechanism。
+
+Selective Harness 不是 P1 默认。实验表明 Harness delegate 保留与 Bare `ReActAgent` 相同的 session context 行为，AgentScope Java `2.0.3` 的 `disableSessionPersistence()` 不会关闭 delegate ReAct context，且关闭多项 Harness capability 后仍有额外 defaults / tools。未来只有具体 capability 的价值足以覆盖这些额外行为时，才能重新评估 Harness。
 
 ## 4. Conversation and Timeline
 
 OpenAlice 有一条长期运行的 main Conversation。它是持久产品数据，必须跨正常应用重启和机器重启保留。OpenAlice persistent storage 是 source of truth；AgentScope session / AgentState 不是 Conversation source of truth。
 
 Durable Conversation 与 per-turn Prompt Context 是不同概念。UI 可以先加载近期 Message 并分页读取旧内容；模型只接收本 Turn 所需的 recent Conversation、selected summary、selected Memory 与 current Turn。持久化全部历史不表示每次 prompt 包含全部历史。
+
+### Execution-scoped runtime state
+
+OpenAlice 为每次 Execution 重建 Context View。AgentScope runtime state 必须按 Execution 隔离，或在 OpenAlice 提供 reconstructed Context View 前显式清空。不得在复用长期 Conversation-shaped AgentScope session 的同时，再提供完整的 OpenAlice reconstructed history。
+
+Technical Spike 已确认：复用同一 AgentScope session 会让已存 AgentScope context 与 OpenAlice 重建历史共同进入 model input，重复先前 User / Assistant Message。该事实进一步确认：
+
+```text
+Conversation ≠ AgentScope session
+```
 
 Conversation Application 是用户可见 Timeline 的唯一 write owner：
 
@@ -154,11 +177,31 @@ persist User Message
 
 User Message 必须保留。系统不得伪造 completed Alice response，也不得用 AgentScope session presence 推断完成。P1 不要求 token-level resume 或 runtime rewind。
 
+该 invariant 已由独立 JVM hard-kill / restart 实验确认：OpenAlice durable facts 足以把遗留 `RUNNING` 对账为 `INTERRUPTED`，不需要用 AgentScope state 解释产品状态。
+
 Partial streamed token 默认是 ephemeral presentation，不自动成为 durable committed Message。正常 Assistant Message 只有在完整 outcome 被接受时才能提交；迟到 result 必须服从已持久化 terminal transition。
 
 ### Cancellation invariant
 
 Cancellation 以 Execution identity 为目标，是显式 product command。OpenAlice 记录 cancellation outcome / intent，再请求 Agent Runtime 停止。SSE 连接关闭、browser refresh 或 client network loss 都不能定义 Execution lifecycle。
+
+```text
+OpenAlice accepts cancellation
+→ durable Execution becomes CANCELLED
+→ request best-effort runtime interruption
+→ check any late runtime result against terminal state
+→ cancelled Execution cannot commit a normal Assistant Message
+```
+
+AgentScope `interrupt()` 是 cooperative interrupt，不保证取消或回滚已经运行的 Tool。必须区分：
+
+```text
+Agent interrupt
+≠ reactive subscription disposal
+≠ Tool side-effect rollback
+```
+
+生产 Tool 的 cancellation、timeout、外部副作用与 compensation contract 属于实现决策，不能削弱 OpenAlice terminal-state gate。
 
 ## 7. Character and Persona
 
@@ -174,6 +217,18 @@ Persona 是 stable、versioned product input。AgentScope agent instance、model
 
 - **Character Agent**：用户可见，拥有 Persona 与 relationship participation，可以由 Conversation Application 提交角色发言。
 - **Specialist Agent**：执行隔离任务并返回 result；它的 output 不自动成为 main Conversation Message，也不自动获得完整 Alice Persona 或私人关系上下文。
+
+AgentScope core `SubAgentTool` 已验证可以作为该边界后的可替换机制：
+
+```text
+Specialist completion
+→ Tool / candidate Result
+→ parent Execution
+→ Conversation Application decision
+→ optional Timeline Message
+```
+
+这不把 `SubAgentTool` 固定为永久依赖；Harness-level subagent orchestration 对 P1 仍无必要。
 
 ### Presence and audience
 
@@ -289,6 +344,14 @@ SSE disconnect ≠ Execution cancellation
 
 Browser refresh 或 network loss 后，durable Conversation 与 Execution state 是恢复来源。P1 不要求 durable token replay 或 durable `Last-Event-ID` replay。
 
+HTTP / SSE response subscription 不得拥有 underlying Execution lifecycle。实验确认 naive direct binding 可能让 client disconnect 取消 runtime publisher；生产 adapter 必须解耦：
+
+```text
+Execution runtime lifecycle
+from
+SSE delivery lifecycle
+```
+
 Transport-independent event semantics 可以包括：
 
 - execution accepted / started；
@@ -300,7 +363,7 @@ Transport-independent event semantics 可以包括：
 
 Assistant text delta 默认是 ephemeral presentation。Terminal product state 必须先提交，再把 terminal presentation 当作 authoritative notification。
 
-Architecture 不锁定 `SseEmitter`、MVC reactive return、WebFlux 或 Reactor adapter code。具体 adapter 由 prototype / implementation 选择，但不能改变 transport 与 lifecycle invariants。
+Architecture 不锁定 `SseEmitter`、MVC reactive return、WebFlux 或 Reactor adapter code。`SseEmitter` 与 MVC reactive `Flux<ServerSentEvent<?>>` 在解耦后都能保持 invariant；具体 adapter 留给 Engineering Foundation implementation。
 
 ## 12. Execution coordination
 
@@ -351,7 +414,7 @@ Background scheduler、Reminder、proactive interaction 与 generic Task Engine 
 - explicit Execution cancellation boundary；
 - minimum durable Conversation / Message / Turn / Execution semantics；
 - SQLite persistence；
-- AgentScope behind a replaceable Agent Runtime boundary。
+- Bare AgentScope core `ReActAgent` behind an OpenAlice-owned, replaceable Agent Runtime adapter。
 
 ### Not required
 
@@ -363,30 +426,18 @@ Background scheduler、Reminder、proactive interaction 与 generic Task Engine 
 - multimodal、device / edge protocol；
 - distributed deployment。
 
-## 15. NEEDS PROTOTYPE
+## 15. Confirmed runtime integration evidence
 
-在进入正式 runtime integration 前，运行一个有边界 AgentScope Technical Spike，比较：
+[AgentScope Technical Spike](../research/2026-10-02-AgentScope-Technical-Spike.md) 已完成并通过 review。实验确认：
 
-```text
-Bare ReActAgent
-vs
-Selective HarnessAgent
-```
+- Execution-scoped runtime state 可以避免 OpenAlice reconstructed context 与 AgentScope history 重复；
+- targeted interrupt 是 cooperative，in-flight Tool 可以在 interrupt 后完成；
+- OpenAlice terminal-state gate 可以拒绝 `CANCELLED` 后的 late result；
+- hard crash 后只用 OpenAlice durable facts 即可对账为 `INTERRUPTED`；
+- core `SubAgentTool` result 不会自动成为 top-level Assistant Message；
+- decoupled MVC Flux 与 `SseEmitter` 都能让 SSE disconnect 只结束 delivery，而不定义 Execution cancellation。
 
-Spike 必须验证：
-
-- multi-turn / context ownership 与 duplicate history risk；
-- Harness memory / context / compaction hooks 能否选择性关闭；
-- deliberately slow Tool cancellation；
-- SSE disconnect / timeout 与 runtime subscription 的关系；
-- hard process termination 与 restart reconciliation；
-- late Tool / subagent result；
-- subagent completion 与 cancellation propagation；
-- OpenAlice durable state 与 AgentScope AgentState 的对账。
-
-通过标准是：OpenAlice 可以仅依据自己的 durable facts 解释 Conversation 与 Execution 状态，AgentScope 不会静默改写 product ownership；disconnect 不会自动改变 Execution outcome；late result 不能越过 OpenAlice terminal transition。
-
-Spike 决定复用多少 AgentScope capability，不重新讨论 OpenAlice product ownership，也不顺带建立 application foundation。
+这些证据关闭了 Bare `ReActAgent` 与 Selective Harness 的 P1 prototype gate。具体 adapter class、AgentStateStore retention、Tool timeout / compensation 与 SSE API 仍由 Engineering Foundation 在上述 invariant 内实现。
 
 ## 16. DEFERRED
 

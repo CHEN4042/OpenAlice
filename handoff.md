@@ -5,8 +5,8 @@
 ## 当前状态
 
 - 日期：2026-10-02。
-- 阶段：Repository Re-initialization · Phase 4 Architecture Re-initialization 已完成；Phase 5 Engineering Foundation 尚未开始。
-- 首版 Architecture Authority 与 bounded AgentScope Technical Spike 已完成；当前仍没有业务实现或生产 Maven / Spring Boot 工程骨架。
+- 阶段：Repository Re-initialization · Phase 4 与 AgentScope Technical Spike 已完成并 review；Phase 5 Engineering Foundation 是下一阶段，尚未开始。
+- 当前仍没有业务实现或生产 Maven / Spring Boot 工程骨架；completed Spike source 已从 current tree 删除，可从 Git commit `0d5fd47` 恢复。
 
 ## 当前权威与输入
 
@@ -22,13 +22,14 @@
 - OpenAlice 拥有产品语义和 durable facts；Conversation Application 独占 Timeline write；AgentScope 位于可替换 runtime boundary 后。
 - Conversation / Message / Turn / Execution 保持独立 durable identity；stale active Execution 在 restart reconciliation 后成为 `INTERRUPTED`。
 - Retrieval index 是 derived / rebuildable data，不是 Conversation 或 Memory source of truth。
+- P1 Agent Runtime 默认使用 Bare AgentScope core `ReActAgent`，位于 OpenAlice-owned Agent Runtime adapter 后；runtime state 按 Execution 隔离。
 
-## Spike 结论与延后
+## 已接受边界与延后
 
-- **实验建议：** P1 使用 Bare `ReActAgent`；OpenAlice 每次 Execution 显式提供 Context View、持有 durable lifecycle 与 late-result gate，并把 SSE response lifecycle 与 runtime lifecycle 解耦。该建议等待 User + Web review，尚未提升为 Architecture Authority。
+- OpenAlice 持有 durable lifecycle、cancellation fact、late-result gate 与 Timeline commit；AgentScope interrupt 是 best-effort，SSE response lifecycle 与 Execution lifecycle 解耦。
 - **DEFERRED：** advanced / semantic Memory、vector backend、PostgreSQL migration、Background / Proactivity、WebSocket / Voice、device / edge 与 distributed runtime。
 - Repository Re-initialization 尚未完成；`temp/` 保留到计划中的 cleanup phase。
 
 ## 唯一下一步
 
-User + Web review AgentScope Technical Spike evidence and decide the runtime integration boundary before Engineering Foundation.
+Define and execute the minimal P1 Engineering Foundation based on the accepted Architecture Authority and AgentScope runtime boundary.
