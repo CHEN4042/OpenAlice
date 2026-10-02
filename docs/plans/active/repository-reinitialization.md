@@ -32,12 +32,16 @@
 
 ### Phase 4 — Architecture re-initialization
 
+> **状态：COMPLETED（2026-10-02）** · 当前权威：[Architecture Spine](../../architecture/ARCHITECTURE-SPINE.md)
+
 - 以新的产品定义为输入重新研究架构。
 - 遵守 `docs/research/source-policy.md`。
 - 可参考 `temp/engineering/`，但不得从旧 package、依赖、数据库模型或 framework choice 推导新架构。
 - 将新架构建立在 `docs/architecture/`，并明确所有权、边界、依赖方向、验证方式和 deferred 项。
 
 ### Phase 5 — Engineering foundation
+
+> **状态：NOT STARTED** · 首个前置步骤是针对当前 Architecture Authority 运行 bounded AgentScope Technical Spike。
 
 只有产品与架构决定形成后，才按实际需要建立 Maven wrapper、source/test layout、CI、自动化测试、AI evaluation、observability、dependency/security checks 和 local development infrastructure。
 

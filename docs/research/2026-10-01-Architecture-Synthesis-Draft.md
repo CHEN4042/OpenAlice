@@ -3,6 +3,7 @@
 > **状态：DRAFT / NON-AUTHORITATIVE**<br>
 > **日期：2026-10-01**<br>
 > **用途：供 User + Web 进行架构综合 review。本文不是 `docs/architecture/` 权威，不授权业务实现。**
+> **Promotion note（2026-10-02）：** 经 User + Web 接受的稳定内容已提升至 [Architecture Spine](../architecture/ARCHITECTURE-SPINE.md)。本文继续作为非权威综合研究记录，状态标记不覆盖当前架构权威。
 
 ## 1. 输入与状态标记
 
