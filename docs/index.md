@@ -24,6 +24,7 @@
 
 以下均为非权威研究输入，不构成已接受的架构决策：
 
+- **待 review：** [2026-10-02 P1 Engineering Foundation 调研](research/2026-10-02-P1-Engineering-Foundation-调研.md)
 - **待 review：** [2026-10-01 Architecture Synthesis Draft](research/2026-10-01-Architecture-Synthesis-Draft.md)
 - [2026-10-01 架构讨论阶段快照](research/2026-10-01-架构讨论阶段快照.md)
 - [2026-10-01 Agent 架构关键问题调研](research/2026-10-01-Agent架构关键问题调研.md)
