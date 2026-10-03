@@ -39,3 +39,11 @@ replay_pid*
 # Local private overrides — never commit
 application-local.yml
 application-local-*.yml
+.env
+
+# Local runtime data
+.openalice/
+*.db
+*.db-wal
+*.db-shm
+logs/
