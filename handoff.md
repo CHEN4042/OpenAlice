@@ -4,15 +4,16 @@
 
 ## 当前状态
 
-- 日期：2026-10-02。
-- 阶段：Repository Re-initialization · Phase 4 与 AgentScope Technical Spike 已完成并 review；Phase 5 Engineering Foundation 是下一阶段，尚未开始。
-- 当前仍没有业务实现或生产 Maven / Spring Boot 工程骨架；completed Spike source 已从 current tree 删除，可从 Git commit `0d5fd47` 恢复。
+- 日期：2026-10-03。
+- 阶段：Repository Re-initialization · Phase 5 P1 Engineering Foundation 已在 `openalice-20261016` 实现并验证，等待 Cycle Review；完整 Conversation vertical slice 尚未开始。
+- Java 21 单模块 Spring Boot 工程、SQLite/Flyway/JdbcClient、AgentRuntime、WebFlux SSE、自动化测试与 CI 已建立。
 
 ## 当前权威与输入
 
 - 产品权威：[OpenAlice 产品规格说明](docs/product/OpenAlice-产品规格说明.md)。
 - 架构权威：[Architecture Spine](docs/architecture/ARCHITECTURE-SPINE.md)。
 - 当前计划：[Repository Re-initialization](docs/plans/active/repository-reinitialization.md)。
+- Cycle 计划：[P1 Engineering Foundation](docs/plans/active/p1-engineering-foundation.md)。
 - 实验输入：[AgentScope Technical Spike](docs/research/2026-10-02-AgentScope-Technical-Spike.md)，状态为 EXPERIMENT EVIDENCE / NON-AUTHORITATIVE。
 - [Architecture Synthesis Draft](docs/research/2026-10-01-Architecture-Synthesis-Draft.md)、[P1 Engineering Foundation 调研](docs/research/2026-10-02-P1-Engineering-Foundation-调研.md) 与其他 [research](docs/research/) 继续是非权威证据。
 
@@ -30,6 +31,14 @@
 - **DEFERRED：** advanced / semantic Memory、vector backend、PostgreSQL migration、Background / Proactivity、WebSocket / Voice、device / edge 与 distributed runtime。
 - Repository Re-initialization 尚未完成；`temp/` 保留到计划中的 cleanup phase。
 
+## Foundation evidence
+
+- 本地数据根由 `OPENALICE_HOME` 统一解析；默认数据库为 `~/.openalice/data/openalice.db`，测试使用临时目录。
+- SQLite connections 启用 WAL、foreign keys 与 5000 ms busy timeout；Flyway V1 建立最小 `executions` table。
+- `AgentScopeRuntime` 每个 Execution 新建 Bare `ReActAgent` 和 state store；默认测试使用 deterministic model，不需要 API key 或网络。
+- `ExecutionCoordinator` 独立订阅 runtime 并发布 Reactor events；random-port HTTP test 证明 SSE client detach 后 Execution 继续完成。
+- CI 使用 Java 21 执行 `./mvnw test`。没有 Architecture Amendment Candidate。
+
 ## 唯一下一步
 
-Define and execute the minimal P1 Engineering Foundation based on the accepted Architecture Authority and AgentScope runtime boundary.
+Review the `openalice-20261016` Engineering Foundation Cycle and merge it into `main` through a reviewed PR before starting the Conversation vertical slice.

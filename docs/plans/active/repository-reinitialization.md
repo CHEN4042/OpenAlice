@@ -41,7 +41,7 @@
 
 ### Phase 5 — Engineering foundation
 
-> **状态：NOT STARTED** · 前置 AgentScope Technical Spike 已完成并 review；P1 runtime boundary 已写入 Architecture Authority。
+> **状态：IMPLEMENTED — awaiting Cycle Review（2026-10-03）** · `openalice-20261016` 已建立并验证 P1 Engineering Foundation；尚未进入完整 Conversation vertical slice。
 
 只有产品与架构决定形成后，才按实际需要建立 Maven wrapper、source/test layout、CI、自动化测试、AI evaluation、observability、dependency/security checks 和 local development infrastructure。
 

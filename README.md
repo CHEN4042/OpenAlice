@@ -1,28 +1,43 @@
 # OpenAlice
 
-OpenAlice 正在进行 Repository Re-initialization。当前目标不是继续堆叠旧实现，而是建立一个适合人和 Coding Agent 长期共同维护的项目基础。
+OpenAlice 正在进行 Repository Re-initialization。P1 Engineering Foundation 已建立，完整 Conversation vertical slice 尚未开始。
 
 ## 当前状态
 
-- 业务实现暂停。
+- Java 21、Spring Boot、SQLite、Flyway、AgentScope runtime boundary、HTTP/SSE、测试与 CI 已建立。
 - legacy implementation 与旧构建文件已从 active repository 移除，可通过 Git 历史和已推送的 `bd4618f` 恢复。
 - `temp/` 只保存旧产品和工程参考材料，不包含业务实现，也不是当前权威。
-- 当前活动计划：[Repository Re-initialization](docs/plans/active/repository-reinitialization.md)。
+- 当前活动计划：[P1 Engineering Foundation](docs/plans/active/p1-engineering-foundation.md) 与 [Repository Re-initialization](docs/plans/active/repository-reinitialization.md)。
 - 当前交接：[handoff.md](handoff.md)。
 - 文档地图：[docs/index.md](docs/index.md)。
 
-产品和架构重新初始化完成前，不开始新的业务功能实现。当前阶段的产出是权威文档、研究边界、架构契约、评测策略和工程协作护栏。
+当前工程只提供下一轮 vertical slice 所需的基础，不包含完整聊天产品行为。
 
 ## 目录
 
 ```text
 docs/       当前项目知识、计划、研究和质量文档
+src/        P1 Engineering Foundation 源码与测试
 temp/       旧项目的临时参考文档与材料，完成重初始化后删除
 ```
 
 `temp/` 中的内容不是产品或技术权威；任何重新采用的结论必须写入 `docs/product/` 或 `docs/architecture/`。
 
-产品和架构重新初始化完成前，不创建新的业务源码、构建文件或替代工程骨架。
+## 本地验证
+
+需要 JDK 21。基础测试不需要模型 API key，也不会访问真实模型：
+
+```bash
+./mvnw test
+```
+
+应用默认把运行数据写入 `~/.openalice/`。本地 smoke 可使用临时目录：
+
+```bash
+OPENALICE_HOME="$(mktemp -d)" ./mvnw spring-boot:run
+```
+
+只有发起真实 Agent execution 时才需要通过环境变量提供 OpenAI-compatible model 配置；变量名见 [`.env.example`](.env.example)。
 
 ## 本地安全
 

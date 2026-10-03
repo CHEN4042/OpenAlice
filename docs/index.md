@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-项目处于 Repository Re-initialization。产品与首版架构权威已经建立；Phase 5 Engineering Foundation 尚未开始。请先阅读：
+项目处于 Repository Re-initialization。产品与首版架构权威已经建立；Phase 5 Engineering Foundation 已在 `openalice-20261016` 实现并等待 Cycle Review。请先阅读：
 
 1. [AGENTS.md](../AGENTS.md)
 2. [handoff.md](../handoff.md)
@@ -22,6 +22,8 @@
 | `docs/quality/` | 测试、evaluation、质量门禁 | 待工程基础阶段建立 |
 
 ## 当前研究与协作
+
+当前实现计划：[P1 Engineering Foundation](plans/active/p1-engineering-foundation.md)。
 
 以下均为非权威研究输入，不构成已接受的架构决策：
 
