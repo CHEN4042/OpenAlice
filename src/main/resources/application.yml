@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: openalice
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+openalice:
+  home: ${OPENALICE_HOME:${user.home}/.openalice}
+  database:
+    file-name: openalice.db
+    busy-timeout-millis: 5000
+  model:
+    alias: ${OPENALICE_MODEL_ALIAS:default}
+    base-url: ${OPENALICE_MODEL_BASE_URL:https://api.openai.com/v1}
+    model-name: ${OPENALICE_MODEL_NAME:gpt-4.1-mini}
+    api-key: ${OPENALICE_MODEL_API_KEY:}
+    connect-timeout: ${OPENALICE_MODEL_CONNECT_TIMEOUT:10s}
+    read-timeout: ${OPENALICE_MODEL_READ_TIMEOUT:2m}
+    headers: {}
