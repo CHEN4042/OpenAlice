@@ -20,6 +20,8 @@
 - OpenAlice `AgentRuntime` boundary 与 AgentScope Java 2.0.3 Bare `ReActAgent` adapter；
 - execution-scoped AgentScope state、OpenAI-compatible model connection 与 configurable header transport；
 - 独立 runtime subscription、Reactor sink 与 WebFlux SSE delivery adapter；
+- `OpenAliceLog`、Reactor-aware `LogContext`、可替换 `LogWriter` 与 request / execution diagnostic context；
+- 粗粒度 `ErrorCode`、`OpenAliceException` 与 Spring `ProblemDetail` exception handling；
 - deterministic model、runtime isolation、SQLite、migration、startup reconciliation、SSE disconnect / concurrent emission 与 context-start tests。
 
 ## Excluded
@@ -31,7 +33,7 @@
 
 ## Implementation choices
 
-- 单 Maven module，Java package 使用横向技术分层：`controller`、`service`、`mapper`、`model`、`runtime`、`config` 与 `exception`；只创建当前有真实实现的 package，没有空 `dto` 或业务 placeholder。
+- 单 Maven module，Java package 使用横向技术分层：`controller`、`service`、`mapper`、`model`、`runtime`、`config`、`filter`、`exception` 与 `common.log`；只创建当前有真实实现的 package，没有空 `dto` 或业务 placeholder。
 - `OpenAliceProperties` 统一绑定 home、database 与 model 配置；真实 API key 只从环境变量或 gitignored local config 注入。
 - 唯一 DataSource bean 解析 `OPENALICE_HOME/data/openalice.db`，通过 Xerial configuration 对每个 connection 应用 WAL、foreign keys 与 5000 ms busy timeout。
 - V1 migration 只创建当前 coordinator 使用的最小 `executions` table；`ExecutionCoordinator → ExecutionMapper → SQLite` 使用 MyBatis 3 annotation SQL 和 conditional transition，没有 repository / mapper 重复 abstraction。
@@ -41,6 +43,10 @@
 - `AgentScopeRuntime` 只发布 candidate result；`ExecutionCoordinator.completeAfterProductCommit` 是产品层完成 gate，runtime completion 本身不会把 Execution 变成 `COMPLETED`。
 - startup reconciler 在应用启动后将遗留 `RUNNING` Execution 对账为 `INTERRUPTED`，不恢复 token stream、不伪造结果、不自动 retry。
 - `ExecutionCoordinator` 持有 runtime subscription 和内存事件 sink；SSE subscriber 只观察事件，断连不会 dispose runtime subscription。同一 Execution 的 runtime、cancel 和 terminal event 在最小同步边界内串行发布。
+- 日志调用统一为 `OpenAliceLog.event(...).message(...).field(...).info/warn/error`；event 使用稳定的 `<domain>.<event>` 名称，动态字段存入 Map。公共 request / execution identity 由 `LogContext` 自动合并，业务调用点不记录 request body、prompt、memory、模型完整输入输出或敏感 Tool 参数。
+- WebFlux request 使用 Reactor Context 保存 `LogContext`，Micrometer Context Propagation 1.1.3 和 Reactor automatic propagation 让同步日志 API 在 scheduler 切换后读取同一上下文；`X-Request-Id` 合法时继承，否则生成 UUID 并写回 response。
+- 日志输出经 `LogWriter` boundary；第一版 `Slf4jLogWriter` 使用 SLF4J / Logback，未来可增加 writer 而不修改业务调用点。rolling、文件 IO 和 console transport 继续由 Logback 管理。
+- HTTP exception 使用粗粒度 `ErrorCode` 与单一 `OpenAliceException`。已知异常返回对应 Spring `ProblemDetail` 且只记录无 stacktrace 的 warning；未预期异常返回通用 500，并由 `OpenAliceLog` 记录一次 stacktrace。不引入 `ApiResponse` 或大量业务 exception class。
 
 ## Validation
 
@@ -56,8 +62,8 @@ OPENALICE_HOME=<temporary-directory> ./mvnw spring-boot:run
 
 2026-10-04 修订后实际结果：
 
-- `./mvnw test`：PASS，12 tests，0 failures / errors / skipped；
-- `./mvnw package`：PASS，12 tests 再次通过并生成可执行 Spring Boot JAR；
+- `./mvnw test`：PASS，20 tests，0 failures / errors / skipped；
+- `./mvnw package`：PASS，20 tests 再次通过并生成可执行 Spring Boot JAR；
 - temporary `OPENALICE_HOME` + random port `spring-boot:run`：PASS；
 - SQLite 测试同时验证 WAL、foreign keys、5000 ms busy timeout、migration idempotency 与 `VACUUM INTO` snapshot restore；MyBatis integration 验证 model mapping、conditional terminal transition 与 stale `RUNNING → INTERRUPTED`；
 - dependency tree 包含 Spring Boot 3.5.6、MyBatis Spring Boot Starter 3.0.5、Flyway 11.7.2、Xerial 3.53.4.0、AgentScope core / OpenAI extension 2.0.3，不包含 MyBatis-Plus、Harness、Spring AI、JPA、Hibernate 或独立 `JdbcClient` 实现。
@@ -75,6 +81,8 @@ OPENALICE_HOME=<temporary-directory> ./mvnw spring-boot:run
 - [x] runtime candidate 与产品级 `COMPLETED` commit gate 分离；
 - [x] startup stale `RUNNING → INTERRUPTED` reconciliation；
 - [x] runtime event 与 cancellation 并发发布串行化；
+- [x] Reactor-aware diagnostic context、自定义 event log API 与可替换 writer；
+- [x] request-id filter、统一 application exception 与 ProblemDetail handler；
 - [x] deterministic tests、random-port HTTP test 与 Java 21 CI；
 - [x] 未实现完整 product vertical slice。
 

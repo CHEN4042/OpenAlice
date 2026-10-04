@@ -4,7 +4,7 @@ OpenAlice 正在进行 Repository Re-initialization。P1 Engineering Foundation 
 
 ## 当前状态
 
-- Java 21、Spring Boot、SQLite、Flyway、原生 MyBatis Mapper、AgentScope runtime boundary、HTTP/SSE、测试与 CI 已建立。
+- Java 21、Spring Boot、SQLite、Flyway、原生 MyBatis Mapper、AgentScope runtime boundary、HTTP/SSE、自定义日志与统一异常框架、测试及 CI 已建立。
 - legacy implementation 与旧构建文件已从 active repository 移除，可通过 Git 历史和已推送的 `bd4618f` 恢复。
 - `temp/` 只保存旧产品和工程参考材料，不包含业务实现，也不是当前权威。
 - 当前活动计划：[P1 Engineering Foundation](docs/plans/active/p1-engineering-foundation.md) 与 [Repository Re-initialization](docs/plans/active/repository-reinitialization.md)。

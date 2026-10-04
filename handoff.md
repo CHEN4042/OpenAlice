@@ -6,7 +6,7 @@
 
 - 日期：2026-10-04。
 - 阶段：Repository Re-initialization · Phase 5 P1 Engineering Foundation 已在 `openalice-20261016` 完成 Final Review 修订并验证，等待 Cycle Review；完整 Conversation vertical slice 尚未开始。
-- Java 21 单模块 Spring Boot 工程采用横向技术 package、SQLite/Flyway/MyBatis Mapper、AgentRuntime、WebFlux SSE、自动化测试与 CI。
+- Java 21 单模块 Spring Boot 工程采用横向技术 package、SQLite/Flyway/MyBatis Mapper、AgentRuntime、WebFlux SSE、自定义日志、统一异常、自动化测试与 CI。
 
 ## 当前权威与输入
 
@@ -40,6 +40,9 @@
 - runtime completion 只产生 candidate result；只有产品层显式通过 commit gate 后，Execution 才能进入 `COMPLETED`。
 - startup reconciliation 将 stale `RUNNING` 对账为 `INTERRUPTED`；不恢复 stream、不伪造 completion、不自动 retry。
 - `ExecutionCoordinator` 独立订阅 runtime 并串行发布同一 Execution 的 Reactor events；random-port HTTP test 证明 SSE client detach 不会取消 Execution，并发 cancellation 不会触发 non-serialized emission。
+- `OpenAliceLog` 使用稳定 `<domain>.<event>`、message 和动态 fields；`LogContext` 经 Reactor Context 与 Micrometer Context Propagation 跨 scheduler 传播 request / execution identity，SLF4J / Logback 位于可替换 `LogWriter` 后。
+- `RequestContextWebFilter` 继承或生成 `X-Request-Id`；Execution runtime 使用独立 execution context，不依赖 HTTP / SSE connection 存活。
+- HTTP error 使用粗粒度 `ErrorCode`、单一 `OpenAliceException` 与 Spring `ProblemDetail`；expected error 不打印 stacktrace，unexpected error 通过 `OpenAliceLog` 统一记录一次 stacktrace。
 - CI 使用 Java 21 执行 `./mvnw test`。没有 Architecture Amendment Candidate。
 
 ## 唯一下一步

@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-项目处于 Repository Re-initialization。产品与首版架构权威已经建立；Phase 5 Engineering Foundation 已在 `openalice-20261016` 完成 Final Review 修订并等待 Cycle Review。当前实现采用横向 Java package 和原生 MyBatis Mapper，并已补齐 Execution completion gate、startup reconciliation 与并发事件发布验证。请先阅读：
+项目处于 Repository Re-initialization。产品与首版架构权威已经建立；Phase 5 Engineering Foundation 已在 `openalice-20261016` 完成 Final Review 修订并等待 Cycle Review。当前实现采用横向 Java package、原生 MyBatis Mapper、自定义日志与统一异常框架，并已补齐 Execution completion gate、startup reconciliation 与并发事件发布验证。请先阅读：
 
 1. [AGENTS.md](../AGENTS.md)
 2. [handoff.md](../handoff.md)
