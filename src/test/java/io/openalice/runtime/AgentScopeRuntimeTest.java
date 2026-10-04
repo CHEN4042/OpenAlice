@@ -1,4 +1,4 @@
-package io.openalice.execution.runtime;
+package io.openalice.runtime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,11 +29,11 @@ class AgentScopeRuntimeTest {
         List<RuntimeEvent> second = runtime.execute(request("second")).collectList().block();
 
         assertThat(first).anySatisfy(event -> assertThat(event)
-                .isInstanceOfSatisfying(RuntimeEvent.Completed.class, completed ->
-                        assertThat(completed.result().text()).isEqualTo("reply-1")));
+                .isInstanceOfSatisfying(RuntimeEvent.CandidateResult.class, candidate ->
+                        assertThat(candidate.result().text()).isEqualTo("reply-1")));
         assertThat(second).anySatisfy(event -> assertThat(event)
-                .isInstanceOfSatisfying(RuntimeEvent.Completed.class, completed ->
-                        assertThat(completed.result().text()).isEqualTo("reply-2")));
+                .isInstanceOfSatisfying(RuntimeEvent.CandidateResult.class, candidate ->
+                        assertThat(candidate.result().text()).isEqualTo("reply-2")));
         assertThat(model.inputs()).hasSize(2);
         assertThat(model.inputs().get(0))
                 .extracting(Msg::getTextContent)

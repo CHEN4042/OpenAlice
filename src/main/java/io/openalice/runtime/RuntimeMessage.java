@@ -1,4 +1,4 @@
-package io.openalice.execution.runtime;
+package io.openalice.runtime;
 
 public record RuntimeMessage(Role role, String text) {
 

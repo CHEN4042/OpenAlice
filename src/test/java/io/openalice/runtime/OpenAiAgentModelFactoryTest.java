@@ -1,4 +1,4 @@
-package io.openalice.execution.runtime;
+package io.openalice.runtime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

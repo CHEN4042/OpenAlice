@@ -1,4 +1,4 @@
-package io.openalice.execution;
+package io.openalice.exception;
 
 import java.util.UUID;
 

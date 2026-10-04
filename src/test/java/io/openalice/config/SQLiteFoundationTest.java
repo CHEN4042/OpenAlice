@@ -2,17 +2,23 @@ package io.openalice.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.openalice.mapper.ExecutionMapper;
+import io.openalice.model.Execution;
+import io.openalice.model.ExecutionStatus;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.UUID;
+import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -26,50 +32,44 @@ class SQLiteFoundationTest {
         registry.add("openalice.home", openAliceHome::toString);
     }
 
-    @Autowired JdbcClient jdbcClient;
+    @Autowired DataSource dataSource;
+    @Autowired ExecutionMapper executionMapper;
     @Autowired Flyway flyway;
 
     @Test
-    void databaseUsesOpenAliceHomeAndRequiredPragmas() {
+    void databaseUsesOpenAliceHomeAndRequiredPragmas() throws Exception {
         assertThat(Files.isRegularFile(openAliceHome.resolve("data/openalice.db"))).isTrue();
-        assertThat(jdbcClient.sql("PRAGMA journal_mode").query(String.class).single())
-                .isEqualToIgnoringCase("wal");
-        assertThat(jdbcClient.sql("PRAGMA foreign_keys").query(Integer.class).single()).isOne();
-        assertThat(jdbcClient.sql("PRAGMA busy_timeout").query(Integer.class).single())
-                .isEqualTo(5_000);
+        assertThat(queryString("PRAGMA journal_mode")).isEqualToIgnoringCase("wal");
+        assertThat(queryInt("PRAGMA foreign_keys")).isOne();
+        assertThat(queryInt("PRAGMA busy_timeout")).isEqualTo(5_000);
     }
 
     @Test
-    void flywayMigrationIsAppliedOnceAndCreatesExecutionTable() {
+    void flywayMigrationIsAppliedOnceAndCreatesExecutionTable() throws Exception {
         assertThat(flyway.info().applied()).hasSize(1);
         assertThat(flyway.migrate().migrationsExecuted).isZero();
-        assertThat(jdbcClient
-                        .sql("""
-                                SELECT count(*)
-                                FROM sqlite_master
-                                WHERE type = 'table' AND name = 'executions'
-                                """)
-                        .query(Integer.class)
-                        .single())
+        assertThat(queryInt("""
+                SELECT count(*)
+                FROM sqlite_master
+                WHERE type = 'table' AND name = 'executions'
+                """))
                 .isOne();
     }
 
     @Test
     void sqliteSnapshotCanBeOpenedAndRestored() throws Exception {
         UUID executionId = UUID.randomUUID();
-        String now = Instant.now().toString();
-        jdbcClient
-                .sql("""
-                        INSERT INTO executions(execution_id, status, created_at, updated_at)
-                        VALUES (:id, 'RUNNING', :createdAt, :updatedAt)
-                        """)
-                .param("id", executionId.toString())
-                .param("createdAt", now)
-                .param("updatedAt", now)
-                .update();
+        Instant now = Instant.now();
+        assertThat(executionMapper.insert(
+                        new Execution(executionId, ExecutionStatus.RUNNING, now, now)))
+                .isOne();
 
         Path snapshot = openAliceHome.resolve("openalice-backup.db");
-        jdbcClient.sql("VACUUM INTO :snapshot").param("snapshot", snapshot.toString()).update();
+        try (Connection connection = dataSource.getConnection();
+                var statement = connection.prepareStatement("VACUUM INTO ?")) {
+            statement.setString(1, snapshot.toString());
+            statement.executeUpdate();
+        }
 
         try (var connection = DriverManager.getConnection("jdbc:sqlite:" + snapshot);
                 var statement = connection.prepareStatement(
@@ -79,6 +79,24 @@ class SQLiteFoundationTest {
                 assertThat(result.next()).isTrue();
                 assertThat(result.getString("status")).isEqualTo("RUNNING");
             }
+        }
+    }
+
+    private String queryString(String sql) throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+                var statement = connection.createStatement();
+                ResultSet result = statement.executeQuery(sql)) {
+            result.next();
+            return result.getString(1);
+        }
+    }
+
+    private int queryInt(String sql) throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+                var statement = connection.createStatement();
+                ResultSet result = statement.executeQuery(sql)) {
+            result.next();
+            return result.getInt(1);
         }
     }
 }

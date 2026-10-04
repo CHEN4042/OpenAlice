@@ -1,4 +1,4 @@
-package io.openalice.execution.runtime;
+package io.openalice.runtime;
 
 import io.agentscope.core.ReActAgent;
 import io.agentscope.core.agent.RuntimeContext;
@@ -100,7 +100,7 @@ public class AgentScopeRuntime implements AgentRuntime {
         if (event instanceof TextBlockDeltaEvent delta && !delta.getDelta().isEmpty()) {
             sink.next(new RuntimeEvent.TextDelta(executionId, now, delta.getDelta()));
         } else if (event instanceof AgentResultEvent result && result.getResult() != null) {
-            sink.next(new RuntimeEvent.Completed(
+            sink.next(new RuntimeEvent.CandidateResult(
                     executionId, now, new RuntimeResult(result.getResult().getTextContent())));
         }
     }

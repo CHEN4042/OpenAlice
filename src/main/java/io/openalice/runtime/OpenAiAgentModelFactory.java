@@ -1,4 +1,4 @@
-package io.openalice.execution.runtime;
+package io.openalice.runtime;
 
 import io.agentscope.core.model.transport.HttpTransport;
 import io.agentscope.core.model.transport.HttpTransportConfig;

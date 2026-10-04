@@ -1,4 +1,4 @@
-package io.openalice.execution;
+package io.openalice.model;
 
 import java.time.Instant;
 import java.util.UUID;

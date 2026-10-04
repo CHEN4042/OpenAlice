@@ -1,4 +1,4 @@
-package io.openalice.execution;
+package io.openalice.model;
 
 public enum ExecutionStatus {
     RUNNING,

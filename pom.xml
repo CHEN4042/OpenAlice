@@ -20,6 +20,7 @@
   <properties>
     <java.version>21</java.version>
     <agentscope.version>2.0.3</agentscope.version>
+    <mybatis-spring-boot.version>3.0.5</mybatis-spring-boot.version>
     <sqlite-jdbc.version>3.53.4.0</sqlite-jdbc.version>
     <flyway.version>11.7.2</flyway.version>
   </properties>
@@ -30,8 +31,9 @@
       <artifactId>spring-boot-starter-webflux</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-jdbc</artifactId>
+      <groupId>org.mybatis.spring.boot</groupId>
+      <artifactId>mybatis-spring-boot-starter</artifactId>
+      <version>${mybatis-spring-boot.version}</version>
     </dependency>
     <dependency>
       <groupId>org.flywaydb</groupId>

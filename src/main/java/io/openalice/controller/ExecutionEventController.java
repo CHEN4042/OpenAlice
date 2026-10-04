@@ -1,6 +1,7 @@
-package io.openalice.execution;
+package io.openalice.controller;
 
-import io.openalice.execution.runtime.RuntimeEvent;
+import io.openalice.runtime.RuntimeEvent;
+import io.openalice.service.ExecutionCoordinator;
 import java.time.Instant;
 import java.util.UUID;
 import org.springframework.http.MediaType;
@@ -34,6 +35,9 @@ public class ExecutionEventController {
         } else if (event instanceof RuntimeEvent.TextDelta delta) {
             type = "text-delta";
             text = delta.delta();
+        } else if (event instanceof RuntimeEvent.CandidateResult candidate) {
+            type = "candidate-result";
+            text = candidate.result().text();
         } else if (event instanceof RuntimeEvent.Completed completed) {
             type = "completed";
             text = completed.result().text();
