@@ -4,9 +4,9 @@
 
 ## 当前状态
 
-- 日期：2026-10-03。
-- 阶段：Repository Re-initialization · Phase 5 P1 Engineering Foundation 已在 `openalice-20261016` 实现并验证，等待 Cycle Review；完整 Conversation vertical slice 尚未开始。
-- Java 21 单模块 Spring Boot 工程、SQLite/Flyway/JdbcClient、AgentRuntime、WebFlux SSE、自动化测试与 CI 已建立。
+- 日期：2026-10-04。
+- 阶段：Repository Re-initialization · Phase 5 P1 Engineering Foundation 已在 `openalice-20261016` 完成 Final Review 修订并验证，等待 Cycle Review；完整 Conversation vertical slice 尚未开始。
+- Java 21 单模块 Spring Boot 工程采用横向技术 package、SQLite/Flyway/MyBatis Mapper、AgentRuntime、WebFlux SSE、自动化测试与 CI。
 
 ## 当前权威与输入
 
@@ -35,8 +35,11 @@
 
 - 本地数据根由 `OPENALICE_HOME` 统一解析；默认数据库为 `~/.openalice/data/openalice.db`，测试使用临时目录。
 - SQLite connections 启用 WAL、foreign keys 与 5000 ms busy timeout；Flyway V1 建立最小 `executions` table。
+- Execution persistence 使用原生 MyBatis Mapper；简单 SQL 使用 annotation，复杂动态 SQL 预留 XML，不使用 `JdbcClient` 或 MyBatis-Plus。
 - `AgentScopeRuntime` 每个 Execution 新建 Bare `ReActAgent` 和 state store；默认测试使用 deterministic model，不需要 API key 或网络。
-- `ExecutionCoordinator` 独立订阅 runtime 并发布 Reactor events；random-port HTTP test 证明 SSE client detach 后 Execution 继续完成。
+- runtime completion 只产生 candidate result；只有产品层显式通过 commit gate 后，Execution 才能进入 `COMPLETED`。
+- startup reconciliation 将 stale `RUNNING` 对账为 `INTERRUPTED`；不恢复 stream、不伪造 completion、不自动 retry。
+- `ExecutionCoordinator` 独立订阅 runtime 并串行发布同一 Execution 的 Reactor events；random-port HTTP test 证明 SSE client detach 不会取消 Execution，并发 cancellation 不会触发 non-serialized emission。
 - CI 使用 Java 21 执行 `./mvnw test`。没有 Architecture Amendment Candidate。
 
 ## 唯一下一步
