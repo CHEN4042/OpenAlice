@@ -2,6 +2,11 @@ package io.openalice.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.openalice.common.log.LogWriter;
+import io.openalice.common.log.OpenAliceLog;
+import io.openalice.common.log.Slf4jLogWriter;
+import io.openalice.exception.ErrorCode;
+import io.openalice.exception.OpenAliceException;
 import io.openalice.mapper.ExecutionMapper;
 import io.openalice.model.Execution;
 import io.openalice.model.ExecutionStatus;
@@ -21,7 +26,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -38,6 +45,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
+import reactor.test.StepVerifier;
 
 @SpringBootTest(
         webEnvironment = WebEnvironment.RANDOM_PORT,
@@ -56,10 +64,18 @@ class ExecutionSseIntegrationTest {
     @Autowired ExecutionCoordinator coordinator;
     @Autowired ExecutionMapper executionMapper;
     @Autowired ControllableRuntime runtime;
+    private final CapturingLogWriter logWriter = new CapturingLogWriter();
 
     @BeforeEach
     void resetRuntimeEvidence() {
         runtime.reset();
+        logWriter.clear();
+        OpenAliceLog.configureWriter(logWriter);
+    }
+
+    @AfterEach
+    void restoreSlf4j() {
+        OpenAliceLog.configureWriter(new Slf4jLogWriter());
     }
 
     @Test
@@ -98,6 +114,15 @@ class ExecutionSseIntegrationTest {
                 .get()
                 .extracting(Execution::status)
                 .isEqualTo(ExecutionStatus.COMPLETED);
+        assertThat(logWriter.entriesFor("execution.started"))
+                .singleElement()
+                .satisfies(entry -> assertThat(entry.record().fields())
+                        .containsEntry("executionId", executionId.toString())
+                        .containsKey("runtime"));
+        assertThat(logWriter.entriesFor("execution.completed"))
+                .singleElement()
+                .satisfies(entry -> assertThat(entry.record().fields())
+                        .containsEntry("executionId", executionId.toString()));
     }
 
     @Test
@@ -119,6 +144,19 @@ class ExecutionSseIntegrationTest {
         assertThat(delivered).noneMatch(RuntimeEvent.CandidateResult.class::isInstance);
         assertThat(delivered).noneMatch(RuntimeEvent.Completed.class::isInstance);
         assertThat(coordinator.completeAfterProductCommit(executionId)).isFalse();
+        assertThat(logWriter.entriesFor("execution.cancelled"))
+                .singleElement()
+                .satisfies(entry -> assertThat(entry.record().fields())
+                        .containsEntry("executionId", executionId.toString()));
+    }
+
+    @Test
+    void missingExecutionUsesOpenAliceNotFoundException() {
+        StepVerifier.create(coordinator.events(UUID.randomUUID()))
+                .expectErrorSatisfies(error -> assertThat(error)
+                        .isInstanceOfSatisfying(OpenAliceException.class, exception ->
+                                assertThat(exception.errorCode()).isEqualTo(ErrorCode.NOT_FOUND)))
+                .verify();
     }
 
     @Test
@@ -228,4 +266,25 @@ class ExecutionSseIntegrationTest {
             manualSinks.clear();
         }
     }
+
+    private static final class CapturingLogWriter implements LogWriter {
+        private final List<CapturedLog> entries = new CopyOnWriteArrayList<>();
+
+        @Override
+        public void write(Level level, LogRecord record, Throwable error) {
+            entries.add(new CapturedLog(level, record, error));
+        }
+
+        List<CapturedLog> entriesFor(String event) {
+            return entries.stream()
+                    .filter(entry -> entry.record().event().equals(event))
+                    .toList();
+        }
+
+        void clear() {
+            entries.clear();
+        }
+    }
+
+    private record CapturedLog(LogWriter.Level level, LogWriter.LogRecord record, Throwable error) {}
 }

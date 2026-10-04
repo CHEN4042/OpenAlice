@@ -1,6 +1,9 @@
 package io.openalice.service;
 
-import io.openalice.exception.ExecutionNotFoundException;
+import io.openalice.common.log.LogContext;
+import io.openalice.common.log.OpenAliceLog;
+import io.openalice.exception.ErrorCode;
+import io.openalice.exception.OpenAliceException;
 import io.openalice.mapper.ExecutionMapper;
 import io.openalice.model.Execution;
 import io.openalice.model.ExecutionStatus;
@@ -40,7 +43,9 @@ public class ExecutionCoordinator {
 
     public UUID start(RuntimeRequest request) {
         UUID executionId = request.executionId();
-        ExecutionStream stream = new ExecutionStream();
+        LogContext executionContext =
+                LogContext.current().withExecutionId(executionId.toString());
+        ExecutionStream stream = new ExecutionStream(executionContext);
         if (eventStreams.putIfAbsent(executionId, stream) != null) {
             throw new IllegalStateException("Execution already exists in this process");
         }
@@ -57,18 +62,26 @@ public class ExecutionCoordinator {
             throw error;
         }
         stream.publish(new RuntimeEvent.Started(executionId, clock.instant()));
+        stream.log(() -> OpenAliceLog.event("execution.started")
+                .message("Execution started")
+                .field("runtime", runtime.getClass().getSimpleName())
+                .info());
 
-        runtime.execute(request).subscribe(
-                event -> acceptRuntimeEvent(stream, event),
-                error -> fail(stream, executionId, safeMessage(error)),
-                () -> finishRuntime(stream, executionId));
+        runtime.execute(request)
+                .doOnNext(event -> acceptRuntimeEvent(stream, event))
+                .doOnError(error -> fail(stream, executionId, safeMessage(error)))
+                .doOnComplete(() -> finishRuntime(stream, executionId))
+                .contextWrite(executionContext.writeToReactorContext())
+                .subscribe(ignored -> {}, ignored -> {});
         return executionId;
     }
 
     public Flux<RuntimeEvent> events(UUID executionId) {
         ExecutionStream stream = eventStreams.get(executionId);
         if (stream == null) {
-            return Flux.error(new ExecutionNotFoundException(executionId));
+            return Flux.error(new OpenAliceException(
+                    ErrorCode.NOT_FOUND,
+                    "Execution event stream not found: " + executionId));
         }
         return stream.events();
     }
@@ -93,6 +106,9 @@ public class ExecutionCoordinator {
             stream.publishLocked(
                     new RuntimeEvent.Completed(executionId, clock.instant(), candidate));
             stream.completeLocked();
+            stream.log(() -> OpenAliceLog.event("execution.completed")
+                    .message("Execution completed after product commit")
+                    .info());
             return true;
         }
     }
@@ -113,6 +129,9 @@ public class ExecutionCoordinator {
                     stream.publishLocked(
                             new RuntimeEvent.Cancelled(executionId, clock.instant()));
                     stream.completeLocked();
+                    stream.log(() -> OpenAliceLog.event("execution.cancelled")
+                            .message("Execution cancelled")
+                            .info());
                 }
             }
         }
@@ -169,6 +188,9 @@ public class ExecutionCoordinator {
             stream.publishLocked(
                     new RuntimeEvent.Failed(executionId, clock.instant(), message));
             stream.completeLocked();
+            stream.log(() -> OpenAliceLog.event("execution.failed")
+                    .message("Execution failed")
+                    .error());
         }
     }
 
@@ -187,7 +209,12 @@ public class ExecutionCoordinator {
     private static final class ExecutionStream {
         private final Sinks.Many<RuntimeEvent> sink =
                 Sinks.many().replay().limit(IN_MEMORY_EVENT_LIMIT);
+        private final LogContext logContext;
         private RuntimeResult candidateResult;
+
+        private ExecutionStream(LogContext logContext) {
+            this.logContext = logContext;
+        }
 
         Flux<RuntimeEvent> events() {
             return sink.asFlux();
@@ -217,6 +244,10 @@ public class ExecutionCoordinator {
 
         void setCandidateResult(RuntimeResult candidateResult) {
             this.candidateResult = candidateResult;
+        }
+
+        void log(Runnable logAction) {
+            logContext.run(logAction);
         }
     }
 }
